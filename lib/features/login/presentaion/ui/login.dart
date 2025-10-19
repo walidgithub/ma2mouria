@@ -22,7 +22,19 @@ class _LoginViewState extends State<LoginView> {
       body: Stack(
         children: [
           SizedBox.expand(
-            child: Image.asset(AppAssets.welcome, fit: BoxFit.cover),
+            child: Image.network(
+              'https://walidgithub.github.io/ma2mouria/assets/images/1.jpg', // ضع رابط الصورة هنا
+              width: 300,
+              height: 200,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const CircularProgressIndicator(); // مؤشر تحميل
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return const Text('❌ فشل تحميل الصورة');
+              },
+            )
           ),
 
           Container(color: Colors.black.withOpacity(0.25)),
