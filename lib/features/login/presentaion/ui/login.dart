@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../../../../core/utils/constant/app_assets.dart';
 import '../../../../core/utils/constant/app_constants.dart';
@@ -21,35 +22,40 @@ class _LoginViewState extends State<LoginView> {
       body: Stack(
         children: [
           SizedBox.expand(
-            child: Image.asset(
-              AppAssets.welcome,
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset(AppAssets.welcome, fit: BoxFit.cover),
           ),
 
-          Container(
-            color: Colors.black.withOpacity(0.25),
-          ),
+          Container(color: Colors.black.withOpacity(0.25)),
 
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 72),
 
-                  FadeInDown(
+                  FadeInLeft(
                     duration: Duration(milliseconds: AppConstants.animation),
-                    child: Center(
-                      child: const Text(
-                        'Let\'s start',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 46,
-                          height: 1.02,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    child: Text(
+                      'Let\'s start',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 46,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  FadeInRight(
+                    duration: Duration(milliseconds: AppConstants.animation),
+                    child: Text(
+                      'Ma2mouria',
+                      style: GoogleFonts.montserrat(
+                        color: Colors.white,
+                        fontSize: 46,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -60,29 +66,31 @@ class _LoginViewState extends State<LoginView> {
                     duration: Duration(milliseconds: AppConstants.animation),
                     child: Center(
                       child: Bounceable(
-                        onTap: (){
-
-                        },
+                        onTap: () {},
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(15),
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                                filter: ImageFilter.blur(
+                                  sigmaX: 8.0,
+                                  sigmaY: 8.0,
+                                ),
                                 child: Container(
-                                  width: size.width * 0.82,
                                   height: 56,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.12),
                                     borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(1),
-                                      width: 1,
+                                  ),
+                                  child: Text(
+                                    "Sign in",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 22,
                                     ),
                                   ),
-                                  child: Text("Sign in", style: TextStyle(fontSize: 18,color: Colors.white,fontWeight: FontWeight.w600),),
                                 ),
                               ),
                             ),

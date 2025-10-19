@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../constant/app_constants.dart';
 import '../constant/app_typography.dart';
@@ -8,6 +9,7 @@ import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData lightTheme = ThemeData(
+    textTheme: GoogleFonts.montserratTextTheme(),
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: AppColors.cPrimary),
       primarySwatch: Colors.teal,
