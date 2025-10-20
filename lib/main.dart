@@ -10,7 +10,15 @@ import 'core/utils/style/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(apiKey: "AIzaSyBy1FirtopKgVYrJSdipmmXYzo3w6ZB6BM",
+        authDomain: "ma2mouria.firebaseapp.com",
+        projectId: "ma2mouria",
+        storageBucket: "ma2mouria.firebasestorage.app",
+        messagingSenderId: "834303301817",
+        appId: "1:834303301817:web:26f1d8c408861375c0a368",
+        measurementId: "G-GN63DYLJPW")
+  );
   await ServiceLocator().init();
   await ScreenUtil.ensureScreenSize();
   runApp(const MyApp());
@@ -32,7 +40,7 @@ class MyApp extends StatelessWidget {
               title: AppStrings.appName,
               builder: EasyLoading.init(),
               onGenerateRoute: RouteGenerator.getRoute,
-              initialRoute: Routes.loginRoute,
+              initialRoute: Routes.homeRoute,
               theme: AppTheme.lightTheme);
         });
   }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../features/login/presentaion/ui/login.dart';
-import '../di/di.dart';
-import 'arguments.dart';
+import 'package:ma2mouria/features/auth/presentaion/ui/auth_view.dart';
+
+import '../../features/home_page/presentaion/ui/home_page.dart';
 
 class Routes {
   static const String loginRoute = "/login";
+  static const String homeRoute = "/home";
 }
 
 class RouteGenerator {
@@ -13,7 +13,10 @@ class RouteGenerator {
     switch (settings.name) {
       case Routes.loginRoute:
         return MaterialPageRoute(
-            builder: (_) => const LoginView());
+            builder: (_) => const AuthView());
+      case Routes.homeRoute:
+        return MaterialPageRoute(
+            builder: (_) => const HomeView());
       default:
         return unDefinedRoute();
     }
