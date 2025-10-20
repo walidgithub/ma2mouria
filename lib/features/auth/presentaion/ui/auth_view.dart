@@ -6,6 +6,7 @@ import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/features/auth/presentaion/bloc/auth_cubit.dart';
 import 'dart:ui';
 import '../../../../core/di/di.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/constant/app_constants.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../core/utils/ui_components/snackbar.dart';
@@ -78,6 +79,7 @@ class _AuthViewState extends State<AuthView> {
                             showLoading();
                           } else if (state is LoginSuccessState) {
                             hideLoading();
+                            Navigator.pushReplacementNamed(context, Routes.homeRoute);
                           } else if (state is LoginErrorState) {
                             showSnackBar(context, state.errorMessage);
                             hideLoading();
