@@ -24,7 +24,7 @@ class CustomTextButton extends StatelessWidget {
       child: Text(
         text,
         style: AppTypography.kLight14.copyWith(
-          color: color ?? AppColors.cTitle,
+          color: color ?? AppColors.cThird,
           fontSize: fontSize,
         ),
       ),

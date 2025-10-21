@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
               title: AppStrings.appName,
               builder: EasyLoading.init(),
               onGenerateRoute: RouteGenerator.getRoute,
-              initialRoute: Routes.loginRoute,
+              initialRoute: Routes.homeRoute,
               theme: AppTheme.lightTheme);
         });
   }

@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/features/auth/presentaion/bloc/auth_cubit.dart';
@@ -35,11 +36,11 @@ class _AuthViewState extends State<AuthView> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+            padding: EdgeInsets.symmetric(horizontal: 30.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 72),
+                SizedBox(height: 72.h),
 
                 FadeInLeft(
                   duration: Duration(milliseconds: AppConstants.animation),
@@ -47,12 +48,12 @@ class _AuthViewState extends State<AuthView> {
                     AppStrings.letsStart,
                     style: GoogleFonts.poppins(
                       color: Colors.white,
-                      fontSize: 46,
+                      fontSize: 30.sp,
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: 20.h),
 
                 FadeInRight(
                   duration: Duration(milliseconds: AppConstants.animation),
@@ -60,7 +61,7 @@ class _AuthViewState extends State<AuthView> {
                     AppStrings.appName,
                     style: GoogleFonts.montserrat(
                       color: Colors.white,
-                      fontSize: 46,
+                      fontSize: 40.sp,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -94,28 +95,31 @@ class _AuthViewState extends State<AuthView> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(30),
+                                  borderRadius: BorderRadius.circular(20.r),
                                   child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
                                     child: Container(
-                                      padding: EdgeInsets.all(10),
-                                      margin: EdgeInsets.all(10),
+                                      margin: EdgeInsets.symmetric(horizontal: 10.w),
+                                      padding:  EdgeInsets.symmetric(
+                                        horizontal: 20.w,
+                                        vertical: 10.h,
+                                      ),
                                       width: MediaQuery.sizeOf(context).width / 0.5,
-                                      height: 80,
+                                      height: 45.h,
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(30),
+                                        borderRadius: BorderRadius.circular(20.r),
                                         border: Border.all(
                                           color: Colors.white.withOpacity(0.2),
-                                          width: 1.5,
+                                          width: 1.5.w,
                                         ),
                                       ),
                                       child: Center(
                                         child: Text(
-                                          "Sign in",
+                                          AppStrings.signIn,
                                           style: GoogleFonts.poppins(
                                             color: Colors.white,
-                                            fontSize: 22,
+                                            fontSize: 15.sp,
                                           ),
                                         ),
                                       ),

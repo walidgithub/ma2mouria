@@ -7,11 +7,11 @@ import '../style/app_colors.dart';
 void showLoading() {
   EasyLoading.instance
     ..loadingStyle = EasyLoadingStyle.custom
-    ..backgroundColor = AppColors.cTitle
+    ..backgroundColor = AppColors.cSecondary
     ..indicatorColor = AppColors.cWhite
     ..textColor = AppColors.cWhite
     ..indicatorSize = 50.0.w
-    ..indicatorType = EasyLoadingIndicatorType.wave
+    ..indicatorType = EasyLoadingIndicatorType.circle
     ..radius = 10.0.w
     ..dismissOnTap = false
     ..userInteractions = false;

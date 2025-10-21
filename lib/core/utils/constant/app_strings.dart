@@ -13,4 +13,12 @@ class AppStrings {
   static const String spending = "Spending";
   static const String total = "Total";
   static const String hi = "Hi";
+  static const String test = "Test";
+  static const String group = "Group";
+  static const String single = "Single";
+  static const String value = "Value";
+  static const String invoiceNumber = "Invoice number";
+  static const String restaurantName = "Restaurant name";
+  static const String save = "Save";
+  static const String approve = "Approve";
 }

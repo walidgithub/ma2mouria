@@ -1,7 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bounceable/flutter_bounceable.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ma2mouria/core/utils/constant/app_strings.dart';
+import 'package:ma2mouria/core/utils/style/app_colors.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class HomeView extends StatefulWidget {
@@ -20,6 +24,7 @@ class _HomeViewState extends State<HomeView>
   final double endValue = 0.50;
 
   int _currentIndex = 0;
+  bool isGroup = false;
 
   @override
   void initState() {
@@ -36,6 +41,11 @@ class _HomeViewState extends State<HomeView>
 
     _controller.forward();
   }
+  final List<Map<String, dynamic>> fatoorahList = [
+    {"name": "Me", "value": 250.0},
+    {"name": "Mo'men", "value": 150.5},
+    {"name": "Ahmed", "value": 320.0},
+  ];
 
   @override
   void dispose() {
@@ -57,7 +67,7 @@ class _HomeViewState extends State<HomeView>
         ),
         child: SafeArea(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             child: Column(
               children: [
                 Padding(
@@ -65,17 +75,18 @@ class _HomeViewState extends State<HomeView>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
+                      Row(
                         children: [
                           Text(
                             AppStrings.hi,
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 28,
+                              fontSize: 25.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text('👋', style: TextStyle(fontSize: 28)),
+                          SizedBox(width: 5.w),
+                          Text('👋', style: TextStyle(fontSize: 15.sp)),
                         ],
                       ),
 
@@ -85,20 +96,20 @@ class _HomeViewState extends State<HomeView>
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(10.r),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.2),
                               ),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.notifications_outlined,
                               color: Colors.white,
-                              size: 20,
+                              size: 15.sp,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          const CircleAvatar(
-                            radius: 20,
+                          SizedBox(width: 12.w),
+                          CircleAvatar(
+                            radius: 20.r,
                             backgroundImage: NetworkImage(
                               'https://avatar.iran.liara.run/public/boy',
                             ),
@@ -109,130 +120,40 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20,0,20,0),
+                  padding: EdgeInsets.fromLTRB(20.h, 0, 20.w, 0),
                   child: Row(
                     children: [
                       Text(
                         'Walid mohamed',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 15.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 20.h),
 
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 24,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'December',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-
-                          AnimatedBuilder(
-                            animation: _animation,
-                            builder: (context, child) {
-                              final percent = _animation.value;
-
-                              return CircularPercentIndicator(
-                                radius: 90,
-                                lineWidth: 12,
-                                percent: percent,
-                                circularStrokeCap: CircularStrokeCap.round,
-                                backgroundColor: Colors.white.withOpacity(0.1),
-
-                                linearGradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF6B4EFF),
-                                    Color(0xFFFF8C61),
-                                    Color(0xFFFFB088),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-
-                                animation: false,
-
-                                center: Text(
-                                  '${(percent * 100).toStringAsFixed(0)}%',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 40),
-                          Column(
-                            children: [
-                              _buildSpendingRow(
-                                label: AppStrings.leftOf,
-                                color: const Color(0xFFFF8C61),
-                                amount: '\$500',
-                              ),
-                              const SizedBox(height: 16),
-                              _buildSpendingRow(
-                                label: AppStrings.spending,
-                                color: const Color(0xFFAF133D),
-                                amount: '\$1024',
-                              ),
-                              const SizedBox(height: 16),
-                              _buildSpendingRow(
-                                label: AppStrings.total,
-                                color: const Color(0xFF6B4EFF),
-                                amount: '\$2000',
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                _currentIndex == 0
+                    ? _buildHomeContent()
+                    : _buildFatoorahContent(),
               ],
             ),
           ),
         ),
       ),
       bottomNavigationBar: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(20.r),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
           child: Container(
-            padding: EdgeInsets.all(10),
-            margin: EdgeInsets.all(10),
+            margin: EdgeInsets.all(10.w),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
                 color: Colors.white.withOpacity(0.2),
                 width: 1.5,
@@ -271,12 +192,12 @@ class _HomeViewState extends State<HomeView>
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFFF8C61) : Colors.transparent,
+          color: isActive ? const Color(0xFFFF8C61) : const Color(0xFF2E2159),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.white, size: 24),
+        child: Icon(icon, color: Colors.white, size: 18.sp),
       ),
     );
   }
@@ -292,14 +213,14 @@ class _HomeViewState extends State<HomeView>
         Row(
           children: [
             Container(
-              width: 8,
-              height: 8,
+              width: 8.w,
+              height: 8.h,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 10),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(color: Colors.white, fontSize: 15.sp),
             ),
           ],
         ),
@@ -307,14 +228,375 @@ class _HomeViewState extends State<HomeView>
           children: [
             Text(
               amount,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildHomeContent() {
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20.r),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 10.w),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5.w,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'December',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      final percent = _animation.value;
+
+                      return CircularPercentIndicator(
+                        radius: 50.r,
+                        lineWidth: 7.w,
+                        percent: percent,
+                        circularStrokeCap: CircularStrokeCap.round,
+                        backgroundColor: Colors.white.withOpacity(0.1),
+
+                        linearGradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF6B4EFF),
+                            Color(0xFFFF8C61),
+                            Color(0xFFFFB088),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+
+                        animation: false,
+
+                        center: Text(
+                          '${(percent * 100).toStringAsFixed(0)}%',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Column(
+                    children: [
+                      _buildSpendingRow(
+                        label: AppStrings.leftOf,
+                        color: const Color(0xFFFF8C61),
+                        amount: '\$500',
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSpendingRow(
+                        label: AppStrings.spending,
+                        color: const Color(0xFFAF133D),
+                        amount: '\$1024',
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSpendingRow(
+                        label: AppStrings.total,
+                        color: const Color(0xFF6B4EFF),
+                        amount: '\$2000',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 20.h),
+
+        TextField(
+          keyboardType: TextInputType.number,
+          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+            hintText: AppStrings.test,
+            hintStyle: TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+            prefixIcon: Icon(
+              Icons.calculate,
+              color: AppColors.cWhite,
+              size: 20.sp,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFatoorahContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Checkbox(
+                  value: isGroup,
+                  activeColor: Colors.orangeAccent,
+                  onChanged: (value) {
+                    setState(() {
+                      isGroup = value!;
+                    });
+                  },
+                ),
+                Text(
+                  isGroup ? AppStrings.group : AppStrings.single,
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+
+            isGroup ? Bounceable(
+              onTap: () {
+
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20.r),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 10.w),
+                        padding:  EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 10.h,
+                        ),
+                        width: 150.w,
+                        height: 45.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20.r),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5.w,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            AppStrings.approve,
+                            style: GoogleFonts.poppins(
+                              color: Colors.redAccent,
+                              fontSize: 15.sp,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ) : Container()
+          ],
+        ),
+
+        SizedBox(height: 10.h),
+
+        TextField(
+          keyboardType: TextInputType.number,
+          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+            hintText: AppStrings.value,
+            hintStyle: TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10.h),
+
+        TextField(
+          keyboardType: TextInputType.number,
+          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+            hintText: AppStrings.invoiceNumber,
+            hintStyle: TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10.h),
+
+        StatefulBuilder(
+          builder: (context, setStateDropdown) {
+            String? selectedRestaurant;
+            final restaurants = ['KFC', 'Mac', 'Pizza Hut', 'Hardee\'s'];
+            return DropdownButtonFormField<String>(
+              dropdownColor: const Color(0xFF2E2159),
+              value: selectedRestaurant,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.1),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                ),
+              ),
+              hint: Text(
+                AppStrings.restaurantName,
+                style: TextStyle(color: Colors.white70,fontSize: 15.sp),
+              ),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              style: TextStyle(color: Colors.white, fontSize: 15.sp),
+              items: restaurants.map((name) {
+                return DropdownMenuItem(value: name, child: Text(name));
+              }).toList(),
+              onChanged: (value) {
+                setStateDropdown(() {
+                  selectedRestaurant = value;
+                });
+              },
+            );
+          },
+        ),
+
+        SizedBox(height: 30.h),
+
+        Bounceable(
+          onTap: () {
+
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20.r),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10.w),
+                    padding:  EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 10.h,
+                    ),
+                    width: MediaQuery.sizeOf(context).width / 0.5,
+                    height: 45.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5.w,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        AppStrings.save,
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+
+        SizedBox(height: 20.h),
+
+        isGroup ? SizedBox(
+          height: 100.h,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: AlwaysScrollableScrollPhysics(),
+            itemCount: fatoorahList.length,
+            itemBuilder: (context, index) {
+              final item = fatoorahList[index];
+              return Container(
+                margin: EdgeInsets.symmetric(vertical: 6.h, horizontal: 5.w),
+                padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.w,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      item["name"],
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    Row(
+                      children: [
+                        Text(
+                          "\$${item["value"].toStringAsFixed(2)}",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                        SizedBox(width: 10.w),
+                        Icon(Icons.edit, color: Colors.orangeAccent, size: 18.sp),
+                        SizedBox(width: 8.w),
+                        Icon(Icons.delete, color: Colors.redAccent, size: 18.sp),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ) : SizedBox.shrink()
       ],
     );
   }

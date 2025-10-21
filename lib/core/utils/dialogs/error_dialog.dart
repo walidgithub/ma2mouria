@@ -44,7 +44,7 @@ Future<bool> onError(BuildContext context, String errorText) async {
                   padding: EdgeInsets.all(20.w),
                   child: Text(
                     errorText,
-                    style: AppTypography.kBold16.copyWith(color: AppColors.cTitle),
+                    style: AppTypography.kBold16.copyWith(color: AppColors.cThird),
                   ),
                 ),
                 Row(
@@ -57,7 +57,7 @@ Future<bool> onError(BuildContext context, String errorText) async {
                       style: ButtonStyle(
                         side: WidgetStateProperty.all(
                           BorderSide(
-                            color: AppColors.cTitle,
+                            color: AppColors.cThird,
                             width: 1.0,
                           ),
                         ),
@@ -69,7 +69,7 @@ Future<bool> onError(BuildContext context, String errorText) async {
                       ),
                       child: Text(
                         AppStrings.ok,
-                        style: AppTypography.kLight14.copyWith(color: AppColors.cTitle),
+                        style: AppTypography.kLight14.copyWith(color: AppColors.cThird),
                       ),
                     ),
                   ],

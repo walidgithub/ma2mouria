@@ -40,7 +40,7 @@ Future<bool> onBackButtonPressed(BuildContext context) async {
                     padding: EdgeInsets.all(20.w), // Content padding
                     child: Text(
                       AppStrings.closeApp,
-                      style: AppTypography.kBold16.copyWith(color: AppColors.cTitle),
+                      style: AppTypography.kBold16.copyWith(color: AppColors.cThird),
                     ),
                   ),
                   Row(
@@ -53,7 +53,7 @@ Future<bool> onBackButtonPressed(BuildContext context) async {
                         style: ButtonStyle(
                           side: WidgetStateProperty.all(
                             BorderSide(
-                              color: AppColors.cTitle, // Border color
+                              color: AppColors.cThird, // Border color
                               width: 1.0, // Border width
                             ),
                           ),
@@ -75,7 +75,7 @@ Future<bool> onBackButtonPressed(BuildContext context) async {
                         style: ButtonStyle(
                           side: WidgetStateProperty.all(
                             BorderSide(
-                              color: AppColors.cTitle, // Border color
+                              color: AppColors.cThird, // Border color
                               width: 1.0, // Border width
                             ),
                           ),
@@ -87,7 +87,7 @@ Future<bool> onBackButtonPressed(BuildContext context) async {
                         ),
                         child: Text(
                           AppStrings.no,
-                          style: AppTypography.kLight14.copyWith(color: AppColors.cTitle),
+                          style: AppTypography.kLight14.copyWith(color: AppColors.cThird),
                         ),
                       ),
                     ],

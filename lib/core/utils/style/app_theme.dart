@@ -17,7 +17,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.cWhite,
       appBarTheme: const AppBarTheme(
         iconTheme: IconThemeData(
-          color: AppColors.cTitle,
+          color: AppColors.cThird,
         ),
         backgroundColor: AppColors.cPrimary,
         elevation: 0,
@@ -27,20 +27,22 @@ class AppTheme {
           horizontal: 10.h,
           vertical: 5.h,
         ),
+        fillColor: AppColors.cWhite,
+        filled: true,
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         border: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         hintStyle: AppTypography.kLight14,
@@ -52,19 +54,19 @@ class AppTheme {
           vertical: 5.h,
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         border: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.cTitle),
+          borderSide: const BorderSide(color: AppColors.cThird),
           borderRadius: BorderRadius.circular(AppConstants.radius),
         ),
         hintStyle: AppTypography.kLight14,
@@ -82,7 +84,7 @@ SystemUiOverlayStyle defaultOverlay = const SystemUiOverlayStyle(
   statusBarColor: AppColors.cTransparent,
   statusBarBrightness: Brightness.dark,
   statusBarIconBrightness: Brightness.dark,
-  systemNavigationBarColor: AppColors.cTitle,
+  systemNavigationBarColor: AppColors.cThird,
   systemNavigationBarDividerColor: AppColors.cTransparent,
   systemNavigationBarIconBrightness: Brightness.light,
 );

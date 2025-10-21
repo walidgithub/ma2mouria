@@ -22,7 +22,7 @@ class TabIcon extends StatelessWidget {
       width: widthSize ?? 50.w,
       decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: selectedWidgets[index] ? AppColors.cTitle : AppColors.cWhite
+          color: selectedWidgets[index] ? AppColors.cThird : AppColors.cWhite
       ),
       child: SvgPicture.asset(selectedWidgets[index] ? whiteIcon : blueIcon),
     );
