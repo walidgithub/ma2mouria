@@ -14,11 +14,23 @@ class AppStrings {
   static const String total = "Total";
   static const String hi = "Hi";
   static const String test = "Test";
-  static const String group = "Group";
+  static const String shared = "Shared";
+  static const String invoiceCreator = "Invoice Creator";
   static const String single = "Single";
-  static const String value = "Value";
-  static const String invoiceNumber = "Invoice number";
-  static const String restaurantName = "Restaurant name";
+  static const String invoiceValue = "Invoice Value";
+  static const String myShare = "My Share";
+  static const String invoiceDetail = "Invoice Detail";
   static const String save = "Save";
   static const String approve = "Approve";
+  static const String myCredit = "My Credit";
+  static const String addInvoice = "Add Invoice";
+  static const String addCycle = "Add Cycle";
+  static const String memberBudget = "Member Budget";
+  static const String membersCount = "Members Count";
+  static const String cycleName = "Cycle Name";
+  static const String cycleMembers = "Cycle Members";
+  static const String addMember = "Add Member";
+  static const String month = "Month";
+  static const String year = "Year";
+  static const String day = "Day";
 }
