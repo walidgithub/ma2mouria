@@ -73,6 +73,23 @@ class _HomeViewState extends State<HomeView>
     {"first_name": "Ahmed", "last_name": "Hassan"},
   ];
 
+  final List<Map<String, dynamic>> reportsList = [
+    {"restaurant": "kfc", "date": "December 22 2025", "invoice_value": 250.0},
+    {"restaurant": "nawara", "date": "December 22 2025", "invoice_value": 150.0},
+    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+  ];
+
+  final List<Map<String, dynamic>> generalReportList = [
+    {"name": "walid", "left": 250.0},
+    {"name": "Mo'men", "left": 150.0},
+    {"name": "Ahmed", "left": 350.0},
+  ];
+
   String? selectedDay;
   String? selectedMonth;
   String? selectedYear;
@@ -149,7 +166,9 @@ class _HomeViewState extends State<HomeView>
                       ? _buildInvoiceContent()
                       : _currentIndex == 2
                       ? _buildCycleContent()
-                      : _buildCycleMembersContent(),
+                      : _currentIndex == 3
+                      ? _buildCycleMembersContent()
+                      : _buildReportsContent(),
                 ),
               ],
             ),
@@ -193,6 +212,11 @@ class _HomeViewState extends State<HomeView>
                   icon: Icons.person,
                   index: 3,
                   isActive: _currentIndex == 3,
+                ),
+                _buildNavItem(
+                  icon: Icons.bar_chart_sharp,
+                  index: 4,
+                  isActive: _currentIndex == 4,
                 ),
               ],
             ),
@@ -314,6 +338,40 @@ class _HomeViewState extends State<HomeView>
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String hint,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return Container(
+      height: 40.h,
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withOpacity(0.1),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Text(
+            hint,
+            style: TextStyle(color: Colors.white70, fontSize: 15.sp),
+          ),
+          dropdownColor: Colors.black87,
+          iconEnabledColor: Colors.white70,
+          isDense: true,
+          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          items: items
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 
@@ -706,9 +764,10 @@ class _HomeViewState extends State<HomeView>
                 ),
               ),
             ),
-            isShared && isInvoiceCreator ? SizedBox(
-              width: 150.w,
-              child: Bounceable(
+            isShared && isInvoiceCreator
+                ? SizedBox(
+                    width: 150.w,
+                    child: Bounceable(
                       onTap: () {},
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -750,8 +809,9 @@ class _HomeViewState extends State<HomeView>
                           ),
                         ],
                       ),
-                    )
-            ) : Container(),
+                    ),
+                  )
+                : Container(),
           ],
         ),
 
@@ -949,40 +1009,6 @@ class _HomeViewState extends State<HomeView>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildDropdown({
-    required String hint,
-    required String? value,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) {
-    return Container(
-      height: 40.h,
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.white.withOpacity(0.1),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          hint: Text(
-            hint,
-            style: TextStyle(color: Colors.white70, fontSize: 15.sp),
-          ),
-          dropdownColor: Colors.black87,
-          iconEnabledColor: Colors.white70,
-          isDense: true,
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
-          items: items
-              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-              .toList(),
-          onChanged: onChanged,
-        ),
-      ),
     );
   }
 
@@ -1232,6 +1258,134 @@ class _HomeViewState extends State<HomeView>
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildReportsContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            AppStrings.reports,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10.h),
+
+        Center(
+          child: Text(
+            "Walid",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 15.sp,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10.h),
+
+        Expanded(
+          child: Scrollbar(
+            thumbVisibility: true,
+            thickness: 2,
+            radius: Radius.circular(10),
+            child: ListView.builder(
+              padding: EdgeInsets.only(top: 10.h),
+              itemCount: reportsList.length,
+              itemBuilder: (context, index) {
+                final item = reportsList[index];
+                return Container(
+                  margin: EdgeInsets.symmetric(vertical: 6.h, horizontal: 5.w),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 15.w,
+                    vertical: 10.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(15.r),
+                    border: Border.all(
+                      color: Colors.orange.withOpacity(0.2),
+                      width: 2.w,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item["restaurant"],
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      SizedBox(height: 5.h,),
+
+                      Text(
+                        item["date"],
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      SizedBox(height: 5.h,),
+
+                      Text(
+                        "\$${item["invoice_value"].toString()}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+
+        SizedBox(height: 20.h,),
+
+        Row(
+          children: [
+            Text(
+              AppStrings.leftOf,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15.sp,
+                letterSpacing: 0.5,
+              ),
+            ),
+
+            SizedBox(
+              width: 10.w,
+            ),
+
+            Text(
+              "\$250",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15.sp,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        )
       ],
     );
   }

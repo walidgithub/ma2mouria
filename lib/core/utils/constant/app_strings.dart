@@ -29,6 +29,7 @@ class AppStrings {
   static const String membersCount = "Members Count";
   static const String cycleName = "Cycle Name";
   static const String cycleMembers = "Cycle Members";
+  static const String reports = "Reports";
   static const String addMember = "Add Member";
   static const String month = "Month";
   static const String year = "Year";
