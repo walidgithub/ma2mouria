@@ -13,10 +13,9 @@ class AppStrings {
   static const String spending = "Spending";
   static const String total = "Total";
   static const String hi = "Hi";
-  static const String test = "Test";
+  static const String typeNumbers = "Type numbers (e.g. 10+20+30)";
   static const String shared = "Shared";
   static const String invoiceCreator = "Invoice Creator";
-  static const String single = "Single";
   static const String invoiceValue = "Invoice Value";
   static const String myShare = "My Share";
   static const String invoiceDetail = "Invoice Detail";
@@ -30,8 +29,11 @@ class AppStrings {
   static const String cycleName = "Cycle Name";
   static const String cycleMembers = "Cycle Members";
   static const String reports = "Reports";
-  static const String addMember = "Add Member";
   static const String month = "Month";
   static const String year = "Year";
   static const String day = "Day";
+  static const String showTotal = "Show Total";
+  static const String memberName = "Member Name";
+  static const String logOut = "Log Out";
+  static const String totalLeft = "Total Left";
 }

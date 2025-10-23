@@ -1,12 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/core/utils/style/app_colors.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -17,7 +19,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late AnimationController _animationController;
   late Animation<double> _animation;
 
   final double startValue = 0.0;
@@ -26,22 +28,63 @@ class _HomeViewState extends State<HomeView>
   int _currentIndex = 0;
   bool isShared = false;
   bool isInvoiceCreator = false;
+  bool showTotal = false;
+
+  bool isHead = true;
+
+  final TextEditingController _calcTextController = TextEditingController();
+  double result = 0;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
     );
 
     _animation = Tween<double>(begin: startValue, end: endValue).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOutCubic,
+      ),
     );
 
-    _controller.forward();
+    _animationController.forward();
+    
+    _calcTextController.addListener(_onTextChanged);
+    result = leftOf + spending;
 
+    initDateDropdowns();
+  }
+
+  void _onTextChanged() {
+    final text = _calcTextController.text;
+
+    final validText = text.replaceAll(RegExp(r'[^0-9+]'), '');
+
+    if (validText.isEmpty) {
+      setState(() {
+        result = total - (leftOf + spending);
+      });
+      return;
+    }
+
+    final numbers = validText
+        .split('+')
+        .where((n) => n.isNotEmpty)
+        .map(double.parse)
+        .toList();
+
+    final sumInput = numbers.fold<double>(0, (a, b) => a + b);
+
+    setState(() {
+      result = total - (leftOf + spending) - sumInput;
+    });
+  }
+
+  void initDateDropdowns() {
     final now = DateTime.now();
     final currentYear = now.year;
     final currentMonthIndex = now.month - 1;
@@ -61,10 +104,14 @@ class _HomeViewState extends State<HomeView>
     selectedDay = currentDay.toString();
   }
 
+  double total = 1000.0;
+  double spending = 500.0;
+  double leftOf = 0.0;
+
   final List<Map<String, dynamic>> invoiceList = [
-    {"name": "Me", "value": 250.0},
-    {"name": "Mo'men", "value": 150.5},
-    {"name": "Ahmed", "value": 320.0},
+    {"name": "Me", "value": 1250.0},
+    {"name": "Mo'men ahmed", "value": 1150.5},
+    {"name": "Ahmed abd elazziz", "value": 1320.0},
   ];
 
   final List<Map<String, dynamic>> membersList = [
@@ -74,20 +121,48 @@ class _HomeViewState extends State<HomeView>
   ];
 
   final List<Map<String, dynamic>> reportsList = [
-    {"restaurant": "kfc", "date": "December 22 2025", "invoice_value": 250.0},
-    {"restaurant": "nawara", "date": "December 22 2025", "invoice_value": 150.0},
-    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
-    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
-    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
-    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
-    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
-    {"restaurant": "alkilany", "date": "December 22 2025", "invoice_value": 350.0},
+    {"restaurant": "kfcfdfd ", "date": "December 22 2025", "invoice_value": 1250.0},
+    {
+      "restaurant": "nawara ssd",
+      "date": "December 22 2025",
+      "invoice_value": 1150.0,
+    },
+    {
+      "restaurant": "alkilany",
+      "date": "December 22 2025",
+      "invoice_value": 1350.0,
+    },
+    {
+      "restaurant": "alkilany dsg",
+      "date": "December 22 2025",
+      "invoice_value": 1350.0,
+    },
+    {
+      "restaurant": "alkilany",
+      "date": "December 22 2025",
+      "invoice_value": 1350.0,
+    },
+    {
+      "restaurant": "alkilany",
+      "date": "December 22 2025",
+      "invoice_value": 1350.0,
+    },
+    {
+      "restaurant": "alkilany",
+      "date": "December 22 2025",
+      "invoice_value": 1350.0,
+    },
+    {
+      "restaurant": "alkilany",
+      "date": "December 22 2025",
+      "invoice_value": 350.0,
+    },
   ];
 
   final List<Map<String, dynamic>> generalReportList = [
-    {"name": "walid", "left": 250.0},
-    {"name": "Mo'men", "left": 150.0},
-    {"name": "Ahmed", "left": 350.0},
+    {"name": "walid barakat", "left": 1250.0},
+    {"name": "Mo'men ahmed", "left": 1150.0},
+    {"name": "Ahmed abd elaziz", "left": 1350.0},
   ];
 
   String? selectedDay;
@@ -126,14 +201,15 @@ class _HomeViewState extends State<HomeView>
     });
   }
 
-  late final List<String> years;
+  List<String> years = [];
   List<String> days = [];
 
   final ScrollController _scrollController = ScrollController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
+    _calcTextController.dispose();
     super.dispose();
   }
 
@@ -165,9 +241,13 @@ class _HomeViewState extends State<HomeView>
                       : _currentIndex == 1
                       ? _buildInvoiceContent()
                       : _currentIndex == 2
-                      ? _buildCycleContent()
+                      ? isHead
+                            ? _buildCycleContent()
+                            : Container()
                       : _currentIndex == 3
-                      ? _buildCycleMembersContent()
+                      ? isHead
+                            ? _buildCycleMembersContent()
+                            : Container()
                       : _buildReportsContent(),
                 ),
               ],
@@ -203,16 +283,18 @@ class _HomeViewState extends State<HomeView>
                   index: 1,
                   isActive: _currentIndex == 1,
                 ),
-                _buildNavItem(
-                  icon: Icons.add_to_drive_rounded,
-                  index: 2,
-                  isActive: _currentIndex == 2,
-                ),
-                _buildNavItem(
-                  icon: Icons.person,
-                  index: 3,
-                  isActive: _currentIndex == 3,
-                ),
+                if (isHead)
+                  _buildNavItem(
+                    icon: Icons.add_to_drive_rounded,
+                    index: 2,
+                    isActive: _currentIndex == 2,
+                  ),
+                if (isHead)
+                  _buildNavItem(
+                    icon: Icons.person,
+                    index: 3,
+                    isActive: _currentIndex == 3,
+                  ),
                 _buildNavItem(
                   icon: Icons.bar_chart_sharp,
                   index: 4,
@@ -249,24 +331,40 @@ class _HomeViewState extends State<HomeView>
             ),
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  ),
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                    size: 15.sp,
+                Bounceable(
+                  onTap: () {},
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Icon(Icons.logout, color: Colors.white, size: 15.sp),
                   ),
                 ),
                 SizedBox(width: 12.w),
                 CircleAvatar(
-                  radius: 20.r,
-                  backgroundImage: NetworkImage(
-                    'https://avatar.iran.liara.run/public/boy',
+                  radius: 25.r,
+                  backgroundColor: AppColors.cWhite,
+                  child: Container(
+                    padding: EdgeInsets.all(2.w),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.cIsActive, width: 2),
+                    ),
+                    child: ClipOval(
+                      child: CachedNetworkImage(
+                        placeholder: (context, url) =>
+                            CircularProgressIndicator(
+                              strokeWidth: 2.w,
+                              color: AppColors.cIsActive,
+                            ),
+                        errorWidget: (context, url, error) =>
+                            Icon(Icons.person),
+                        imageUrl: "https://avatar.iran.liara.run/public/boy",
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -288,6 +386,7 @@ class _HomeViewState extends State<HomeView>
   }) {
     return GestureDetector(
       onTap: () {
+        initDateDropdowns();
         setState(() {
           _currentIndex = index;
         });
@@ -441,7 +540,7 @@ class _HomeViewState extends State<HomeView>
                         animation: false,
 
                         center: Text(
-                          '${(percent * 100).toStringAsFixed(0)}%',
+                          '${(percent * 100).toStringAsFixed(2)}%',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 15.sp,
@@ -456,19 +555,19 @@ class _HomeViewState extends State<HomeView>
                       _buildSpendingRow(
                         label: AppStrings.leftOf,
                         color: const Color(0xFFFF8C61),
-                        amount: '\$500',
+                        amount: "${result.toStringAsFixed(2)} L.E.",
                       ),
                       const SizedBox(height: 16),
                       _buildSpendingRow(
                         label: AppStrings.spending,
                         color: const Color(0xFFAF133D),
-                        amount: '\$1024',
+                        amount: "${spending.toStringAsFixed(2)} L.E.",
                       ),
                       const SizedBox(height: 16),
                       _buildSpendingRow(
                         label: AppStrings.total,
                         color: const Color(0xFF6B4EFF),
-                        amount: '\$2000',
+                        amount: "${total.toStringAsFixed(2)} L.E.",
                       ),
                     ],
                   ),
@@ -481,22 +580,22 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 20.h),
 
         TextField(
-          keyboardType: TextInputType.number,
+          controller: _calcTextController,
+          keyboardType: TextInputType.numberWithOptions(decimal: false),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white.withOpacity(0.1),
-            hintText: AppStrings.test,
-            hintStyle: TextStyle(color: Colors.white70),
+            hintText: AppStrings.typeNumbers,
+            hintStyle: const TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
               borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
             ),
-            prefixIcon: Icon(
-              Icons.calculate,
-              color: AppColors.cWhite,
-              size: 20.sp,
-            ),
+            prefixIcon: Icon(Icons.calculate, color: Colors.white, size: 20.sp),
           ),
         ),
       ],
@@ -568,10 +667,7 @@ class _HomeViewState extends State<HomeView>
                     });
                   },
                 ),
-                Text(
-                  isShared ? AppStrings.shared : AppStrings.single,
-                  style: TextStyle(color: Colors.white),
-                ),
+                Text(AppStrings.shared, style: TextStyle(color: Colors.white)),
               ],
             ),
 
@@ -622,16 +718,20 @@ class _HomeViewState extends State<HomeView>
 
         isShared && !isInvoiceCreator
             ? Column(
-                children: [
-                  StatefulBuilder(
-                    builder: (context, setStateDropdown) {
-                      String? selectedRestaurant;
-                      final restaurants = [
-                        'KFC 454',
-                        'Mac 8787',
-                        'Pizza Hut 54 ',
-                      ];
-                      return DropdownButtonFormField<String>(
+          children: [
+            StatefulBuilder(
+              builder: (context, setStateDropdown) {
+                String? selectedRestaurant;
+                final restaurants = [
+                  'KFC 454',
+                  'Mac 8787',
+                  'Pizza Hut 54',
+                ];
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
                         dropdownColor: const Color(0xFF2E2159),
                         value: selectedRestaurant,
                         decoration: InputDecoration(
@@ -667,12 +767,42 @@ class _HomeViewState extends State<HomeView>
                             selectedRestaurant = value;
                           });
                         },
-                      );
-                    },
-                  ),
-                ],
-              )
+                      ),
+                    ),
+
+                    SizedBox(width: 8.w),
+
+                    InkWell(
+                      onTap: () {
+                        setStateDropdown(() {
+                          selectedRestaurant = null;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10.r),
+                      child: Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        )
             : Container(),
+
 
         SizedBox(height: 10.h),
 
@@ -860,23 +990,23 @@ class _HomeViewState extends State<HomeView>
                                 item["name"] == "Me"
                                     ? Row(
                                         children: [
-                                          Icon(
+                                          Bounceable(onTap: () {}, child: Icon(
                                             Icons.edit,
                                             color: Colors.orangeAccent,
                                             size: 18.sp,
-                                          ),
+                                          )),
                                           SizedBox(width: 8.w),
-                                          Icon(
+                                          Bounceable(onTap: () {}, child: Icon(
                                             Icons.delete,
                                             color: Colors.redAccent,
                                             size: 18.sp,
-                                          ),
+                                          )),
                                         ],
                                       )
                                     : Container(),
                                 SizedBox(width: 10.w),
                                 Text(
-                                  "\$${item["value"].toStringAsFixed(2)}",
+                                  "${item["value"].toStringAsFixed(2)} L.E.",
                                   style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14.sp,
@@ -1008,6 +1138,100 @@ class _HomeViewState extends State<HomeView>
             ],
           ),
         ),
+
+        SizedBox(height: 20.h),
+
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20.r),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 0.w),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5.w,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "October 2025",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+
+                      SizedBox(height: 10.h,),
+
+                      Row(
+                        children: [
+                          Text(
+                            "${AppStrings.memberBudget}:",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+
+                          SizedBox(width: 10.w),
+
+                          Text(
+                            "1250 L.E.",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            "${AppStrings.membersCount}:",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+
+                          SizedBox(width: 10.w),
+
+                          Text(
+                            "11",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Bounceable(onTap: () {}, child: Icon(
+                    Icons.delete,
+                    color: Colors.redAccent,
+                    size: 18.sp,
+                  ))
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1029,37 +1253,19 @@ class _HomeViewState extends State<HomeView>
         ),
         SizedBox(height: 10.h),
 
-        StatefulBuilder(
-          builder: (context, setStateDropdown) {
-            String? selectedCycle;
-            final restaurants = ['October', 'November', 'December'];
-            return DropdownButtonFormField<String>(
-              dropdownColor: const Color(0xFF2E2159),
-              value: selectedCycle,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-                ),
-              ),
-              hint: Text(
-                AppStrings.cycleName,
-                style: TextStyle(color: Colors.white70, fontSize: 15.sp),
-              ),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              style: TextStyle(color: Colors.white, fontSize: 15.sp),
-              items: restaurants.map((name) {
-                return DropdownMenuItem(value: name, child: Text(name));
-              }).toList(),
-              onChanged: (value) {
-                setStateDropdown(() {
-                  selectedCycle = value;
-                });
-              },
-            );
-          },
+        TextField(
+          keyboardType: TextInputType.text,
+          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+            hintText: AppStrings.cycleName,
+            hintStyle: TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+          ),
         ),
 
         SizedBox(height: 10.h),
@@ -1123,77 +1329,17 @@ class _HomeViewState extends State<HomeView>
                         ),
 
                         SizedBox(width: 10.w),
-                        Icon(
+                        Bounceable(onTap: () {}, child: Icon(
                           Icons.add_box_rounded,
                           color: Colors.teal,
                           size: 18.sp,
-                        ),
+                        ))
                       ],
                     ),
                   ),
                 );
               },
             ),
-          ),
-        ),
-
-        SizedBox(height: 10.h),
-
-        TextField(
-          keyboardType: TextInputType.text,
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
-            hintText: AppStrings.addMember,
-            hintStyle: TextStyle(color: Colors.white70),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-          ),
-        ),
-
-        SizedBox(height: 15.h),
-
-        Bounceable(
-          onTap: () {},
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20.r),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    width: MediaQuery.sizeOf(context).width / 0.5,
-                    height: 45.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                        width: 1.5.w,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        AppStrings.addMember,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
 
@@ -1226,30 +1372,34 @@ class _HomeViewState extends State<HomeView>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        item["first_name"],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-
-                      Text(
-                        item["last_name"],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            item["first_name"],
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 5.w,),
+                          Text(
+                            item["last_name"],
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
 
                       item["first_name"] != "Me"
-                          ? Icon(
-                              Icons.delete,
-                              color: Colors.redAccent,
-                              size: 18.sp,
-                            )
+                          ? Bounceable(onTap: () {}, child: Icon(
+                        Icons.delete,
+                        color: Colors.redAccent,
+                        size: 18.sp,
+                      ))
                           : Container(),
                     ],
                   ),
@@ -1280,112 +1430,256 @@ class _HomeViewState extends State<HomeView>
 
         SizedBox(height: 10.h),
 
-        Center(
-          child: Text(
-            "Walid",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15.sp,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-
-        SizedBox(height: 10.h),
-
-        Expanded(
-          child: Scrollbar(
-            thumbVisibility: true,
-            thickness: 2,
-            radius: Radius.circular(10),
-            child: ListView.builder(
-              padding: EdgeInsets.only(top: 10.h),
-              itemCount: reportsList.length,
-              itemBuilder: (context, index) {
-                final item = reportsList[index];
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 6.h, horizontal: 5.w),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 15.w,
-                    vertical: 10.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(15.r),
-                    border: Border.all(
-                      color: Colors.orange.withOpacity(0.2),
-                      width: 2.w,
+        isHead
+            ? Center(
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: showTotal,
+                      activeColor: Colors.orangeAccent,
+                      onChanged: (value) {
+                        setState(() {
+                          showTotal = value!;
+                        });
+                      },
                     ),
+                    Text(
+                      AppStrings.showTotal,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              )
+            : Container(),
+
+        showTotal
+            ? Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  thickness: 2,
+                  radius: Radius.circular(10),
+                  child: ListView.builder(
+                    padding: EdgeInsets.only(top: 10.h),
+                    itemCount: generalReportList.length,
+                    itemBuilder: (context, index) {
+                      final item = generalReportList[index];
+                      return Container(
+                        margin: EdgeInsets.symmetric(
+                          vertical: 6.h,
+                          horizontal: 5.w,
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 15.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15.r),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.2),
+                            width: 2.w,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "${AppStrings.memberName}:",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(width: 5.h),
+                                Text(
+                                  item["name"],
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 5.h),
+
+                            Row(
+                              children: [
+                                Text(
+                                  "${AppStrings.leftOf}:",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(width: 5.h),
+                                Text(
+                                  "${item["left"].toStringAsFixed(2)} L.E.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+              )
+            : Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  thickness: 2,
+                  radius: Radius.circular(10),
+                  child: ListView.builder(
+                    padding: EdgeInsets.only(top: 10.h),
+                    itemCount: reportsList.length,
+                    itemBuilder: (context, index) {
+                      final item = reportsList[index];
+                      return Container(
+                        margin: EdgeInsets.symmetric(
+                          vertical: 6.h,
+                          horizontal: 5.w,
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 15.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15.r),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.2),
+                            width: 2.w,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item["restaurant"],
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  "${item["invoice_value"].toStringAsFixed(2)} L.E.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 5.h),
+
+                            Text(
+                              item["date"],
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+        SizedBox(height: 20.h),
+
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20.r),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 0.w),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5.w,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
                       Text(
-                        item["restaurant"],
+                        "${showTotal ? AppStrings.totalLeft : AppStrings.total}:",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
 
-                      SizedBox(height: 5.h,),
+                      SizedBox(width: 10.w),
 
                       Text(
-                        item["date"],
+                        "1250 L.E.",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-
-                      SizedBox(height: 5.h,),
-
-                      Text(
-                        "\$${item["invoice_value"].toString()}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
                   ),
-                );
-              },
+                  showTotal
+                      ? Container()
+                      : Row(
+                          children: [
+                            Text(
+                              "${AppStrings.leftOf}:",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+
+                            SizedBox(width: 10.w),
+
+                            Text(
+                              "1250 L.E.",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                ],
+              ),
             ),
           ),
         ),
-
-        SizedBox(height: 20.h,),
-
-        Row(
-          children: [
-            Text(
-              AppStrings.leftOf,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15.sp,
-                letterSpacing: 0.5,
-              ),
-            ),
-
-            SizedBox(
-              width: 10.w,
-            ),
-
-            Text(
-              "\$250",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15.sp,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        )
       ],
     );
   }
