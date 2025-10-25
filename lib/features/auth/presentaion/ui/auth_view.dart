@@ -7,6 +7,7 @@ import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/features/auth/presentaion/bloc/auth_cubit.dart';
 import 'dart:ui';
 import '../../../../core/di/di.dart';
+import '../../../../core/preferences/app_pref.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/constant/app_constants.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
@@ -22,6 +23,8 @@ class AuthView extends StatefulWidget {
 }
 
 class _AuthViewState extends State<AuthView> {
+  final AppPreferences _appPreferences = sl<AppPreferences>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,6 +83,7 @@ class _AuthViewState extends State<AuthView> {
                             showLoading();
                           } else if (state is LoginSuccessState) {
                             hideLoading();
+                            await _appPreferences.setUserLoggedIn();
                             Navigator.pushReplacementNamed(context, Routes.homeRoute);
                           } else if (state is LoginErrorState) {
                             showSnackBar(context, state.errorMessage);

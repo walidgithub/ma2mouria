@@ -4,6 +4,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'core/di/di.dart';
+import 'core/preferences/app_pref.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/constant/app_strings.dart';
 import 'core/utils/style/app_theme.dart';
@@ -21,13 +22,22 @@ Future<void> main() async {
   );
   await ServiceLocator().init();
   await ScreenUtil.ensureScreenSize();
-  runApp(const MyApp());
+
+  final isLoggedIn = await checkUserLoginStatus();
+
+  runApp(MyApp(isLoggedIn: isLoggedIn));
+}
+
+Future<bool> checkUserLoginStatus() async {
+  final AppPreferences appPreferences = sl<AppPreferences>();
+  return appPreferences.isUserLoggedIn();
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.isLoggedIn});
 
-  // This widget is the root of your application.
+  final bool isLoggedIn;
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -38,9 +48,10 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
               debugShowCheckedModeBanner: false,
               title: AppStrings.appName,
-              builder: EasyLoading.init(),
+              builder: (context, widget) => EasyLoading.init()(context, widget),
               onGenerateRoute: RouteGenerator.getRoute,
               initialRoute: Routes.homeRoute,
+              // initialRoute: isLoggedIn ? Routes.homeRoute : Routes.loginRoute,
               theme: AppTheme.lightTheme);
         });
   }

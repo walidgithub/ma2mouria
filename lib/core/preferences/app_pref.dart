@@ -9,7 +9,6 @@ class AppPreferences {
 
   AppPreferences(this._sharedPreferences);
 
-  //login
   Future<void> setUserLoggedIn() async {
     _sharedPreferences.setBool(userLoggedIn, true);
   }
