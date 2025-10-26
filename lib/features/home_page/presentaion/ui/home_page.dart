@@ -2,13 +2,22 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/core/utils/style/app_colors.dart';
+import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_cubit.dart';
+import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_state.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
+import '../../../../core/di/di.dart';
+import '../../../../core/preferences/app_pref.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/ui_components/loading_dialog.dart';
+import '../../../../core/utils/ui_components/snackbar.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -22,6 +31,8 @@ class _HomeViewState extends State<HomeView>
   late AnimationController _animationController;
   late Animation<double> _animation;
 
+  final AppPreferences _appPreferences = sl<AppPreferences>();
+
   final double startValue = 0.0;
   final double endValue = 0.50;
 
@@ -30,7 +41,7 @@ class _HomeViewState extends State<HomeView>
   bool isInvoiceCreator = false;
   bool showTotal = false;
 
-  bool isHead = true;
+  bool isHead = false;
 
   final TextEditingController _calcTextController = TextEditingController();
   double result = 0;
@@ -52,11 +63,14 @@ class _HomeViewState extends State<HomeView>
     );
 
     _animationController.forward();
-    
+
     _calcTextController.addListener(_onTextChanged);
     result = leftOf + spending;
 
     initDateDropdowns();
+
+    getUserData();
+    HomePageCubit.get(context).getRuleByEmail(userData!['email'] ?? 'Guest');
   }
 
   void _onTextChanged() {
@@ -107,6 +121,7 @@ class _HomeViewState extends State<HomeView>
   double total = 1000.0;
   double spending = 500.0;
   double leftOf = 0.0;
+  Map<String, String?>? userData;
 
   final List<Map<String, dynamic>> invoiceList = [
     {"name": "Me", "value": 1250.0},
@@ -121,7 +136,11 @@ class _HomeViewState extends State<HomeView>
   ];
 
   final List<Map<String, dynamic>> reportsList = [
-    {"restaurant": "kfcfdfd ", "date": "December 22 2025", "invoice_value": 1250.0},
+    {
+      "restaurant": "kfcfdfd ",
+      "date": "December 22 2025",
+      "invoice_value": 1250.0,
+    },
     {
       "restaurant": "nawara ssd",
       "date": "December 22 2025",
@@ -165,9 +184,20 @@ class _HomeViewState extends State<HomeView>
     {"name": "Ahmed abd elaziz", "left": 1350.0},
   ];
 
+  Future<void> getUserData() async {
+    final data = _appPreferences.getUserData();
+    setState(() {
+      userData = data;
+      photoUrl = userData?['photoUrl'];
+    });
+  }
+
   String? selectedDay;
   String? selectedMonth;
   String? selectedYear;
+
+  String userName = "";
+  String? photoUrl;
 
   final List<String> months = const [
     'January',
@@ -215,97 +245,124 @@ class _HomeViewState extends State<HomeView>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1C1633), Color(0xFF2E2159), Color(0xFF443182)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: _buildHeader(),
+    return BlocConsumer<HomePageCubit, HomePageState>(
+        listener: (context, state) async {
+          if (state is GetRuleByEmailLoadingState) {
+            showLoading();
+          } else if (state is GetRuleByEmailErrorState) {
+            hideLoading();
+            showSnackBar(context, state.errorMessage);
+          } else if (state is GetRuleByEmailSuccessState) {
+            hideLoading();
+            setState(() {
+              userName = state.rulesModel.name;
+              if (state.rulesModel.rule == "head") {
+                isHead = true;
+              }
+            });
+          } else if (state is LogoutLoadingState) {
+            showLoading();
+          } else if (state is LogoutErrorState) {
+            hideLoading();
+          } else if (state is LogoutSuccessState) {
+            hideLoading();
+            await _appPreferences.setUserLoggedOut();
+            Navigator.pushReplacementNamed(context, Routes.loginRoute);
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            extendBody: true,
+            body: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1C1633), Color(0xFF2E2159), Color(0xFF443182)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+              ),
+              child: SafeArea(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: _buildHeader(),
+                      ),
 
-                Expanded(
-                  child: _currentIndex == 0
-                      ? _buildCreditContent()
-                      : _currentIndex == 1
-                      ? _buildInvoiceContent()
-                      : _currentIndex == 2
-                      ? isHead
+                      Expanded(
+                        child: _currentIndex == 0
+                            ? _buildCreditContent()
+                            : _currentIndex == 1
+                            ? _buildInvoiceContent()
+                            : _currentIndex == 2
+                            ? isHead
                             ? _buildCycleContent()
                             : Container()
-                      : _currentIndex == 3
-                      ? isHead
+                            : _currentIndex == 3
+                            ? isHead
                             ? _buildCycleMembersContent()
                             : Container()
-                      : _buildReportsContent(),
+                            : _buildReportsContent(),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-          child: Container(
-            margin: EdgeInsets.all(10.w),
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildNavItem(
-                  icon: Icons.attach_money,
-                  index: 0,
-                  isActive: _currentIndex == 0,
-                ),
-                _buildNavItem(
-                  icon: Icons.add,
-                  index: 1,
-                  isActive: _currentIndex == 1,
-                ),
-                if (isHead)
-                  _buildNavItem(
-                    icon: Icons.add_to_drive_rounded,
-                    index: 2,
-                    isActive: _currentIndex == 2,
+            bottomNavigationBar: ClipRRect(
+              borderRadius: BorderRadius.circular(20.r),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                child: Container(
+                  margin: EdgeInsets.all(10.w),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1.5,
+                    ),
                   ),
-                if (isHead)
-                  _buildNavItem(
-                    icon: Icons.person,
-                    index: 3,
-                    isActive: _currentIndex == 3,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildNavItem(
+                        icon: Icons.attach_money,
+                        index: 0,
+                        isActive: _currentIndex == 0,
+                      ),
+                      _buildNavItem(
+                        icon: Icons.add,
+                        index: 1,
+                        isActive: _currentIndex == 1,
+                      ),
+                      if (isHead)
+                        _buildNavItem(
+                          icon: Icons.add_to_drive_rounded,
+                          index: 2,
+                          isActive: _currentIndex == 2,
+                        ),
+                      if (isHead)
+                        _buildNavItem(
+                          icon: Icons.person,
+                          index: 3,
+                          isActive: _currentIndex == 3,
+                        ),
+                      _buildNavItem(
+                        icon: Icons.bar_chart_sharp,
+                        index: 4,
+                        isActive: _currentIndex == 4,
+                      ),
+                    ],
                   ),
-                _buildNavItem(
-                  icon: Icons.bar_chart_sharp,
-                  index: 4,
-                  isActive: _currentIndex == 4,
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
+          );
+        });
   }
 
   Widget _buildHeader() {
@@ -332,7 +389,9 @@ class _HomeViewState extends State<HomeView>
             Row(
               children: [
                 Bounceable(
-                  onTap: () {},
+                  onTap: () {
+                    HomePageCubit.get(context).logout();
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -354,7 +413,7 @@ class _HomeViewState extends State<HomeView>
                       border: Border.all(color: AppColors.cIsActive, width: 2),
                     ),
                     child: ClipOval(
-                      child: CachedNetworkImage(
+                      child: photoUrl == null ? const CircularProgressIndicator() : CachedNetworkImage(
                         placeholder: (context, url) =>
                             CircularProgressIndicator(
                               strokeWidth: 2.w,
@@ -362,7 +421,7 @@ class _HomeViewState extends State<HomeView>
                             ),
                         errorWidget: (context, url, error) =>
                             Icon(Icons.person),
-                        imageUrl: "https://avatar.iran.liara.run/public/boy",
+                        imageUrl: photoUrl!,
                       ),
                     ),
                   ),
@@ -372,7 +431,7 @@ class _HomeViewState extends State<HomeView>
           ],
         ),
         Text(
-          "walid barakat",
+          userName,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
         ),
       ],
@@ -718,91 +777,93 @@ class _HomeViewState extends State<HomeView>
 
         isShared && !isInvoiceCreator
             ? Column(
-          children: [
-            StatefulBuilder(
-              builder: (context, setStateDropdown) {
-                String? selectedRestaurant;
-                final restaurants = [
-                  'KFC 454',
-                  'Mac 8787',
-                  'Pizza Hut 54',
-                ];
+                children: [
+                  StatefulBuilder(
+                    builder: (context, setStateDropdown) {
+                      String? selectedRestaurant;
+                      final restaurants = [
+                        'KFC 454',
+                        'Mac 8787',
+                        'Pizza Hut 54',
+                      ];
 
-                return Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        dropdownColor: const Color(0xFF2E2159),
-                        value: selectedRestaurant,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.1),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                            borderSide: BorderSide(
-                              color: Colors.white.withOpacity(0.2),
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              dropdownColor: const Color(0xFF2E2159),
+                              value: selectedRestaurant,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                ),
+                              ),
+                              hint: Text(
+                                AppStrings.invoiceDetail,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15.sp,
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                              ),
+                              items: restaurants.map((name) {
+                                return DropdownMenuItem(
+                                  value: name,
+                                  child: Text(name),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setStateDropdown(() {
+                                  selectedRestaurant = value;
+                                });
+                              },
                             ),
                           ),
-                        ),
-                        hint: Text(
-                          AppStrings.invoiceDetail,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 15.sp,
-                          ),
-                        ),
-                        icon: const Icon(
-                          Icons.arrow_drop_down,
-                          color: Colors.white,
-                        ),
-                        style: TextStyle(color: Colors.white, fontSize: 15.sp),
-                        items: restaurants.map((name) {
-                          return DropdownMenuItem(
-                            value: name,
-                            child: Text(name),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setStateDropdown(() {
-                            selectedRestaurant = value;
-                          });
-                        },
-                      ),
-                    ),
 
-                    SizedBox(width: 8.w),
+                          SizedBox(width: 8.w),
 
-                    InkWell(
-                      onTap: () {
-                        setStateDropdown(() {
-                          selectedRestaurant = null;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(10.r),
-                      child: Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                          InkWell(
+                            onTap: () {
+                              setStateDropdown(() {
+                                selectedRestaurant = null;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(10.r),
+                            child: Container(
+                              padding: EdgeInsets.all(8.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10.r),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.refresh,
+                                color: Colors.white,
+                                size: 20.sp,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                          size: 20.sp,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        )
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              )
             : Container(),
-
 
         SizedBox(height: 10.h),
 
@@ -990,17 +1051,23 @@ class _HomeViewState extends State<HomeView>
                                 item["name"] == "Me"
                                     ? Row(
                                         children: [
-                                          Bounceable(onTap: () {}, child: Icon(
-                                            Icons.edit,
-                                            color: Colors.orangeAccent,
-                                            size: 18.sp,
-                                          )),
+                                          Bounceable(
+                                            onTap: () {},
+                                            child: Icon(
+                                              Icons.edit,
+                                              color: Colors.orangeAccent,
+                                              size: 18.sp,
+                                            ),
+                                          ),
                                           SizedBox(width: 8.w),
-                                          Bounceable(onTap: () {}, child: Icon(
-                                            Icons.delete,
-                                            color: Colors.redAccent,
-                                            size: 18.sp,
-                                          )),
+                                          Bounceable(
+                                            onTap: () {},
+                                            child: Icon(
+                                              Icons.delete,
+                                              color: Colors.redAccent,
+                                              size: 18.sp,
+                                            ),
+                                          ),
                                         ],
                                       )
                                     : Container(),
@@ -1172,7 +1239,7 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ),
 
-                      SizedBox(height: 10.h,),
+                      SizedBox(height: 10.h),
 
                       Row(
                         children: [
@@ -1222,11 +1289,14 @@ class _HomeViewState extends State<HomeView>
                       ),
                     ],
                   ),
-                  Bounceable(onTap: () {}, child: Icon(
-                    Icons.delete,
-                    color: Colors.redAccent,
-                    size: 18.sp,
-                  ))
+                  Bounceable(
+                    onTap: () {},
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                      size: 18.sp,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1329,11 +1399,14 @@ class _HomeViewState extends State<HomeView>
                         ),
 
                         SizedBox(width: 10.w),
-                        Bounceable(onTap: () {}, child: Icon(
-                          Icons.add_box_rounded,
-                          color: Colors.teal,
-                          size: 18.sp,
-                        ))
+                        Bounceable(
+                          onTap: () {},
+                          child: Icon(
+                            Icons.add_box_rounded,
+                            color: Colors.teal,
+                            size: 18.sp,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1382,7 +1455,7 @@ class _HomeViewState extends State<HomeView>
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(width: 5.w,),
+                          SizedBox(width: 5.w),
                           Text(
                             item["last_name"],
                             style: TextStyle(
@@ -1395,11 +1468,14 @@ class _HomeViewState extends State<HomeView>
                       ),
 
                       item["first_name"] != "Me"
-                          ? Bounceable(onTap: () {}, child: Icon(
-                        Icons.delete,
-                        color: Colors.redAccent,
-                        size: 18.sp,
-                      ))
+                          ? Bounceable(
+                              onTap: () {},
+                              child: Icon(
+                                Icons.delete,
+                                color: Colors.redAccent,
+                                size: 18.sp,
+                              ),
+                            )
                           : Container(),
                     ],
                   ),

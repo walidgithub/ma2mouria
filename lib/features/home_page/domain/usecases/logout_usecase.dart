@@ -1,15 +1,15 @@
 import 'package:dartz/dartz.dart';
+import 'package:ma2mouria/features/home_page/domain/repository/home_page_repository.dart';
 import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
-import '../repository/auth_repository.dart';
 
 class LogoutUseCase extends FirebaseBaseUseCase<void, FirebaseNoParameters> {
-  final AuthRepository authRepository;
+  final HomePageRepository homePageRepository;
 
-  LogoutUseCase(this.authRepository);
+  LogoutUseCase(this.homePageRepository);
 
   @override
   Future<Either<FirebaseFailure, void>> call(FirebaseNoParameters parameters) async {
-    return await authRepository.logout();
+    return await homePageRepository.logout();
   }
 }

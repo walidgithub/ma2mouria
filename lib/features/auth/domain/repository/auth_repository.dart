@@ -5,5 +5,4 @@ import '../../data/model/user_model.dart';
 
 abstract class AuthRepository {
   Future<Either<FirebaseFailure, UserModel>> login();
-  Future<Either<FirebaseFailure, void>> logout();
 }

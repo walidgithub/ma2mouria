@@ -84,6 +84,10 @@ class _AuthViewState extends State<AuthView> {
                           } else if (state is LoginSuccessState) {
                             hideLoading();
                             await _appPreferences.setUserLoggedIn();
+                            await _appPreferences.saveUserData(
+                              email: state.user.email,
+                              photoUrl: state.user.photoUrl
+                            );
                             Navigator.pushReplacementNamed(context, Routes.homeRoute);
                           } else if (state is LoginErrorState) {
                             showSnackBar(context, state.errorMessage);

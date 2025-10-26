@@ -5,7 +5,6 @@ import '../model/user_model.dart';
 
 abstract class BaseDataSource {
   Future<UserModel> login();
-  Future<void> logout();
 }
 
 class AuthDataSource extends BaseDataSource {
@@ -26,16 +25,20 @@ class AuthDataSource extends BaseDataSource {
         'photoUrl': user.photoURL,
       };
 
-      return UserModel.fromJson(userData);
-    } catch (e) {
-      rethrow;
-    }
-  }
+      final rulesRef = firestore.collection('rules');
+      final existing = await rulesRef.where('email', isEqualTo: user.email).limit(1).get();
 
-  @override
-  Future<void> logout() async {
-    try {
-      await auth.signOut();
+      if (existing.docs.isEmpty) {
+        await rulesRef.doc(user.uid).set({
+          'id': user.uid,
+          'name': user.displayName ?? 'Unknown',
+          'email': user.email,
+          'photoUrl': user.photoURL,
+          'rule': 'user',
+        });
+      }
+
+      return UserModel.fromJson(userData);
     } catch (e) {
       rethrow;
     }

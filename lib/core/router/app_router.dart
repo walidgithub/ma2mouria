@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ma2mouria/features/auth/presentaion/ui/auth_view.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/home_page/presentaion/bloc/home_page_cubit.dart';
 import '../../features/home_page/presentaion/ui/home_page.dart';
+import '../di/di.dart';
 
 class Routes {
   static const String loginRoute = "/login";
@@ -16,7 +18,9 @@ class RouteGenerator {
             builder: (_) => const AuthView());
       case Routes.homeRoute:
         return MaterialPageRoute(
-            builder: (_) => const HomeView());
+            builder: (_) => BlocProvider(
+                create: (context) => sl<HomePageCubit>(),
+                child: const HomeView()));
       default:
         return unDefinedRoute();
     }

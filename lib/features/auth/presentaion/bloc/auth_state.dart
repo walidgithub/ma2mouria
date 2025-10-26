@@ -16,12 +16,4 @@ class LoginErrorState extends AuthState{
 }
 class LoginLoadingState extends AuthState{}
 
-class LogoutSuccessState extends AuthState{}
-class LogoutErrorState extends AuthState{
-  final String errorMessage;
-
-  LogoutErrorState(this.errorMessage);
-}
-class LogoutLoadingState extends AuthState{}
-
 class AuthNoInternetState extends AuthState{}

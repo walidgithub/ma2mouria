@@ -50,8 +50,7 @@ class MyApp extends StatelessWidget {
               title: AppStrings.appName,
               builder: (context, widget) => EasyLoading.init()(context, widget),
               onGenerateRoute: RouteGenerator.getRoute,
-              initialRoute: Routes.homeRoute,
-              // initialRoute: isLoggedIn ? Routes.homeRoute : Routes.loginRoute,
+              initialRoute: isLoggedIn ? Routes.homeRoute : Routes.loginRoute,
               theme: AppTheme.lightTheme);
         });
   }
