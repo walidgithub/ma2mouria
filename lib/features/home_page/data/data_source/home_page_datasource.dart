@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/di/di.dart';
 import '../../../../core/utils/constant/app_strings.dart';
+import '../model/cycle_model.dart';
 import '../model/rules_model.dart';
 
 abstract class BaseDataSource {
   Future<void> logout();
   Future<RulesModel?> getRuleByEmail(String email);
+  Future<void> addCycle(Cycle cycle);
 }
 
 class HomePageDataSource extends BaseDataSource {
@@ -43,6 +45,27 @@ class HomePageDataSource extends BaseDataSource {
       }
 
       await auth.signOut();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> addCycle(Cycle cycle) async {
+    try {
+      final collectionRef = firestore.collection('cycles');
+
+      final existing = await collectionRef
+          .where('cycle_name', isEqualTo: cycle.cycleName)
+          .get();
+
+      if (existing.docs.isNotEmpty) {
+        throw Exception('Cycle name "${cycle.cycleName}" already exists.');
+      }
+
+      await collectionRef.add(cycle.toJson());
+    } on FirebaseException catch (e) {
+      throw Exception('Firebase error: ${e.message}');
     } catch (e) {
       rethrow;
     }
