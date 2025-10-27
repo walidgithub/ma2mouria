@@ -36,5 +36,7 @@ class AppStrings {
   static const String memberName = "Member Name";
   static const String logOut = "Log Out";
   static const String totalLeft = "Total Left";
+  static const String activeCycle = "Active Cycle:";
+  static const String noCycleFound = "No Active Cycle Found";
   static const String userNotFound = "This user not found";
 }

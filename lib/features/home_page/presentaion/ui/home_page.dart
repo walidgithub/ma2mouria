@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,12 +11,15 @@ import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_cubit.da
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_state.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
+import 'package:uuid/uuid.dart';
 import '../../../../core/di/di.dart';
 import '../../../../core/preferences/app_pref.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/temp.dart';
+import '../../../../core/utils/constant/months.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../core/utils/ui_components/snackbar.dart';
+import '../../data/model/cycle_model.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -44,7 +46,15 @@ class _HomeViewState extends State<HomeView>
   bool isHead = false;
 
   final TextEditingController _calcTextController = TextEditingController();
+
+  final TextEditingController _memberBudgetTextController =
+      TextEditingController();
+  final TextEditingController _membersCountTextController =
+      TextEditingController();
+
   double result = 0;
+
+  CycleModel? activeCycleData;
 
   @override
   void initState() {
@@ -70,6 +80,7 @@ class _HomeViewState extends State<HomeView>
     initDateDropdowns();
 
     getUserData();
+    HomePageCubit.get(context).getActiveCycle();
     HomePageCubit.get(context).getRuleByEmail(userData!['email'] ?? 'Guest');
   }
 
@@ -79,9 +90,12 @@ class _HomeViewState extends State<HomeView>
     final validText = text.replaceAll(RegExp(r'[^0-9+]'), '');
 
     if (validText.isEmpty) {
-      setState(() {
-        result = total - (leftOf + spending);
-      });
+
+        setState(() {
+          result = total - (leftOf + spending);
+        });
+
+
       return;
     }
 
@@ -93,9 +107,10 @@ class _HomeViewState extends State<HomeView>
 
     final sumInput = numbers.fold<double>(0, (a, b) => a + b);
 
-    setState(() {
-      result = total - (leftOf + spending) - sumInput;
-    });
+      setState(() {
+        result = total - (leftOf + spending) - sumInput;
+      });
+
   }
 
   void initDateDropdowns() {
@@ -123,73 +138,14 @@ class _HomeViewState extends State<HomeView>
   double leftOf = 0.0;
   Map<String, String?>? userData;
 
-  final List<Map<String, dynamic>> invoiceList = [
-    {"name": "Me", "value": 1250.0},
-    {"name": "Mo'men ahmed", "value": 1150.5},
-    {"name": "Ahmed abd elazziz", "value": 1320.0},
-  ];
-
-  final List<Map<String, dynamic>> membersList = [
-    {"first_name": "Me", "last_name": ""},
-    {"first_name": "Mo'men", "last_name": "Ahmed"},
-    {"first_name": "Ahmed", "last_name": "Hassan"},
-  ];
-
-  final List<Map<String, dynamic>> reportsList = [
-    {
-      "restaurant": "kfcfdfd ",
-      "date": "December 22 2025",
-      "invoice_value": 1250.0,
-    },
-    {
-      "restaurant": "nawara ssd",
-      "date": "December 22 2025",
-      "invoice_value": 1150.0,
-    },
-    {
-      "restaurant": "alkilany",
-      "date": "December 22 2025",
-      "invoice_value": 1350.0,
-    },
-    {
-      "restaurant": "alkilany dsg",
-      "date": "December 22 2025",
-      "invoice_value": 1350.0,
-    },
-    {
-      "restaurant": "alkilany",
-      "date": "December 22 2025",
-      "invoice_value": 1350.0,
-    },
-    {
-      "restaurant": "alkilany",
-      "date": "December 22 2025",
-      "invoice_value": 1350.0,
-    },
-    {
-      "restaurant": "alkilany",
-      "date": "December 22 2025",
-      "invoice_value": 1350.0,
-    },
-    {
-      "restaurant": "alkilany",
-      "date": "December 22 2025",
-      "invoice_value": 350.0,
-    },
-  ];
-
-  final List<Map<String, dynamic>> generalReportList = [
-    {"name": "walid barakat", "left": 1250.0},
-    {"name": "Mo'men ahmed", "left": 1150.0},
-    {"name": "Ahmed abd elaziz", "left": 1350.0},
-  ];
-
   Future<void> getUserData() async {
     final data = _appPreferences.getUserData();
-    setState(() {
-      userData = data;
-      photoUrl = userData?['photoUrl'];
-    });
+
+      setState(() {
+        userData = data;
+        photoUrl = userData?['photoUrl'];
+      });
+
   }
 
   String? selectedDay;
@@ -199,21 +155,6 @@ class _HomeViewState extends State<HomeView>
   String userName = "";
   String? photoUrl;
 
-  final List<String> months = const [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-
   void _updateDays() {
     if (selectedMonth == null || selectedYear == null) return;
 
@@ -221,14 +162,16 @@ class _HomeViewState extends State<HomeView>
     final year = int.parse(selectedYear!);
     final lastDay = DateTime(year, monthIndex + 1, 0).day;
 
-    setState(() {
-      days = List.generate(lastDay, (i) => (i + 1).toString());
 
-      if (selectedDay != null) {
-        final dayInt = int.tryParse(selectedDay!) ?? 1;
-        if (dayInt > lastDay) selectedDay = lastDay.toString();
-      }
-    });
+      setState(() {
+        days = List.generate(lastDay, (i) => (i + 1).toString());
+
+        if (selectedDay != null) {
+          final dayInt = int.tryParse(selectedDay!) ?? 1;
+          if (dayInt > lastDay) selectedDay = lastDay.toString();
+        }
+      });
+
   }
 
   List<String> years = [];
@@ -246,123 +189,169 @@ class _HomeViewState extends State<HomeView>
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<HomePageCubit, HomePageState>(
-        listener: (context, state) async {
-          if (state is GetRuleByEmailLoadingState) {
-            showLoading();
-          } else if (state is GetRuleByEmailErrorState) {
-            hideLoading();
-            showSnackBar(context, state.errorMessage);
-          } else if (state is GetRuleByEmailSuccessState) {
-            hideLoading();
+      listener: (context, state) async {
+        if (state is GetRuleByEmailLoadingState) {
+          showLoading();
+        } else if (state is GetRuleByEmailErrorState) {
+          hideLoading();
+          showErrorSnackBar(context, state.errorMessage);
+        } else if (state is GetRuleByEmailSuccessState) {
+          hideLoading();
+
             setState(() {
               userName = state.rulesModel.name;
               if (state.rulesModel.rule == "head") {
                 isHead = true;
               }
             });
-          } else if (state is LogoutLoadingState) {
-            showLoading();
-          } else if (state is LogoutErrorState) {
-            hideLoading();
-          } else if (state is LogoutSuccessState) {
-            hideLoading();
-            await _appPreferences.setUserLoggedOut();
-            Navigator.pushReplacementNamed(context, Routes.loginRoute);
-          }
-        },
-        builder: (context, state) {
-          return Scaffold(
-            extendBody: true,
-            body: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1C1633), Color(0xFF2E2159), Color(0xFF443182)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: SafeArea(
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: _buildHeader(),
-                      ),
 
-                      Expanded(
-                        child: _currentIndex == 0
-                            ? _buildCreditContent()
-                            : _currentIndex == 1
-                            ? _buildInvoiceContent()
-                            : _currentIndex == 2
-                            ? isHead
-                            ? _buildCycleContent()
-                            : Container()
-                            : _currentIndex == 3
-                            ? isHead
-                            ? _buildCycleMembersContent()
-                            : Container()
-                            : _buildReportsContent(),
-                      ),
-                    ],
-                  ),
-                ),
+
+          // ------------------------------------------------------
+        } else if (state is LogoutLoadingState) {
+          showLoading();
+        } else if (state is LogoutErrorState) {
+          hideLoading();
+          showErrorSnackBar(context, state.errorMessage);
+        } else if (state is LogoutSuccessState) {
+          hideLoading();
+          await _appPreferences.setUserLoggedOut();
+          Navigator.pushReplacementNamed(context, Routes.loginRoute);
+          // ------------------------------------------------------
+        } else if (state is AddCycleLoadingState) {
+          showLoading();
+        } else if (state is AddCycleErrorState) {
+          hideLoading();
+          showErrorSnackBar(context, state.errorMessage);
+        } else if (state is AddCycleSuccessState) {
+          hideLoading();
+          showSuccessSnackBar(context, "Cycle added successfully");
+          _membersCountTextController.text = "";
+          _memberBudgetTextController.text = "";
+          HomePageCubit.get(context).getActiveCycle();
+          // ------------------------------------------------------
+        } else if (state is GetActiveCycleLoadingState) {
+          showLoading();
+        } else if (state is GetActiveCycleErrorState) {
+          hideLoading();
+          showErrorSnackBar(context, state.errorMessage);
+        } else if (state is GetActiveCycleSuccessState) {
+          hideLoading();
+
+            setState(() {
+              activeCycleData = state.cycleModel;
+            });
+
+          // ------------------------------------------------------
+        } else if (state is DeleteCycleLoadingState) {
+          showLoading();
+        } else if (state is DeleteCycleErrorState) {
+          hideLoading();
+          showErrorSnackBar(context, state.errorMessage);
+        } else if (state is DeleteCycleSuccessState) {
+          hideLoading();
+          setState(() {
+            activeCycleData = null;
+          });
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          extendBody: true,
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF1C1633),
+                  Color(0xFF2E2159),
+                  Color(0xFF443182),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            bottomNavigationBar: ClipRRect(
-              borderRadius: BorderRadius.circular(20.r),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                child: Container(
-                  margin: EdgeInsets.all(10.w),
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20.r),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
-                      width: 1.5,
+            child: SafeArea(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: _buildHeader(),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildNavItem(
-                        icon: Icons.attach_money,
-                        index: 0,
-                        isActive: _currentIndex == 0,
-                      ),
-                      _buildNavItem(
-                        icon: Icons.add,
-                        index: 1,
-                        isActive: _currentIndex == 1,
-                      ),
-                      if (isHead)
-                        _buildNavItem(
-                          icon: Icons.add_to_drive_rounded,
-                          index: 2,
-                          isActive: _currentIndex == 2,
-                        ),
-                      if (isHead)
-                        _buildNavItem(
-                          icon: Icons.person,
-                          index: 3,
-                          isActive: _currentIndex == 3,
-                        ),
-                      _buildNavItem(
-                        icon: Icons.bar_chart_sharp,
-                        index: 4,
-                        isActive: _currentIndex == 4,
-                      ),
-                    ],
-                  ),
+
+                    Expanded(
+                      child: _currentIndex == 0
+                          ? _buildCreditContent()
+                          : _currentIndex == 1
+                          ? _buildInvoiceContent()
+                          : _currentIndex == 2
+                          ? isHead
+                                ? _buildCycleContent()
+                                : Container()
+                          : _currentIndex == 3
+                          ? isHead
+                                ? _buildCycleMembersContent()
+                                : Container()
+                          : _buildReportsContent(),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-        });
+          ),
+          bottomNavigationBar: ClipRRect(
+            borderRadius: BorderRadius.circular(20.r),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+              child: Container(
+                margin: EdgeInsets.all(10.w),
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavItem(
+                      icon: Icons.attach_money,
+                      index: 0,
+                      isActive: _currentIndex == 0,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.add,
+                      index: 1,
+                      isActive: _currentIndex == 1,
+                    ),
+                    if (isHead)
+                      _buildNavItem(
+                        icon: Icons.add_to_drive_rounded,
+                        index: 2,
+                        isActive: _currentIndex == 2,
+                      ),
+                    if (isHead)
+                      _buildNavItem(
+                        icon: Icons.person,
+                        index: 3,
+                        isActive: _currentIndex == 3,
+                      ),
+                    _buildNavItem(
+                      icon: Icons.bar_chart_sharp,
+                      index: 4,
+                      isActive: _currentIndex == 4,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildHeader() {
@@ -413,16 +402,18 @@ class _HomeViewState extends State<HomeView>
                       border: Border.all(color: AppColors.cIsActive, width: 2),
                     ),
                     child: ClipOval(
-                      child: photoUrl == null ? const CircularProgressIndicator() : CachedNetworkImage(
-                        placeholder: (context, url) =>
-                            CircularProgressIndicator(
-                              strokeWidth: 2.w,
-                              color: AppColors.cIsActive,
+                      child: photoUrl == null
+                          ? const CircularProgressIndicator()
+                          : CachedNetworkImage(
+                              placeholder: (context, url) =>
+                                  CircularProgressIndicator(
+                                    strokeWidth: 2.w,
+                                    color: AppColors.cIsActive,
+                                  ),
+                              errorWidget: (context, url, error) =>
+                                  Icon(Icons.person),
+                              imageUrl: photoUrl!,
                             ),
-                        errorWidget: (context, url, error) =>
-                            Icon(Icons.person),
-                        imageUrl: photoUrl!,
-                      ),
                     ),
                   ),
                 ),
@@ -446,9 +437,11 @@ class _HomeViewState extends State<HomeView>
     return GestureDetector(
       onTap: () {
         initDateDropdowns();
-        setState(() {
-          _currentIndex = index;
-        });
+
+          setState(() {
+            _currentIndex = index;
+          });
+
       },
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -686,7 +679,10 @@ class _HomeViewState extends State<HomeView>
               value: selectedYear,
               items: years,
               onChanged: (v) {
-                setState(() => selectedYear = v);
+
+                  setState(() => selectedYear = v);
+
+
                 _updateDays();
               },
             ),
@@ -696,7 +692,10 @@ class _HomeViewState extends State<HomeView>
               value: selectedMonth,
               items: months,
               onChanged: (v) {
-                setState(() => selectedMonth = v);
+
+                  setState(() => selectedMonth = v);
+
+
                 _updateDays();
               },
             ),
@@ -705,7 +704,11 @@ class _HomeViewState extends State<HomeView>
               hint: AppStrings.day,
               value: selectedDay,
               items: days,
-              onChanged: (v) => setState(() => selectedDay = v),
+              onChanged: (v) {
+
+                  setState(() => selectedDay = v);
+
+              },
             ),
           ],
         ),
@@ -721,9 +724,11 @@ class _HomeViewState extends State<HomeView>
                   value: isShared,
                   activeColor: Colors.orangeAccent,
                   onChanged: (value) {
-                    setState(() {
-                      isShared = value!;
-                    });
+
+                      setState(() {
+                        isShared = value!;
+                      });
+
                   },
                 ),
                 Text(AppStrings.shared, style: TextStyle(color: Colors.white)),
@@ -739,9 +744,11 @@ class _HomeViewState extends State<HomeView>
                         value: isInvoiceCreator,
                         activeColor: Colors.orangeAccent,
                         onChanged: (value) {
-                          setState(() {
-                            isInvoiceCreator = value!;
-                          });
+
+                            setState(() {
+                              isInvoiceCreator = value!;
+                            });
+
                         },
                       ),
                       Text(
@@ -1061,7 +1068,9 @@ class _HomeViewState extends State<HomeView>
                                           ),
                                           SizedBox(width: 8.w),
                                           Bounceable(
-                                            onTap: () {},
+                                            onTap: () {
+
+                                            },
                                             child: Icon(
                                               Icons.delete,
                                               color: Colors.redAccent,
@@ -1117,14 +1126,22 @@ class _HomeViewState extends State<HomeView>
               hint: AppStrings.month,
               value: selectedMonth,
               items: months,
-              onChanged: (v) => setState(() => selectedMonth = v),
+              onChanged: (v) {
+
+                  setState(() => selectedMonth = v);
+
+              },
             ),
             SizedBox(width: 10.w),
             _buildDropdown(
               hint: AppStrings.year,
               value: selectedYear,
               items: years,
-              onChanged: (v) => setState(() => selectedYear = v),
+              onChanged: (v) {
+
+                  setState(() => selectedYear = v);
+
+              },
             ),
           ],
         ),
@@ -1132,6 +1149,7 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 10.h),
 
         TextField(
+          controller: _memberBudgetTextController,
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
@@ -1149,6 +1167,7 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 10.h),
 
         TextField(
+          controller: _membersCountTextController,
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
@@ -1166,7 +1185,38 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 15.h),
 
         Bounceable(
-          onTap: () {},
+          onTap: () {
+            final membersCountText = _membersCountTextController.text.trim();
+            final memberBudgetText = _memberBudgetTextController.text.trim();
+
+            if (membersCountText.isEmpty || memberBudgetText.isEmpty) {
+              showWarningSnackBar(context, "Please fill in all required fields.");
+              return;
+            }
+
+            // Validate numeric inputs
+            final membersCount = int.tryParse(membersCountText);
+            final memberBudget = double.tryParse(memberBudgetText);
+
+            if (membersCount == null || memberBudget == null) {
+              showErrorSnackBar(context, "Please enter valid numbers for members count and budget.");
+              return;
+            }
+
+            var uuid = Uuid();
+            String id = uuid.v4();
+            CycleModel cycle = CycleModel(
+              id: id,
+              membersCount: int.parse(_membersCountTextController.text),
+              active: true,
+              cycleDate: "$selectedMonth  $selectedYear",
+              cycleName: "$selectedMonth  $selectedYear",
+              memberBudget: double.parse(_memberBudgetTextController.text),
+              members: [],
+              spenses: [],
+            );
+            HomePageCubit.get(context).addCycle(cycle);
+          },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1174,28 +1224,30 @@ class _HomeViewState extends State<HomeView>
                 borderRadius: BorderRadius.circular(20.r),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    width: MediaQuery.sizeOf(context).width / 0.5,
-                    height: 45.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                        width: 1.5.w,
+                  child: Center(
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 10.w),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        AppStrings.save,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 15.sp,
+                      width: 120.w,
+                      height: 45.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20.r),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5.w,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          AppStrings.save,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 15.sp,
+                          ),
                         ),
                       ),
                     ),
@@ -1208,100 +1260,118 @@ class _HomeViewState extends State<HomeView>
 
         SizedBox(height: 20.h),
 
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20.r),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 0.w),
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+        activeCycleData != null
+            ? ClipRRect(
                 borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.5.w,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "October 2025",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          letterSpacing: 0.5,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 0.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 10.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5.w,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppStrings.activeCycle,
+                              style: TextStyle(
+                                color: Colors.deepOrangeAccent,
+                                fontSize: 15.sp,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+
+                            SizedBox(height: 10.h),
+
+                            Text(
+                              activeCycleData!.cycleName,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+
+                            SizedBox(height: 10.h),
+
+                            Row(
+                              children: [
+                                Text(
+                                  "${AppStrings.memberBudget}:",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+
+                                SizedBox(width: 10.w),
+
+                                Text(
+                                  "${activeCycleData!.memberBudget} L.E.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  "${AppStrings.membersCount}:",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+
+                                SizedBox(width: 10.w),
+
+                                Text(
+                                  activeCycleData!.membersCount.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
-
-                      SizedBox(height: 10.h),
-
-                      Row(
-                        children: [
-                          Text(
-                            "${AppStrings.memberBudget}:",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15.sp,
-                              letterSpacing: 0.5,
-                            ),
+                        Bounceable(
+                          onTap: () {
+                            HomePageCubit.get(context).deleteCycle(activeCycleData!.cycleName);
+                          },
+                          child: Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                            size: 18.sp,
                           ),
-
-                          SizedBox(width: 10.w),
-
-                          Text(
-                            "1250 L.E.",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15.sp,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            "${AppStrings.membersCount}:",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15.sp,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-
-                          SizedBox(width: 10.w),
-
-                          Text(
-                            "11",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15.sp,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Bounceable(
-                    onTap: () {},
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.redAccent,
-                      size: 18.sp,
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
+                ),
+              )
+            : Container(),
       ],
     );
   }
@@ -1514,9 +1584,11 @@ class _HomeViewState extends State<HomeView>
                       value: showTotal,
                       activeColor: Colors.orangeAccent,
                       onChanged: (value) {
-                        setState(() {
-                          showTotal = value!;
-                        });
+
+                          setState(() {
+                            showTotal = value!;
+                          });
+
                       },
                     ),
                     Text(

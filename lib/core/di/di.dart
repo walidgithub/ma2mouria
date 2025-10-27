@@ -4,6 +4,9 @@ import 'package:get_it/get_it.dart';
 import 'package:ma2mouria/features/auth/data/repository_impl/auth_repository_impl.dart';
 import 'package:ma2mouria/features/home_page/data/data_source/home_page_datasource.dart';
 import 'package:ma2mouria/features/home_page/domain/repository/home_page_repository.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_rule_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/preferences/app_pref.dart';
@@ -47,9 +50,12 @@ class ServiceLocator {
     //home useCases
     sl.registerLazySingleton<LogoutUseCase>(() => LogoutUseCase(sl()));
     sl.registerLazySingleton<GetRuleUseCase>(() => GetRuleUseCase(sl()));
+    sl.registerLazySingleton<AddCycleUseCase>(() => AddCycleUseCase(sl()));
+    sl.registerLazySingleton<GetActiveCycleUseCase>(() => GetActiveCycleUseCase(sl()));
+    sl.registerLazySingleton<DeleteCycleUseCase>(() => DeleteCycleUseCase(sl()));
 
     // Bloc
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => HomePageCubit(sl(), sl()));
+    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl()));
   }
 }

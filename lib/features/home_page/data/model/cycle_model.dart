@@ -1,7 +1,7 @@
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/spense_model.dart';
 
-class Cycle {
+class CycleModel {
   final String id;
   final List<MemberModel> members;
   final double memberBudget;
@@ -11,7 +11,7 @@ class Cycle {
   final bool active;
   final String cycleName;
 
-  Cycle({
+  CycleModel({
     required this.id,
     required this.members,
     required this.memberBudget,
@@ -22,8 +22,8 @@ class Cycle {
     required this.cycleName,
   });
 
-  factory Cycle.fromJson(Map<String, dynamic> json) {
-    return Cycle(
+  factory CycleModel.fromJson(Map<String, dynamic> json) {
+    return CycleModel(
       id: json['id'] ?? '',
       members: (json['members'] as List<dynamic>? ?? [])
           .map((e) => MemberModel.fromJson(e))
