@@ -1,10 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ma2mouria/features/home_page/data/model/expense_model.dart';
 
 import '../../../../core/di/di.dart';
 import '../../../../core/utils/constant/app_strings.dart';
 import '../model/cycle_model.dart';
+import '../model/member_model.dart';
 import '../model/rules_model.dart';
+import '../requests/add_expense_request.dart';
+import '../requests/add_member_request.dart';
+import '../requests/delete_expense_request.dart';
+import '../requests/delete_member_request.dart';
 
 abstract class BaseDataSource {
   Future<void> logout();
@@ -12,6 +18,13 @@ abstract class BaseDataSource {
   Future<void> addCycle(CycleModel cycle);
   Future<void> deleteCycle(String cycleName);
   Future<CycleModel> getActiveCycle();
+  Future<void> addMember(AddMemberRequest addMemberRequest);
+  Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
+  Future<List<MemberModel>> getMembers(String cycleName);
+  Future<List<RulesModel>> getUsers();
+  Future<void> addExpense(AddExpenseRequest addExpenseRequest);
+  Future<List<ExpenseModel>> getExpenses(String cycleName);
+  Future<void> deleteExpense(DeleteExpenseRequest deleteExpenseRequest);
 }
 
 class HomePageDataSource extends BaseDataSource {
@@ -109,8 +122,9 @@ class HomePageDataSource extends BaseDataSource {
     try {
       final collectionRef = firestore.collection('cycles');
 
-      final querySnapshot =
-      await collectionRef.where('cycle_name', isEqualTo: cycleName).get();
+      final querySnapshot = await collectionRef
+          .where('cycle_name', isEqualTo: cycleName)
+          .get();
 
       if (querySnapshot.docs.isEmpty) {
         throw Exception('Cycle "$cycleName" not found.');
@@ -126,5 +140,232 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
+  @override
+  Future<void> addMember(AddMemberRequest addMemberRequest) async {
+    try {
+      final query = await firestore
+          .collection('cycles')
+          .where('cycle_name', isEqualTo: addMemberRequest.cycleName)
+          .limit(1)
+          .get();
 
+      if (query.docs.isEmpty) {
+        throw Exception('Cycle "${addMemberRequest.cycleName}" not found');
+      }
+
+      final docRef = query.docs.first.reference;
+
+      final snapshot = await docRef.get();
+      final data = snapshot.data();
+      final currentMembers = (data?['members'] as List<dynamic>?) ?? [];
+
+      final bool exists = currentMembers.any((m) {
+        return (m is Map<String, dynamic> &&
+            (m['id'] == addMemberRequest.member.id));
+      });
+
+      if (exists) {
+        await docRef.update({
+          'members': FieldValue.arrayRemove([
+            currentMembers.firstWhere(
+              (m) => m['id'] == addMemberRequest.member.id,
+            ),
+          ]),
+        });
+        await docRef.update({
+          'members': FieldValue.arrayUnion([addMemberRequest.member.toJson()]),
+        });
+        return;
+      }
+
+      await docRef.update({
+        'members': FieldValue.arrayUnion([addMemberRequest.member.toJson()]),
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<MemberModel>> getMembers(String cycleName) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> query;
+
+      query = await firestore
+          .collection('cycles')
+          .where('cycle_name', isEqualTo: cycleName)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('No active or matching cycle found');
+      }
+
+      final cycleData = query.docs.first.data();
+      final cycle = CycleModel.fromJson(cycleData);
+
+      return cycle.members;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest) async {
+    try {
+      final query = await firestore
+          .collection('cycles')
+          .where('cycle_name', isEqualTo: deleteMemberRequest.cycleName)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('Cycle not found');
+      }
+
+      final docRef = query.docs.first.reference;
+      final data = query.docs.first.data();
+
+      final cycle = CycleModel.fromJson(data);
+
+      final isMemberExist =
+      cycle.members.any((m) => m.id == deleteMemberRequest.member.id);
+
+      if (!isMemberExist) {
+        throw Exception('Member not found in this cycle');
+      }
+
+      final updatedMembers =
+      cycle.members.where((m) => m.id != deleteMemberRequest.member.id).toList();
+
+      await docRef.update({
+        'members': updatedMembers.map((e) => e.toJson()).toList(),
+      });
+
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<RulesModel>> getUsers() async {
+    try {
+      final snapshot = await firestore.collection('rules').get();
+
+      final rulesList = snapshot.docs
+          .map((doc) => RulesModel.fromJson(doc.data()))
+          .toList();
+
+      return rulesList;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> addExpense(AddExpenseRequest addExpenseRequest) async {
+    try {
+      final query = await firestore
+          .collection('cycles')
+          .where('cycle_name', isEqualTo: addExpenseRequest.cycleName)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('Cycle "${addExpenseRequest.cycleName}" not found');
+      }
+
+      final docRef = query.docs.first.reference;
+
+      final snapshot = await docRef.get();
+      final data = snapshot.data();
+      final currentExpenses = (data?['expenses'] as List<dynamic>?) ?? [];
+
+      final bool exists = currentExpenses.any((m) {
+        return (m is Map<String, dynamic> &&
+            (m['id'] == addExpenseRequest.expense.id));
+      });
+
+      if (exists) {
+        await docRef.update({
+          'expenses': FieldValue.arrayRemove([
+            currentExpenses.firstWhere(
+                  (m) => m['id'] == addExpenseRequest.expense.id,
+            ),
+          ]),
+        });
+        await docRef.update({
+          'expenses': FieldValue.arrayUnion([addExpenseRequest.expense.toJson()]),
+        });
+        return;
+      }
+
+      await docRef.update({
+        'expenses': FieldValue.arrayUnion([addExpenseRequest.expense.toJson()]),
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ExpenseModel>> getExpenses(String cycleName) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> query;
+
+      query = await firestore
+          .collection('cycles')
+          .where('cycle_name', isEqualTo: cycleName)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('No active or matching cycle found');
+      }
+
+      final cycleData = query.docs.first.data();
+      final cycle = CycleModel.fromJson(cycleData);
+
+      return cycle.expenses;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteExpense(DeleteExpenseRequest deleteExpenseRequest) async {
+    try {
+      final query = await firestore
+          .collection('cycles')
+          .where('cycle_name', isEqualTo: deleteExpenseRequest.cycleName)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        throw Exception('Cycle not found');
+      }
+
+      final docRef = query.docs.first.reference;
+      final data = query.docs.first.data();
+
+      final cycle = CycleModel.fromJson(data);
+
+      final isExpenseExist =
+      cycle.expenses.any((m) => m.id == deleteExpenseRequest.expense.id);
+
+      if (!isExpenseExist) {
+        throw Exception('Expense not found in this cycle');
+      }
+
+      final updatedExpenses =
+      cycle.expenses.where((m) => m.id != deleteExpenseRequest.expense.id).toList();
+
+      await docRef.update({
+        'expenses': updatedExpenses.map((e) => e.toJson()).toList(),
+      });
+
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

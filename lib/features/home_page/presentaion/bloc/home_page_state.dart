@@ -1,5 +1,8 @@
 import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
+
+import '../../data/model/expense_model.dart';
 
 abstract class HomePageState{}
 
@@ -25,6 +28,14 @@ class AddCycleErrorState extends HomePageState{
 }
 class AddCycleLoadingState extends HomePageState{}
 // --------------------------------------------------------
+class AddMemberSuccessState extends HomePageState{}
+class AddMemberErrorState extends HomePageState{
+  final String errorMessage;
+
+  AddMemberErrorState(this.errorMessage);
+}
+class AddMemberLoadingState extends HomePageState{}
+// --------------------------------------------------------
 class GetActiveCycleSuccessState extends HomePageState{
   final CycleModel cycleModel;
 
@@ -36,6 +47,30 @@ class GetActiveCycleErrorState extends HomePageState{
   GetActiveCycleErrorState(this.errorMessage);
 }
 class GetActiveCycleLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetMembersSuccessState extends HomePageState{
+  final List<MemberModel> members;
+
+  GetMembersSuccessState(this.members);
+}
+class GetMembersErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetMembersErrorState(this.errorMessage);
+}
+class GetMembersLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetUsersSuccessState extends HomePageState{
+  final List<RulesModel> members;
+
+  GetUsersSuccessState(this.members);
+}
+class GetUsersErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetUsersErrorState(this.errorMessage);
+}
+class GetUsersLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class LogoutSuccessState extends HomePageState{}
 class LogoutErrorState extends HomePageState{
@@ -52,5 +87,41 @@ class DeleteCycleErrorState extends HomePageState{
   DeleteCycleErrorState(this.errorMessage);
 }
 class DeleteCycleLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class DeleteMemberSuccessState extends HomePageState{}
+class DeleteMemberErrorState extends HomePageState{
+  final String errorMessage;
+
+  DeleteMemberErrorState(this.errorMessage);
+}
+class DeleteMemberLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class AddExpenseSuccessState extends HomePageState{}
+class AddExpenseErrorState extends HomePageState{
+  final String errorMessage;
+
+  AddExpenseErrorState(this.errorMessage);
+}
+class AddExpenseLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetExpensesSuccessState extends HomePageState{
+  final List<ExpenseModel> expenses;
+
+  GetExpensesSuccessState(this.expenses);
+}
+class GetExpensesErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetExpensesErrorState(this.errorMessage);
+}
+class GetExpensesLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class DeleteExpenseSuccessState extends HomePageState{}
+class DeleteExpenseErrorState extends HomePageState{
+  final String errorMessage;
+
+  DeleteExpenseErrorState(this.errorMessage);
+}
+class DeleteExpenseLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class AuthNoInternetState extends HomePageState{}

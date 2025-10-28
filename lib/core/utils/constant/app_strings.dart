@@ -16,9 +16,9 @@ class AppStrings {
   static const String typeNumbers = "Type numbers (e.g. 10+20+30)";
   static const String shared = "Shared";
   static const String invoiceCreator = "Invoice Creator";
-  static const String invoiceValue = "Invoice Value";
+  static const String expenseValue = "Invoice Value";
   static const String myShare = "My Share";
-  static const String invoiceDetail = "Invoice Detail";
+  static const String expenseDetail = "Invoice Detail";
   static const String save = "Save";
   static const String approve = "Approve";
   static const String myCredit = "My Credit";

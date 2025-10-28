@@ -86,6 +86,7 @@ class _AuthViewState extends State<AuthView> {
                             await _appPreferences.setUserLoggedIn();
                             await _appPreferences.saveUserData(
                               email: state.user.email,
+                              name: state.user.name,
                               photoUrl: state.user.photoUrl
                             );
                             Navigator.pushReplacementNamed(context, Routes.homeRoute);
