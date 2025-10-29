@@ -7,9 +7,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/core/utils/style/app_colors.dart';
-import 'package:ma2mouria/features/home_page/data/model/expense_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/receipt_members_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
+import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_cubit.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_state.dart';
@@ -24,6 +25,7 @@ import '../../../../core/utils/constant/months.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../core/utils/ui_components/snackbar.dart';
 import '../../data/model/cycle_model.dart';
+import '../../data/model/receipt_model.dart';
 import '../../data/requests/add_member_request.dart';
 
 class HomeView extends StatefulWidget {
@@ -45,7 +47,7 @@ class _HomeViewState extends State<HomeView>
 
   int _currentIndex = 0;
   bool isShared = false;
-  bool isInvoiceCreator = false;
+  bool isReceiptCreator = false;
   bool showTotal = false;
 
   bool isHead = false;
@@ -57,6 +59,12 @@ class _HomeViewState extends State<HomeView>
   final TextEditingController _membersCountTextController =
       TextEditingController();
   final TextEditingController _cycleTextController = TextEditingController();
+  final TextEditingController _receiptDetailTextController =
+      TextEditingController();
+  final TextEditingController _receiptValueTextController =
+      TextEditingController();
+  final TextEditingController _receiptShareTextController =
+      TextEditingController();
 
   double result = 0;
 
@@ -177,9 +185,10 @@ class _HomeViewState extends State<HomeView>
 
   List<MemberModel> membersList = [];
   List<RulesModel> usersList = [];
-  List<ExpenseModel> expensesList = [];
+  List<ReceiptModel> receiptsList = [];
   List<String> years = [];
   List<String> days = [];
+  List<String> receiptsDetails = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -251,6 +260,8 @@ class _HomeViewState extends State<HomeView>
             activeCycleData = null;
             _cycleTextController.text = "";
             membersList = [];
+            receiptsList = [];
+            receiptsDetails = [];
           });
           showErrorSnackBar(context, state.errorMessage);
         } else if (state is GetActiveCycleSuccessState) {
@@ -260,6 +271,10 @@ class _HomeViewState extends State<HomeView>
             activeCycleData = state.cycleModel;
             _cycleTextController.text = activeCycleData!.cycleName;
             membersList = activeCycleData!.members;
+            receiptsList = activeCycleData!.receipts;
+            for (var i in receiptsList) {
+              receiptsDetails.add(i.receiptDetail);
+            }
           });
 
           // ------------------------------------------------------
@@ -305,32 +320,35 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           HomePageCubit.get(context).getMembers(_cycleTextController.text);
           // ------------------------------------------------------
-        } else if (state is GetExpensesLoadingState) {
+        } else if (state is GetReceiptsLoadingState) {
           showLoading();
-        } else if (state is GetExpensesErrorState) {
+        } else if (state is GetReceiptsErrorState) {
           hideLoading();
           showErrorSnackBar(context, state.errorMessage);
-        } else if (state is GetExpensesSuccessState) {
+        } else if (state is GetReceiptsSuccessState) {
           hideLoading();
 
           setState(() {
-            expensesList = state.expenses;
+            receiptsList = state.receipts;
+            for (var i in state.receipts) {
+              receiptsDetails.add(i.receiptDetail);
+            }
           });
           // ------------------------------------------------------
-        } else if (state is AddExpenseLoadingState) {
+        } else if (state is AddReceiptLoadingState) {
           showLoading();
-        } else if (state is AddExpenseErrorState) {
+        } else if (state is AddReceiptErrorState) {
           hideLoading();
           showErrorSnackBar(context, state.errorMessage);
-        } else if (state is AddExpenseSuccessState) {
+        } else if (state is AddReceiptSuccessState) {
           hideLoading();
           // ------------------------------------------------------
-        } else if (state is DeleteExpenseLoadingState) {
+        } else if (state is DeleteReceiptLoadingState) {
           showLoading();
-        } else if (state is DeleteExpenseErrorState) {
+        } else if (state is DeleteReceiptErrorState) {
           hideLoading();
           showErrorSnackBar(context, state.errorMessage);
-        } else if (state is DeleteExpenseSuccessState) {
+        } else if (state is DeleteReceiptSuccessState) {
           hideLoading();
         }
       },
@@ -363,7 +381,7 @@ class _HomeViewState extends State<HomeView>
                       child: _currentIndex == 0
                           ? _buildCreditContent()
                           : _currentIndex == 1
-                          ? _buildInvoiceContent()
+                          ? _buildReceiptContent()
                           : _currentIndex == 2
                           ? isHead
                                 ? _buildCycleContent()
@@ -735,13 +753,13 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  Widget _buildInvoiceContent() {
+  Widget _buildReceiptContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Center(
           child: Text(
-            AppStrings.addInvoice,
+            AppStrings.addReceipt,
             style: TextStyle(
               color: Colors.white,
               fontSize: 20.sp,
@@ -814,16 +832,16 @@ class _HomeViewState extends State<HomeView>
                 ? Row(
                     children: [
                       Checkbox(
-                        value: isInvoiceCreator,
+                        value: isReceiptCreator,
                         activeColor: Colors.orangeAccent,
                         onChanged: (value) {
                           setState(() {
-                            isInvoiceCreator = value!;
+                            isReceiptCreator = value!;
                           });
                         },
                       ),
                       Text(
-                        AppStrings.invoiceCreator,
+                        AppStrings.receiptCreator,
                         style: TextStyle(color: Colors.white),
                       ),
                     ],
@@ -834,14 +852,15 @@ class _HomeViewState extends State<HomeView>
 
         SizedBox(height: 10.h),
 
-        !isShared || isInvoiceCreator
+        !isShared || isReceiptCreator
             ? TextField(
+                controller: _receiptDetailTextController,
                 keyboardType: TextInputType.text,
                 style: TextStyle(color: Colors.white, fontSize: 15.sp),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
-                  hintText: AppStrings.expenseDetail,
+                  hintText: AppStrings.receiptDetail,
                   hintStyle: TextStyle(color: Colors.white70),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.r),
@@ -853,18 +872,12 @@ class _HomeViewState extends State<HomeView>
               )
             : Container(),
 
-        isShared && !isInvoiceCreator
+        isShared && !isReceiptCreator
             ? Column(
                 children: [
                   StatefulBuilder(
                     builder: (context, setStateDropdown) {
                       String? selectedRestaurant;
-                      final restaurants = [
-                        'KFC 454',
-                        'Mac 8787',
-                        'Pizza Hut 54',
-                      ];
-
                       return Row(
                         children: [
                           Expanded(
@@ -882,7 +895,7 @@ class _HomeViewState extends State<HomeView>
                                 ),
                               ),
                               hint: Text(
-                                AppStrings.expenseDetail,
+                                AppStrings.receiptDetail,
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 15.sp,
@@ -896,7 +909,7 @@ class _HomeViewState extends State<HomeView>
                                 color: Colors.white,
                                 fontSize: 15.sp,
                               ),
-                              items: restaurants.map((name) {
+                              items: receiptsDetails.map((name) {
                                 return DropdownMenuItem(
                                   value: name,
                                   child: Text(name),
@@ -946,12 +959,13 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 10.h),
 
         TextField(
+          controller: _receiptValueTextController,
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white.withOpacity(0.1),
-            hintText: AppStrings.expenseValue,
+            hintText: AppStrings.receiptValue,
             hintStyle: TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
@@ -966,6 +980,7 @@ class _HomeViewState extends State<HomeView>
                   SizedBox(height: 10.h),
 
                   TextField(
+                    controller: _receiptShareTextController,
                     keyboardType: TextInputType.number,
                     style: TextStyle(color: Colors.white, fontSize: 15.sp),
                     decoration: InputDecoration(
@@ -993,7 +1008,69 @@ class _HomeViewState extends State<HomeView>
             SizedBox(
               width: 150.w,
               child: Bounceable(
-                onTap: () {},
+                onTap: () {
+                  if (!isShared) {
+                    _receiptShareTextController.text =
+                        _receiptValueTextController.text;
+                  }
+                  final receiptDetailText = _receiptDetailTextController.text
+                      .trim();
+                  final receiptValueText = _receiptValueTextController.text
+                      .trim();
+                  final receiptShareText = _receiptShareTextController.text
+                      .trim();
+
+                  if (receiptDetailText.isEmpty ||
+                      receiptValueText.isEmpty ||
+                      receiptShareText.isEmpty) {
+                    showWarningSnackBar(
+                      context,
+                      "Please fill in all required fields.",
+                    );
+                    return;
+                  }
+
+                  final receiptValue = int.tryParse(receiptValueText);
+                  final receiptShare = double.tryParse(receiptShareText);
+                  final receiptDetail = double.tryParse(receiptDetailText);
+
+                  if (receiptValue == null ||
+                      receiptShare == null ||
+                      receiptDetail == null) {
+                    showErrorSnackBar(
+                      context,
+                      "Please enter valid numbers for receipt value and my share.",
+                    );
+                    return;
+                  }
+
+                  var uuid = Uuid();
+                  String id = uuid.v4();
+                  String memberId = uuid.v4();
+                  AddReceiptRequest receipt = AddReceiptRequest(
+                    cycleName: activeCycleData!.cycleName,
+                    receipt: ReceiptModel(
+                      id: id,
+                      receiptCreator: "",
+                      receiptDate: "$selectedDay $selectedMonth $selectedYear",
+                      receiptDetail: _receiptDetailTextController.text,
+                      receiptMembers: [
+                        ReceiptMembersModel(
+                          id: memberId,
+                          name: userName,
+                          shareValue: double.parse(
+                            _receiptShareTextController.text,
+                          ),
+                        ),
+                      ],
+                      receiptValue: double.parse(
+                        _receiptValueTextController.text,
+                      ),
+                      shared: isShared,
+                    ),
+                  );
+                  HomePageCubit.get(context).addReceipt(receipt);
+                },
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1033,7 +1110,7 @@ class _HomeViewState extends State<HomeView>
                 ),
               ),
             ),
-            isShared && isInvoiceCreator
+            isShared && isReceiptCreator
                 ? SizedBox(
                     width: 150.w,
                     child: Bounceable(
@@ -1092,9 +1169,9 @@ class _HomeViewState extends State<HomeView>
                   radius: Radius.circular(10),
                   child: ListView.builder(
                     padding: EdgeInsets.only(top: 10.h),
-                    itemCount: expensesList.length,
+                    itemCount: receiptsList.length,
                     itemBuilder: (context, index) {
-                      final item = expensesList[index];
+                      final item = receiptsList[index];
                       return Container(
                         margin: EdgeInsets.symmetric(
                           vertical: 6.h,
@@ -1116,7 +1193,7 @@ class _HomeViewState extends State<HomeView>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              item.invoiceCreator,
+                              item.receiptCreator,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15.sp,
@@ -1126,7 +1203,7 @@ class _HomeViewState extends State<HomeView>
 
                             Row(
                               children: [
-                                item.invoiceCreator == userData!['name']
+                                item.receiptCreator == userData!['name']
                                     ? Row(
                                         children: [
                                           Bounceable(
@@ -1151,7 +1228,7 @@ class _HomeViewState extends State<HomeView>
                                     : Container(),
                                 SizedBox(width: 10.w),
                                 Text(
-                                  "${item.expenseValue.toStringAsFixed(2)} L.E.",
+                                  "${item.receiptValue.toStringAsFixed(2)} L.E.",
                                   style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14.sp,
@@ -1262,7 +1339,6 @@ class _HomeViewState extends State<HomeView>
               return;
             }
 
-            // Validate numeric inputs
             final membersCount = int.tryParse(membersCountText);
             final memberBudget = double.tryParse(memberBudgetText);
 
@@ -1291,7 +1367,7 @@ class _HomeViewState extends State<HomeView>
                   email: userData!['email']!,
                 ),
               ],
-              expenses: [],
+              receipts: [],
             );
             HomePageCubit.get(context).addCycle(cycle);
           },
@@ -1573,76 +1649,82 @@ class _HomeViewState extends State<HomeView>
 
         SizedBox(),
 
-        membersList.isNotEmpty ? Expanded(
-          child: Scrollbar(
-            thumbVisibility: true,
-            thickness: 2,
-            radius: Radius.circular(10),
-            child: ListView.builder(
-              padding: EdgeInsets.only(top: 10.h),
-              itemCount: membersList.length,
-              itemBuilder: (context, index) {
-                final item = membersList[index];
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 6.h, horizontal: 5.w),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 15.w,
-                    vertical: 10.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(15.r),
-                    border: Border.all(
-                      color: Colors.orange.withOpacity(0.2),
-                      width: 2.w,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            item.name,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
+        membersList.isNotEmpty
+            ? Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  thickness: 2,
+                  radius: Radius.circular(10),
+                  child: ListView.builder(
+                    padding: EdgeInsets.only(top: 10.h),
+                    itemCount: membersList.length,
+                    itemBuilder: (context, index) {
+                      final item = membersList[index];
+                      return Container(
+                        margin: EdgeInsets.symmetric(
+                          vertical: 6.h,
+                          horizontal: 5.w,
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 15.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15.r),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.2),
+                            width: 2.w,
                           ),
-                        ],
-                      ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
 
-                      item.name != userData!['name']
-                          ? Bounceable(
-                              onTap: () {
-                                DeleteMemberRequest deleteMemberRequest =
-                                    DeleteMemberRequest(
-                                      cycleName: _cycleTextController.text,
-                                      member: MemberModel(
-                                        id: item.id,
-                                        name: item.name,
-                                        email: item.email,
-                                      ),
-                                    );
-                                HomePageCubit.get(
-                                  context,
-                                ).deleteMember(deleteMemberRequest);
-                              },
-                              child: Icon(
-                                Icons.delete,
-                                color: Colors.redAccent,
-                                size: 18.sp,
-                              ),
-                            )
-                          : Container(),
-                    ],
+                            item.name != userData!['name']
+                                ? Bounceable(
+                                    onTap: () {
+                                      DeleteMemberRequest deleteMemberRequest =
+                                          DeleteMemberRequest(
+                                            cycleName:
+                                                _cycleTextController.text,
+                                            member: MemberModel(
+                                              id: item.id,
+                                              name: item.name,
+                                              email: item.email,
+                                            ),
+                                          );
+                                      HomePageCubit.get(
+                                        context,
+                                      ).deleteMember(deleteMemberRequest);
+                                    },
+                                    child: Icon(
+                                      Icons.delete,
+                                      color: Colors.redAccent,
+                                      size: 18.sp,
+                                    ),
+                                  )
+                                : Container(),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
-        ) : Container(),
+                ),
+              )
+            : Container(),
       ],
     );
   }
@@ -1814,7 +1896,7 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                 ),
                                 Text(
-                                  "${item["expense_value"].toStringAsFixed(2)} L.E.",
+                                  "${item["receipt_value"].toStringAsFixed(2)} L.E.",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15.sp,

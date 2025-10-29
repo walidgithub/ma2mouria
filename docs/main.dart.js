@@ -89025,7 +89025,7 @@ A.BR.prototype={}
 A.BS.prototype={}
 A.B2.prototype={
 Y(){var s="December 22 2025",r=$.ft().$1$0(t.Cw),q=t.N,p=t.z,o=t.H7,n=t.s
-return new A.Hg(r,new A.rH(B.l4,$.az()),A.b([A.ad(["name","Me","value",1250],q,p),A.ad(["name","Mo'men ahmed","value",1150.5],q,p),A.ad(["name","Ahmed abd elazziz","value",1320],q,p)],o),A.b([A.ad(["first_name","Me","last_name",""],q,p),A.ad(["first_name","Mo'men","last_name","Ahmed"],q,p),A.ad(["first_name","Ahmed","last_name","Hassan"],q,p)],o),A.b([A.ad(["restaurant","kfcfdfd ","date",s,"expense_value",1250],q,p),A.ad(["restaurant","nawara ssd","date",s,"expense_value",1150],q,p),A.ad(["restaurant","alkilany","date",s,"expense_value",1350],q,p),A.ad(["restaurant","alkilany dsg","date",s,"expense_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"expense_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"expense_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"expense_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"expense_value",350],q,p)],o),A.b([A.ad(["name","walid barakat","left",1250],q,p),A.ad(["name","Mo'men ahmed","left",1150],q,p),A.ad(["name","Ahmed abd elaziz","left",1350],q,p)],o),A.b([],n),A.b([],n),A.DN(0),null,null)}}
+return new A.Hg(r,new A.rH(B.l4,$.az()),A.b([A.ad(["name","Me","value",1250],q,p),A.ad(["name","Mo'men ahmed","value",1150.5],q,p),A.ad(["name","Ahmed abd elazziz","value",1320],q,p)],o),A.b([A.ad(["first_name","Me","last_name",""],q,p),A.ad(["first_name","Mo'men","last_name","Ahmed"],q,p),A.ad(["first_name","Ahmed","last_name","Hassan"],q,p)],o),A.b([A.ad(["restaurant","kfcfdfd ","date",s,"receipt_value",1250],q,p),A.ad(["restaurant","nawara ssd","date",s,"receipt_value",1150],q,p),A.ad(["restaurant","alkilany","date",s,"receipt_value",1350],q,p),A.ad(["restaurant","alkilany dsg","date",s,"receipt_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"receipt_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"receipt_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"receipt_value",1350],q,p),A.ad(["restaurant","alkilany","date",s,"receipt_value",350],q,p)],o),A.b([A.ad(["name","walid barakat","left",1250],q,p),A.ad(["name","Mo'men ahmed","left",1150],q,p),A.ad(["name","Ahmed abd elaziz","left",1350],q,p)],o),A.b([],n),A.b([],n),A.DN(0),null,null)}}
 A.Hg.prototype={
 a4(){var s,r,q=this,p=null
 q.am()
@@ -89120,7 +89120,7 @@ p=A.b0(e,e,B.e,e,e,e,e,e,e,e,e,$.D().bb(15),e,e,e,e,e,!0,e,e,e,e,e,e,e,e)
 n=A.a9(n,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255)
 q=$.D()
 return A.dl(A.b([d,c,r,s,A.wv(f.at,A.nu(e,new A.e5(4,A.by(10*Math.min(q.gac(),q.gaj())),new A.aQ(A.a9(51,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255),1,B.t,-1)),e,e,e,e,e,e,!0,e,e,e,e,e,e,n,!0,e,e,e,e,e,e,e,e,e,e,e,e,e,B.RF,"Type numbers (e.g. 10+20+30)",e,e,e,e,e,e,e,e,e,!0,!0,e,A.j0(B.GB,B.e,e,$.D().bb(20)),e,e,e,e,e,e,e,e,e,e,e,e),o,new A.jq(2,!1,!1),p)],g),B.ai,B.D,B.r)},
-a5I(){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4=this,a5=null,a6=A.bQ(A.bc("Add Invoice",a5,a5,a5,A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,$.D().bb(20),a5,a5,B.ae,a5,a5,!0,a5,0.5,a5,a5,a5,a5,a5,a5),a5,a5),a5,a5),a7=A.aY(a5,10*$.D().gaj(),a5),a8=a4.fy
+a5I(){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4=this,a5=null,a6=A.bQ(A.bc("Add Receipt",a5,a5,a5,A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,$.D().bb(20),a5,a5,B.ae,a5,a5,!0,a5,0.5,a5,a5,a5,a5,a5,a5),a5,a5),a5,a5),a7=A.aY(a5,10*$.D().gaj(),a5),a8=a4.fy
 a8=a4.rO("Year",a4.k2,new A.at1(a4),a8)
 s=A.aY(a5,a5,10*$.D().gac())
 r=a4.rO("Month",B.hb,new A.at2(a4),a4.fx)
@@ -89131,13 +89131,13 @@ p=A.bK(A.b([a8,s,r,q,a4.rO("Day",a4.k3,new A.at3(a4),p)],o),B.aN,B.r)
 q=A.aY(a5,10*$.D().gaj(),a5)
 r=A.bK(A.b([A.aBW(B.hn,new A.at4(a4),a4.y),A.bc("Shared",a5,a5,a5,A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5),a5,a5)],o),B.D,B.r)
 s=A.aY(a5,a5,20*$.D().gac())
-a8=A.bK(A.b([r,s,a4.y?A.bK(A.b([A.aBW(B.hn,new A.at5(a4),a4.z),A.bc("Invoice Creator",a5,a5,a5,A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5),a5,a5)],o),B.D,B.r):A.bz(a5,a5,B.m,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5)],o),B.aW,B.r)
+a8=A.bK(A.b([r,s,a4.y?A.bK(A.b([A.aBW(B.hn,new A.at5(a4),a4.z),A.bc("Receipt Creator",a5,a5,a5,A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5),a5,a5)],o),B.D,B.r):A.bz(a5,a5,B.m,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5)],o),B.aW,B.r)
 s=A.aY(a5,10*$.D().gaj(),a5)
 if(!a4.y||a4.z){r=A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,$.D().bb(15),a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5)
 n=A.a9(B.d.av(25.5),B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255)
 m=A.b0(a5,a5,B.A,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5)
 l=$.D()
-r=A.wv(a5,A.nu(a5,new A.e5(4,A.by(10*Math.min(l.gac(),l.gaj())),new A.aQ(A.a9(51,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255),1,B.t,-1)),a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,n,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,m,"Invoice Detail",a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5),a5,B.zN,r)}else r=A.bz(a5,a5,B.m,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5)
+r=A.wv(a5,A.nu(a5,new A.e5(4,A.by(10*Math.min(l.gac(),l.gaj())),new A.aQ(A.a9(51,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255),1,B.t,-1)),a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,n,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,m,"Receipt Detail",a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5),a5,B.zN,r)}else r=A.bz(a5,a5,B.m,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5)
 n=a4.y&&!a4.z?A.dl(A.b([new A.ET(new A.at6(),a5)],o),B.ai,B.D,B.r):A.bz(a5,a5,B.m,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5)
 m=A.aY(a5,10*$.D().gaj(),a5)
 l=A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,$.D().bb(15),a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5)
@@ -89145,7 +89145,7 @@ k=B.d.av(25.5)
 j=A.a9(k,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255)
 i=A.b0(a5,a5,B.A,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5)
 h=$.D()
-l=A.wv(a5,A.nu(a5,new A.e5(4,A.by(10*Math.min(h.gac(),h.gaj())),new A.aQ(A.a9(51,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255),1,B.t,-1)),a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,j,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,i,"Invoice Value",a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5),a5,B.hZ,l)
+l=A.wv(a5,A.nu(a5,new A.e5(4,A.by(10*Math.min(h.gac(),h.gaj())),new A.aQ(A.a9(51,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255),1,B.t,-1)),a5,a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,j,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,i,"Receipt Value",a5,a5,a5,a5,a5,a5,a5,a5,a5,!0,!0,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5,a5),a5,B.hZ,l)
 if(a4.y){j=A.aY(a5,10*$.D().gaj(),a5)
 i=A.b0(a5,a5,B.e,a5,a5,a5,a5,a5,a5,a5,a5,$.D().bb(15),a5,a5,a5,a5,a5,!0,a5,a5,a5,a5,a5,a5,a5,a5)
 h=A.a9(k,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255)
@@ -89449,7 +89449,7 @@ r=B.d.av(25.5)
 q=A.a9(r,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255)
 p=$.D()
 q=A.nu(k,new A.e5(4,A.by(10*Math.min(p.gac(),p.gaj())),new A.aQ(A.a9(51,B.e.n()>>>16&255,B.e.n()>>>8&255,B.e.n()&255),1,B.t,-1)),k,k,k,k,k,k,!0,k,k,k,k,k,k,q,!0,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,!0,!0,k,k,k,k,k,k,k,k,k,k,k,k,k,k)
-p=A.bc("Invoice Detail",k,k,k,A.b0(k,k,B.A,k,k,k,k,k,k,k,k,$.D().bb(15),k,k,k,k,k,!0,k,k,k,k,k,k,k,k),k,k)
+p=A.bc("Receipt Detail",k,k,k,A.b0(k,k,B.A,k,k,k,k,k,k,k,k,$.D().bb(15),k,k,k,k,k,!0,k,k,k,k,k,k,k,k),k,k)
 o=A.b0(k,k,B.e,k,k,k,k,k,k,k,k,$.D().bb(15),k,k,k,k,k,!0,k,k,k,k,k,k,k,k)
 n=t.fo
 n=A.Z(new A.a2(s,new A.asU(),n),n.i("as.E"))
@@ -89568,7 +89568,7 @@ $2(a,b){var s,r,q=null,p=this.a.dx[b],o=6*$.D().gaj(),n=5*$.D().gac(),m=15*$.D()
 j=A.by(15*Math.min(j.gac(),j.gaj()))
 s=A.eN(A.a9(51,B.aX.n()>>>16&255,B.aX.n()>>>8&255,B.aX.n()&255),2*$.D().gac())
 r=t.p
-return A.bz(q,A.dl(A.b([A.bK(A.b([A.bc(p.h(0,"restaurant"),q,q,q,A.b0(q,q,B.e,q,q,q,q,q,q,q,q,$.D().bb(15),q,q,B.ae,q,q,!0,q,q,q,q,q,q,q,q),q,q),A.bc(J.aBG(p.h(0,"expense_value"),2)+" L.E.",q,q,q,A.b0(q,q,B.e,q,q,q,q,q,q,q,q,$.D().bb(15),q,q,B.ae,q,q,!0,q,q,q,q,q,q,q,q),q,q)],r),B.aW,B.r),A.aY(q,5*$.D().gaj(),q),A.bc(p.h(0,"date"),q,q,q,A.b0(q,q,B.e,q,q,q,q,q,q,q,q,$.D().bb(15),q,q,B.ae,q,q,!0,q,q,q,q,q,q,q,q),q,q)],r),B.aV,B.aW,B.r),B.m,q,q,new A.bj(k,q,s,j,q,q,B.N),q,q,new A.am(n,o,n,o),new A.am(m,l,m,l),q,q,q)},
+return A.bz(q,A.dl(A.b([A.bK(A.b([A.bc(p.h(0,"restaurant"),q,q,q,A.b0(q,q,B.e,q,q,q,q,q,q,q,q,$.D().bb(15),q,q,B.ae,q,q,!0,q,q,q,q,q,q,q,q),q,q),A.bc(J.aBG(p.h(0,"receipt_value"),2)+" L.E.",q,q,q,A.b0(q,q,B.e,q,q,q,q,q,q,q,q,$.D().bb(15),q,q,B.ae,q,q,!0,q,q,q,q,q,q,q,q),q,q)],r),B.aW,B.r),A.aY(q,5*$.D().gaj(),q),A.bc(p.h(0,"date"),q,q,q,A.b0(q,q,B.e,q,q,q,q,q,q,q,q,$.D().bb(15),q,q,B.ae,q,q,!0,q,q,q,q,q,q,q,q),q,q)],r),B.aV,B.aW,B.r),B.m,q,q,new A.bj(k,q,s,j,q,q,B.N),q,q,new A.am(n,o,n,o),new A.am(m,l,m,l),q,q,q)},
 $S:86}
 A.Ka.prototype={
 l(){var s=this,r=s.a2$

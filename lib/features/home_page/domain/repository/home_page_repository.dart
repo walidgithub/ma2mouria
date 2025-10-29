@@ -4,10 +4,10 @@ import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../data/model/cycle_model.dart';
 import '../../data/model/rules_model.dart';
-import '../../data/model/expense_model.dart';
-import '../../data/requests/add_expense_request.dart';
+import '../../data/model/receipt_model.dart';
+import '../../data/requests/add_receipt_request.dart';
 import '../../data/requests/add_member_request.dart';
-import '../../data/requests/delete_expense_request.dart';
+import '../../data/requests/delete_receipt_request.dart';
 import '../../data/requests/delete_member_request.dart';
 
 abstract class HomePageRepository {
@@ -20,7 +20,7 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, void>> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(String cycleName);
   Future<Either<FirebaseFailure, List<RulesModel>>> getUsers();
-  Future<Either<FirebaseFailure, void>> addExpense(AddExpenseRequest addExpenseRequest);
-  Future<Either<FirebaseFailure,List<ExpenseModel>>> getExpenses(String cycleName);
-  Future<Either<FirebaseFailure, void>> deleteExpense(DeleteExpenseRequest deleteExpenseRequest);
+  Future<Either<FirebaseFailure, void>> addReceipt(AddReceiptRequest addReceiptRequest);
+  Future<Either<FirebaseFailure,List<ReceiptModel>>> getReceipts(String cycleName);
+  Future<Either<FirebaseFailure, void>> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
 }

@@ -2,7 +2,7 @@ import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
 
-import '../../data/model/expense_model.dart';
+import '../../data/model/receipt_model.dart';
 
 abstract class HomePageState{}
 
@@ -96,32 +96,32 @@ class DeleteMemberErrorState extends HomePageState{
 }
 class DeleteMemberLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class AddExpenseSuccessState extends HomePageState{}
-class AddExpenseErrorState extends HomePageState{
+class AddReceiptSuccessState extends HomePageState{}
+class AddReceiptErrorState extends HomePageState{
   final String errorMessage;
 
-  AddExpenseErrorState(this.errorMessage);
+  AddReceiptErrorState(this.errorMessage);
 }
-class AddExpenseLoadingState extends HomePageState{}
+class AddReceiptLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class GetExpensesSuccessState extends HomePageState{
-  final List<ExpenseModel> expenses;
+class GetReceiptsSuccessState extends HomePageState{
+  final List<ReceiptModel> receipts;
 
-  GetExpensesSuccessState(this.expenses);
+  GetReceiptsSuccessState(this.receipts);
 }
-class GetExpensesErrorState extends HomePageState{
+class GetReceiptsErrorState extends HomePageState{
   final String errorMessage;
 
-  GetExpensesErrorState(this.errorMessage);
+  GetReceiptsErrorState(this.errorMessage);
 }
-class GetExpensesLoadingState extends HomePageState{}
+class GetReceiptsLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class DeleteExpenseSuccessState extends HomePageState{}
-class DeleteExpenseErrorState extends HomePageState{
+class DeleteReceiptSuccessState extends HomePageState{}
+class DeleteReceiptErrorState extends HomePageState{
   final String errorMessage;
 
-  DeleteExpenseErrorState(this.errorMessage);
+  DeleteReceiptErrorState(this.errorMessage);
 }
-class DeleteExpenseLoadingState extends HomePageState{}
+class DeleteReceiptLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class AuthNoInternetState extends HomePageState{}

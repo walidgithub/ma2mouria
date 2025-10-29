@@ -1,16 +1,16 @@
-class ExpenseMembersModel {
+class ReceiptMembersModel {
   final String id;
   final String name;
   final double shareValue;
 
-  ExpenseMembersModel({
+  ReceiptMembersModel({
     required this.id,
     required this.name,
     required this.shareValue,
   });
 
-  factory ExpenseMembersModel.fromJson(Map<String, dynamic> json) {
-    return ExpenseMembersModel(
+  factory ReceiptMembersModel.fromJson(Map<String, dynamic> json) {
+    return ReceiptMembersModel(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       shareValue: (json['share_value'] ?? 0).toDouble(),

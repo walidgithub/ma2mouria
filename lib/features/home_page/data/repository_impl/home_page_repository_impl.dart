@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
-import 'package:ma2mouria/features/home_page/data/model/expense_model.dart';
-import 'package:ma2mouria/features/home_page/data/requests/add_expense_request.dart';
-import 'package:ma2mouria/features/home_page/data/requests/delete_expense_request.dart';
+import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
+import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/delete_receipt_request.dart';
 import '../../../../core/firebase/error/firebase_error_handler.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../domain/repository/home_page_repository.dart';
@@ -145,9 +145,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, void>> addExpense(AddExpenseRequest addExpenseRequest) async {
+  Future<Either<FirebaseFailure, void>> addReceipt(AddReceiptRequest addReceiptRequest) async {
     try {
-      final result = await _homePageDataSource.addExpense(addExpenseRequest);
+      final result = await _homePageDataSource.addReceipt(addReceiptRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -159,9 +159,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, void>> deleteExpense(DeleteExpenseRequest deleteExpenseRequest) async {
+  Future<Either<FirebaseFailure, void>> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest) async {
     try {
-      final result = await _homePageDataSource.deleteExpense(deleteExpenseRequest);
+      final result = await _homePageDataSource.deleteReceipt(deleteReceiptRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -173,9 +173,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, List<ExpenseModel>>> getExpenses(String cycleName) async {
+  Future<Either<FirebaseFailure, List<ReceiptModel>>> getReceipts(String cycleName) async {
     try {
-      final result = await _homePageDataSource.getExpenses(cycleName);
+      final result = await _homePageDataSource.getReceipts(cycleName);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));

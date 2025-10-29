@@ -5,13 +5,13 @@ import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../data/model/cycle_model.dart';
 
-class DeleteExpenseUseCase extends FirebaseBaseUseCase {
+class AddReceiptUseCase extends FirebaseBaseUseCase {
   final HomePageRepository homePageRepository;
 
-  DeleteExpenseUseCase(this.homePageRepository);
+  AddReceiptUseCase(this.homePageRepository);
 
   @override
   Future<Either<FirebaseFailure, void>> call(parameters) async {
-    return await homePageRepository.deleteExpense(parameters);
+    return await homePageRepository.addReceipt(parameters);
   }
 }

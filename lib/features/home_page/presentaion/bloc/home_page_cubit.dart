@@ -3,25 +3,25 @@ import 'package:ma2mouria/features/auth/presentaion/bloc/auth_state.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
-import 'package:ma2mouria/features/home_page/domain/usecases/add_expense_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
-import 'package:ma2mouria/features/home_page/domain/usecases/delete_expense_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
-import 'package:ma2mouria/features/home_page/domain/usecases/get_expenses_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_users_usecase.dart';
 import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../home_page/domain/usecases/logout_usecase.dart';
 import '../../data/model/cycle_model.dart';
-import '../../data/requests/add_expense_request.dart';
-import '../../data/requests/delete_expense_request.dart';
+import '../../data/requests/add_receipt_request.dart';
+import '../../data/requests/delete_receipt_request.dart';
 import '../../domain/usecases/add_member_usecase.dart';
 import '../../domain/usecases/delete_member_usecase.dart';
 import '../../domain/usecases/get_rule_usecase.dart';
 import 'home_page_state.dart';
 
 class HomePageCubit extends Cubit<HomePageState> {
-  HomePageCubit(this.logoutUseCase,this.deleteExpenseUseCase,this.getExpensesUseCase,this.addExpenseUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase) : super(HomePageInitial());
+  HomePageCubit(this.logoutUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase) : super(HomePageInitial());
   
   final LogoutUseCase logoutUseCase;
   final GetRuleUseCase getRuleUseCase;
@@ -32,9 +32,9 @@ class HomePageCubit extends Cubit<HomePageState> {
   final AddMemberUseCase addMemberUseCase;
   final GetMembersUseCase getMembersUseCase;
   final GetUsersUseCase getUsersUseCase;
-  final DeleteExpenseUseCase deleteExpenseUseCase;
-  final AddExpenseUseCase addExpenseUseCase;
-  final GetExpensesUseCase getExpensesUseCase;
+  final DeleteReceiptUseCase deleteReceiptUseCase;
+  final AddReceiptUseCase addReceiptUseCase;
+  final GetReceiptsUseCase getReceiptsUseCase;
 
   static HomePageCubit get(context) => BlocProvider.of(context);
 
@@ -110,30 +110,30 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> addExpense(AddExpenseRequest addExpenseRequest) async {
-    emit(AddExpenseLoadingState());
-    final result = await addExpenseUseCase.call(addExpenseRequest);
+  Future<void> addReceipt(AddReceiptRequest addReceiptRequest) async {
+    emit(AddReceiptLoadingState());
+    final result = await addReceiptUseCase.call(addReceiptRequest);
     result.fold(
-          (failure) => emit(AddExpenseErrorState(failure.message)),
-          (expense) => emit(AddExpenseSuccessState()),
+          (failure) => emit(AddReceiptErrorState(failure.message)),
+          (receipt) => emit(AddReceiptSuccessState()),
     );
   }
 
-  Future<void> deleteExpense(DeleteExpenseRequest deleteExpenseRequest) async {
-    emit(DeleteExpenseLoadingState());
-    final result = await deleteExpenseUseCase.call(deleteExpenseRequest);
+  Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest) async {
+    emit(DeleteReceiptLoadingState());
+    final result = await deleteReceiptUseCase.call(deleteReceiptRequest);
     result.fold(
-          (failure) => emit(DeleteExpenseErrorState(failure.message)),
-          (deleted) => emit(DeleteExpenseSuccessState()),
+          (failure) => emit(DeleteReceiptErrorState(failure.message)),
+          (deleted) => emit(DeleteReceiptSuccessState()),
     );
   }
 
-  Future<void> getExpenses(String cycleName) async {
-    emit(GetExpensesLoadingState());
-    final result = await getExpensesUseCase.call(cycleName);
+  Future<void> getReceipts(String cycleName) async {
+    emit(GetReceiptsLoadingState());
+    final result = await getReceiptsUseCase.call(cycleName);
     result.fold(
-          (failure) => emit(GetExpensesErrorState(failure.message)),
-          (expenses) => emit(GetExpensesSuccessState(expenses)),
+          (failure) => emit(GetReceiptsErrorState(failure.message)),
+          (receipts) => emit(GetReceiptsSuccessState(receipts)),
     );
   }
   

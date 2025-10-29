@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:ma2mouria/features/home_page/data/model/expense_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
 
 import '../../../../core/di/di.dart';
 import '../../../../core/utils/constant/app_strings.dart';
 import '../model/cycle_model.dart';
 import '../model/member_model.dart';
 import '../model/rules_model.dart';
-import '../requests/add_expense_request.dart';
+import '../requests/add_receipt_request.dart';
 import '../requests/add_member_request.dart';
-import '../requests/delete_expense_request.dart';
+import '../requests/delete_receipt_request.dart';
 import '../requests/delete_member_request.dart';
 
 abstract class BaseDataSource {
@@ -22,9 +22,9 @@ abstract class BaseDataSource {
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<List<MemberModel>> getMembers(String cycleName);
   Future<List<RulesModel>> getUsers();
-  Future<void> addExpense(AddExpenseRequest addExpenseRequest);
-  Future<List<ExpenseModel>> getExpenses(String cycleName);
-  Future<void> deleteExpense(DeleteExpenseRequest deleteExpenseRequest);
+  Future<void> addReceipt(AddReceiptRequest addReceiptRequest);
+  Future<List<ReceiptModel>> getReceipts(String cycleName);
+  Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
 }
 
 class HomePageDataSource extends BaseDataSource {
@@ -263,45 +263,45 @@ class HomePageDataSource extends BaseDataSource {
   }
 
   @override
-  Future<void> addExpense(AddExpenseRequest addExpenseRequest) async {
+  Future<void> addReceipt(AddReceiptRequest addReceiptRequest) async {
     try {
       final query = await firestore
           .collection('cycles')
-          .where('cycle_name', isEqualTo: addExpenseRequest.cycleName)
+          .where('cycle_name', isEqualTo: addReceiptRequest.cycleName)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception('Cycle "${addExpenseRequest.cycleName}" not found');
+        throw Exception('Cycle "${addReceiptRequest.cycleName}" not found');
       }
 
       final docRef = query.docs.first.reference;
 
       final snapshot = await docRef.get();
       final data = snapshot.data();
-      final currentExpenses = (data?['expenses'] as List<dynamic>?) ?? [];
+      final currentReceipts = (data?['receipts'] as List<dynamic>?) ?? [];
 
-      final bool exists = currentExpenses.any((m) {
+      final bool exists = currentReceipts.any((m) {
         return (m is Map<String, dynamic> &&
-            (m['id'] == addExpenseRequest.expense.id));
+            (m['id'] == addReceiptRequest.receipt.id));
       });
 
       if (exists) {
         await docRef.update({
-          'expenses': FieldValue.arrayRemove([
-            currentExpenses.firstWhere(
-                  (m) => m['id'] == addExpenseRequest.expense.id,
+          'receipts': FieldValue.arrayRemove([
+            currentReceipts.firstWhere(
+                  (m) => m['id'] == addReceiptRequest.receipt.id,
             ),
           ]),
         });
         await docRef.update({
-          'expenses': FieldValue.arrayUnion([addExpenseRequest.expense.toJson()]),
+          'receipts': FieldValue.arrayUnion([addReceiptRequest.receipt.toJson()]),
         });
         return;
       }
 
       await docRef.update({
-        'expenses': FieldValue.arrayUnion([addExpenseRequest.expense.toJson()]),
+        'receipts': FieldValue.arrayUnion([addReceiptRequest.receipt.toJson()]),
       });
     } catch (e) {
       rethrow;
@@ -309,7 +309,7 @@ class HomePageDataSource extends BaseDataSource {
   }
 
   @override
-  Future<List<ExpenseModel>> getExpenses(String cycleName) async {
+  Future<List<ReceiptModel>> getReceipts(String cycleName) async {
     try {
       QuerySnapshot<Map<String, dynamic>> query;
 
@@ -326,18 +326,18 @@ class HomePageDataSource extends BaseDataSource {
       final cycleData = query.docs.first.data();
       final cycle = CycleModel.fromJson(cycleData);
 
-      return cycle.expenses;
+      return cycle.receipts;
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<void> deleteExpense(DeleteExpenseRequest deleteExpenseRequest) async {
+  Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest) async {
     try {
       final query = await firestore
           .collection('cycles')
-          .where('cycle_name', isEqualTo: deleteExpenseRequest.cycleName)
+          .where('cycle_name', isEqualTo: deleteReceiptRequest.cycleName)
           .limit(1)
           .get();
 
@@ -350,18 +350,18 @@ class HomePageDataSource extends BaseDataSource {
 
       final cycle = CycleModel.fromJson(data);
 
-      final isExpenseExist =
-      cycle.expenses.any((m) => m.id == deleteExpenseRequest.expense.id);
+      final isReceiptExist =
+      cycle.receipts.any((m) => m.id == deleteReceiptRequest.receipt.id);
 
-      if (!isExpenseExist) {
-        throw Exception('Expense not found in this cycle');
+      if (!isReceiptExist) {
+        throw Exception('Receipt not found in this cycle');
       }
 
-      final updatedExpenses =
-      cycle.expenses.where((m) => m.id != deleteExpenseRequest.expense.id).toList();
+      final updatedReceipts =
+      cycle.receipts.where((m) => m.id != deleteReceiptRequest.receipt.id).toList();
 
       await docRef.update({
-        'expenses': updatedExpenses.map((e) => e.toJson()).toList(),
+        'receipts': updatedReceipts.map((e) => e.toJson()).toList(),
       });
 
     } catch (e) {
