@@ -12,13 +12,14 @@ class AppStrings {
   static const String leftOf = "Left of";
   static const String spending = "Spending";
   static const String total = "Total";
-  static const String hi = "Hi";
+  static const String hi = "Welcome!";
   static const String typeNumbers = "Type numbers (e.g. 10+20+30)";
   static const String shared = "Shared";
   static const String receiptCreator = "Receipt Creator";
   static const String receiptValue = "Receipt Value";
+  static const String receiptId = "Receipt Id";
   static const String myShare = "My Share";
-  static const String receiptDetail = "Receipt Detail";
+  static const String receiptDetail = "Restaurant Or Shop";
   static const String save = "Save";
   static const String approve = "Approve";
   static const String myCredit = "My Credit";

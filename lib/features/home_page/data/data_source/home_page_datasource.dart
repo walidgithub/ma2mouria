@@ -283,7 +283,7 @@ class HomePageDataSource extends BaseDataSource {
 
       final bool exists = currentReceipts.any((m) {
         return (m is Map<String, dynamic> &&
-            (m['id'] == addReceiptRequest.receipt.id));
+            (m['receipt_id'] == addReceiptRequest.receipt.receiptId));
       });
 
       if (exists) {

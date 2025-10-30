@@ -2,6 +2,7 @@ import 'package:ma2mouria/features/home_page/data/model/receipt_members_model.da
 
 class ReceiptModel {
   final String id;
+  final String receiptId;
   final String receiptDetail;
   final double receiptValue;
   final String receiptDate;
@@ -11,6 +12,7 @@ class ReceiptModel {
 
   ReceiptModel({
     required this.id,
+    required this.receiptId,
     required this.receiptDetail,
     required this.receiptValue,
     required this.receiptDate,
@@ -22,6 +24,7 @@ class ReceiptModel {
   factory ReceiptModel.fromJson(Map<String, dynamic> json) {
     return ReceiptModel(
       id: json['id'] ?? '',
+      receiptId: json['receipt_id'] ?? '',
       receiptDetail: json['receipt_detail'] ?? '',
       receiptValue: (json['receipt_value'] ?? 0).toDouble(),
       receiptDate: json['receipt_date'] ?? '',
@@ -36,6 +39,7 @@ class ReceiptModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'receipt_id': receiptId,
       'receipt_detail': receiptDetail,
       'receipt_value': receiptValue,
       'receipt_date': receiptDate,

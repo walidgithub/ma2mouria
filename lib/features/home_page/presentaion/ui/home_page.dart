@@ -14,6 +14,7 @@ import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.d
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_cubit.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_state.dart';
+import 'package:ma2mouria/features/home_page/presentaion/ui/widgets/receipt_members.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:uuid/uuid.dart';
@@ -68,7 +69,8 @@ class _HomeViewState extends State<HomeView>
   double result = 0;
 
   CycleModel? activeCycleData;
-  String? selectedRestaurant;
+  String? selectedId;
+  String? selectedReceiptUserName;
 
   @override
   void initState() {
@@ -149,6 +151,7 @@ class _HomeViewState extends State<HomeView>
   double spending = 500.0;
   double leftOf = 0.0;
   Map<String, String?>? userData;
+  String savedReceiptId = "";
 
   Future<void> getUserData() async {
     final data = _appPreferences.getUserData();
@@ -186,9 +189,10 @@ class _HomeViewState extends State<HomeView>
   List<MemberModel> membersList = [];
   List<RulesModel> usersList = [];
   List<ReceiptModel> receiptsList = [];
+  List<ReceiptMembersModel> receiptMembersList = [];
   List<String> years = [];
   List<String> days = [];
-  List<String> receiptsDetails = [];
+  List<String> receiptsIds = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -261,7 +265,11 @@ class _HomeViewState extends State<HomeView>
             _cycleTextController.text = "";
             membersList = [];
             receiptsList = [];
-            receiptsDetails = [];
+            receiptsIds = [];
+            receiptMembersList = [];
+            selectedReceiptUserName = "";
+            _receiptValueTextController.text = "";
+            _receiptDetailTextController.text = "";
           });
           showErrorSnackBar(context, state.errorMessage);
         } else if (state is GetActiveCycleSuccessState) {
@@ -273,8 +281,20 @@ class _HomeViewState extends State<HomeView>
             membersList = activeCycleData!.members;
             receiptsList = activeCycleData!.receipts;
             for (var i in receiptsList) {
-              receiptsDetails.add(i.receiptDetail);
+              receiptsIds.add(i.receiptId);
             }
+            selectedReceiptUserName = receiptsList.firstWhere((receipt){
+              return receipt.shared == true;
+            }).receiptCreator;
+            _receiptValueTextController.text = receiptsList.firstWhere((receipt){
+              return receipt.shared == true;
+            }).receiptValue.toString();
+            _receiptDetailTextController.text = receiptsList.firstWhere((receipt){
+              return receipt.shared == true;
+            }).receiptDetail;
+            receiptMembersList = receiptsList.firstWhere((receipt){
+              return receipt.shared == true;
+            }).receiptMembers;
           });
 
           // ------------------------------------------------------
@@ -331,7 +351,7 @@ class _HomeViewState extends State<HomeView>
           setState(() {
             receiptsList = state.receipts;
             for (var i in state.receipts) {
-              receiptsDetails.add(i.receiptDetail);
+              receiptsIds.add(i.receiptId);
             }
           });
           // ------------------------------------------------------
@@ -862,113 +882,127 @@ class _HomeViewState extends State<HomeView>
 
         SizedBox(height: 10.h),
 
-        !isShared || isReceiptCreator
-            ? TextField(
-                controller: _receiptDetailTextController,
-                keyboardType: TextInputType.text,
-                style: TextStyle(color: Colors.white, fontSize: 15.sp),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.1),
-                  hintText: AppStrings.receiptDetail,
-                  hintStyle: TextStyle(color: Colors.white70),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.r),
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                ),
-              )
-            : Container(),
-
         isShared && !isReceiptCreator
             ? Column(
-                children: [
-                  StatefulBuilder(
-                    builder: (context, setStateDropdown) {
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              dropdownColor: const Color(0xFF2E2159),
-                              value: selectedRestaurant,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.1),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.r),
-                                  borderSide: BorderSide(
-                                    color: Colors.white.withOpacity(0.2),
-                                  ),
-                                ),
-                              ),
-                              hint: Text(
-                                AppStrings.receiptDetail,
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 15.sp,
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.white,
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.sp,
-                              ),
-                              items: receiptsDetails.map((name) {
-                                return DropdownMenuItem(
-                                  value: name,
-                                  child: Text(name),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setStateDropdown(() {
-                                  selectedRestaurant = value;
-                                });
-                              },
-                            ),
-                          ),
-
-                          SizedBox(width: 8.w),
-
-                          InkWell(
-                            onTap: () {
-                              setStateDropdown(() {
-                                selectedRestaurant = null;
-                              });
-                            },
+          children: [
+            StatefulBuilder(
+              builder: (context, setStateDropdown) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        dropdownColor: const Color(0xFF2E2159),
+                        value: selectedId,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.1),
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.r),
-                            child: Container(
-                              padding: EdgeInsets.all(8.w),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.refresh,
-                                color: Colors.white,
-                                size: 20.sp,
-                              ),
+                            borderSide: BorderSide(
+                              color: Colors.white.withOpacity(0.2),
                             ),
                           ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              )
+                        ),
+                        hint: Text(
+                          AppStrings.receiptId,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15.sp,
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.arrow_drop_down,
+                          color: Colors.white,
+                        ),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                        ),
+                        items: receiptsIds.map((name) {
+                          return DropdownMenuItem(
+                            value: name,
+                            child: Text(name),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setStateDropdown(() {
+                            selectedId = value;
+                          });
+                          selectedReceiptUserName = receiptsList.firstWhere((receipt){
+                            return receipt.shared == true && receipt.receiptId == value;
+                          }).receiptCreator;
+                          _receiptValueTextController.text = receiptsList.firstWhere((receipt){
+                            return receipt.shared == true && receipt.receiptId == value;
+                          }).receiptValue.toString();
+                          _receiptDetailTextController.text = receiptsList.firstWhere((receipt){
+                            return receipt.shared == true && receipt.receiptId == value;
+                          }).receiptDetail;
+                          receiptMembersList = receiptsList.firstWhere((receipt){
+                            return receipt.shared == true && receipt.receiptId == value;
+                          }).receiptMembers;
+                        },
+                      ),
+                    ),
+
+                    SizedBox(width: 8.w),
+
+                    InkWell(
+                      onTap: () {
+                        setStateDropdown(() {
+                          selectedId = null;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10.r),
+                      child: Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        )
             : Container(),
+
+        isShared && !isReceiptCreator ? SizedBox(height: 10.h): Container(),
+
+        TextField(
+          controller: _receiptDetailTextController,
+          enabled: isShared ? isReceiptCreator ? true : false : true,
+          keyboardType: TextInputType.text,
+          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.1),
+            hintText: AppStrings.receiptDetail,
+            hintStyle: TextStyle(color: Colors.white70),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+          ),
+        ),
 
         SizedBox(height: 10.h),
 
         TextField(
           controller: _receiptValueTextController,
+          enabled: isShared ? isReceiptCreator ? true : false : true,
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
@@ -1009,13 +1043,35 @@ class _HomeViewState extends State<HomeView>
               )
             : Container(),
 
-        SizedBox(height: 15.h),
+        SizedBox(height: 10.h),
+
+        isShared && isReceiptCreator
+        ? Row(
+          children: [
+            Text(
+              "${AppStrings.receiptId}: ",
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 15.sp,
+              ),
+            ),
+            Text(
+              savedReceiptId,
+              style: GoogleFonts.poppins(
+                color: Colors.redAccent,
+                fontSize: 15.sp,
+              ),
+            )
+          ],
+        ) : Container(),
+
+        isShared && isReceiptCreator ?
+        SizedBox(height: 10.h) : Container(),
 
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: isShared ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
           children: [
             SizedBox(
-              width: 150.w,
               child: Bounceable(
                 onTap: () {
                   if (!isShared) {
@@ -1061,9 +1117,10 @@ class _HomeViewState extends State<HomeView>
                     receipt: ReceiptModel(
                       id: id,
                       receiptCreator: !isShared ? userName :
-                      isReceiptCreator ? userName : "get receipt username",
+                      isReceiptCreator ? userName : selectedReceiptUserName!,
                       receiptDate: "$selectedDay $selectedMonth $selectedYear",
-                      receiptDetail: !isShared ? _receiptDetailTextController.text : isReceiptCreator ? selectedRestaurant! : _receiptDetailTextController.text,
+                      receiptDetail: _receiptDetailTextController.text,
+                      receiptId: "${_receiptDetailTextController.text} ${id.substring(0, 7)}",
                       receiptMembers: [
                         ReceiptMembersModel(
                           id: memberId,
@@ -1091,10 +1148,10 @@ class _HomeViewState extends State<HomeView>
                         child: Container(
                           margin: EdgeInsets.symmetric(horizontal: 10.w),
                           padding: EdgeInsets.symmetric(
-                            horizontal: 20.w,
+                            horizontal: 10.w,
                             vertical: 10.h,
                           ),
-                          width: MediaQuery.sizeOf(context).width / 0.5,
+                          width: 120.w,
                           height: 45.h,
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.1),
@@ -1120,9 +1177,67 @@ class _HomeViewState extends State<HomeView>
                 ),
               ),
             ),
+            isShared ? SizedBox(
+              child: Bounceable(
+                onTap: () {
+                  if (isShared) {
+                    showModalBottomSheet(
+                      context: context,
+                      constraints: BoxConstraints.expand(
+                          height:
+                          MediaQuery.sizeOf(context).height / 2,
+                          width: MediaQuery.sizeOf(context).width),
+                      isScrollControlled: true,
+                      barrierColor: AppColors.cTransparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(30.r),
+                        ),
+                      ),
+                      builder: (BuildContext context) {
+                        return ReceiptMembersBottomSheet(
+                          userData: userData,
+                          receiptMembersList: receiptMembersList,
+                        );
+                      },
+                    );
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20.r),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 10.w),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 10.h,
+                          ),
+                          width: 60.w,
+                          height: 45.h,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20.r),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1.5.w,
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(Icons.group,color: Colors.white,),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ): Container(),
             isShared && isReceiptCreator
                 ? SizedBox(
-                    width: 150.w,
                     child: Bounceable(
                       onTap: () {},
                       child: Column(
@@ -1138,10 +1253,10 @@ class _HomeViewState extends State<HomeView>
                               child: Container(
                                 margin: EdgeInsets.symmetric(horizontal: 10.w),
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 20.w,
+                                  horizontal: 10.w,
                                   vertical: 10.h,
                                 ),
-                                width: 150.w,
+                                width: 60.w,
                                 height: 45.h,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.1),
@@ -1152,13 +1267,7 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    AppStrings.approve,
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.redAccent,
-                                      fontSize: 15.sp,
-                                    ),
-                                  ),
+                                  child: Icon(Icons.check,color: Colors.redAccent,),
                                 ),
                               ),
                             ),
@@ -1170,90 +1279,6 @@ class _HomeViewState extends State<HomeView>
                 : Container(),
           ],
         ),
-
-        isShared
-            ? Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(top: 10.h),
-                    itemCount: receiptsList.length,
-                    itemBuilder: (context, index) {
-                      final item = receiptsList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 6.h,
-                          horizontal: 5.w,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15.r),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.2),
-                            width: 2.w,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              item.receiptCreator,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-
-                            Row(
-                              children: [
-                                item.receiptCreator == userData!['name']
-                                    ? Row(
-                                        children: [
-                                          Bounceable(
-                                            onTap: () {},
-                                            child: Icon(
-                                              Icons.edit,
-                                              color: Colors.orangeAccent,
-                                              size: 18.sp,
-                                            ),
-                                          ),
-                                          SizedBox(width: 8.w),
-                                          Bounceable(
-                                            onTap: () {},
-                                            child: Icon(
-                                              Icons.delete,
-                                              color: Colors.redAccent,
-                                              size: 18.sp,
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : Container(),
-                                SizedBox(width: 10.w),
-                                Text(
-                                  "${item.receiptValue.toStringAsFixed(2)} L.E.",
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14.sp,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              )
-            : SizedBox.shrink(),
       ],
     );
   }
@@ -1913,6 +1938,7 @@ class _HomeViewState extends State<HomeView>
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                                Bounceable(onTap: (){}, child: Icon(Icons.delete,color: Colors.redAccent,))
                               ],
                             ),
 
