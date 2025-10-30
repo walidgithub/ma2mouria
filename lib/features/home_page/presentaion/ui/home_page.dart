@@ -49,7 +49,6 @@ class _HomeViewState extends State<HomeView>
   bool isShared = false;
   bool isReceiptCreator = false;
   bool showTotal = false;
-
   bool isHead = false;
 
   final TextEditingController _calcTextController = TextEditingController();
@@ -69,6 +68,7 @@ class _HomeViewState extends State<HomeView>
   double result = 0;
 
   CycleModel? activeCycleData;
+  String? selectedRestaurant;
 
   @override
   void initState() {
@@ -340,8 +340,15 @@ class _HomeViewState extends State<HomeView>
         } else if (state is AddReceiptErrorState) {
           hideLoading();
           showErrorSnackBar(context, state.errorMessage);
+          _receiptShareTextController.text = "";
+          _receiptDetailTextController.text = "";
+          _receiptValueTextController.text = "";
         } else if (state is AddReceiptSuccessState) {
           hideLoading();
+          _receiptShareTextController.text = "";
+          _receiptDetailTextController.text = "";
+          _receiptValueTextController.text = "";
+          HomePageCubit.get(context).getReceipts(activeCycleData!.cycleName);
           // ------------------------------------------------------
         } else if (state is DeleteReceiptLoadingState) {
           showLoading();
@@ -819,6 +826,9 @@ class _HomeViewState extends State<HomeView>
                   onChanged: (value) {
                     setState(() {
                       isShared = value!;
+                      if(!isShared) {
+                        isReceiptCreator = false;
+                      }
                     });
                   },
                 ),
@@ -877,7 +887,6 @@ class _HomeViewState extends State<HomeView>
                 children: [
                   StatefulBuilder(
                     builder: (context, setStateDropdown) {
-                      String? selectedRestaurant;
                       return Row(
                         children: [
                           Expanded(
@@ -1030,9 +1039,9 @@ class _HomeViewState extends State<HomeView>
                     return;
                   }
 
-                  final receiptValue = int.tryParse(receiptValueText);
+                  final receiptValue = double.tryParse(receiptValueText);
                   final receiptShare = double.tryParse(receiptShareText);
-                  final receiptDetail = double.tryParse(receiptDetailText);
+                  final receiptDetail = receiptDetailText;
 
                   if (receiptValue == null ||
                       receiptShare == null ||
@@ -1051,9 +1060,10 @@ class _HomeViewState extends State<HomeView>
                     cycleName: activeCycleData!.cycleName,
                     receipt: ReceiptModel(
                       id: id,
-                      receiptCreator: "",
+                      receiptCreator: !isShared ? userName :
+                      isReceiptCreator ? userName : "get receipt username",
                       receiptDate: "$selectedDay $selectedMonth $selectedYear",
-                      receiptDetail: _receiptDetailTextController.text,
+                      receiptDetail: !isShared ? _receiptDetailTextController.text : isReceiptCreator ? selectedRestaurant! : _receiptDetailTextController.text,
                       receiptMembers: [
                         ReceiptMembersModel(
                           id: memberId,
