@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 
 import '../../../../../core/utils/style/app_colors.dart';
 import '../../../../../core/utils/ui_components/custom_divider.dart';
@@ -24,7 +25,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.sizeOf(context).height / 2,
-      padding: EdgeInsets.all(20.h),
+      padding: EdgeInsets.all(10.h),
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
         color: AppColors.cWhite,
@@ -53,11 +54,11 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                       horizontal: 5.w,
                     ),
                     padding: EdgeInsets.symmetric(
-                      horizontal: 15.w,
+                      horizontal: 10.w,
                       vertical: 10.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppColors.cSecondary,
                       borderRadius: BorderRadius.circular(15.r),
                       border: Border.all(
                         color: Colors.orange.withOpacity(0.2),
@@ -67,15 +68,26 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          item.name,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              "${item.shareValue.toStringAsFixed(2)} L.E.",
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
                         ),
-
                         Row(
                           children: [
                             item.name == widget.userData!['name']
@@ -89,7 +101,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                           size: 18.sp,
                                         ),
                                       ),
-                                      SizedBox(width: 8.w),
+                                      SizedBox(width: 15.w),
                                       Bounceable(
                                         onTap: () {},
                                         child: Icon(
@@ -101,14 +113,6 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                     ],
                                   )
                                 : Container(),
-                            SizedBox(width: 10.w),
-                            Text(
-                              "${item.shareValue.toStringAsFixed(2)} L.E.",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14.sp,
-                              ),
-                            ),
                           ],
                         ),
                       ],
@@ -116,6 +120,15 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                   );
                 },
               ),
+            ),
+          ),
+
+          Text(
+            "${AppStrings.total}: ${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} L.E.",
+            style: TextStyle(
+              color: AppColors.cSecondary,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

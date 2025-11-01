@@ -11,7 +11,7 @@ class AddReceiptUseCase extends FirebaseBaseUseCase {
   AddReceiptUseCase(this.homePageRepository);
 
   @override
-  Future<Either<FirebaseFailure, void>> call(parameters) async {
+  Future<Either<FirebaseFailure, String>> call(parameters) async {
     return await homePageRepository.addReceipt(parameters);
   }
 }

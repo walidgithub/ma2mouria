@@ -20,7 +20,7 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, void>> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(String cycleName);
   Future<Either<FirebaseFailure, List<RulesModel>>> getUsers();
-  Future<Either<FirebaseFailure, void>> addReceipt(AddReceiptRequest addReceiptRequest);
+  Future<Either<FirebaseFailure, String>> addReceipt(AddReceiptRequest addReceiptRequest);
   Future<Either<FirebaseFailure,List<ReceiptModel>>> getReceipts(String cycleName);
   Future<Either<FirebaseFailure, void>> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
 }

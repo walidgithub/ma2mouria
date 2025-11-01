@@ -145,7 +145,7 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, void>> addReceipt(AddReceiptRequest addReceiptRequest) async {
+  Future<Either<FirebaseFailure, String>> addReceipt(AddReceiptRequest addReceiptRequest) async {
     try {
       final result = await _homePageDataSource.addReceipt(addReceiptRequest);
       return Right(result);

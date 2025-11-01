@@ -96,7 +96,11 @@ class DeleteMemberErrorState extends HomePageState{
 }
 class DeleteMemberLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class AddReceiptSuccessState extends HomePageState{}
+class AddReceiptSuccessState extends HomePageState{
+  final String receiptId;
+
+  AddReceiptSuccessState(this.receiptId);
+}
 class AddReceiptErrorState extends HomePageState{
   final String errorMessage;
 

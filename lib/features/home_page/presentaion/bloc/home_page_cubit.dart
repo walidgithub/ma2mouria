@@ -115,7 +115,7 @@ class HomePageCubit extends Cubit<HomePageState> {
     final result = await addReceiptUseCase.call(addReceiptRequest);
     result.fold(
           (failure) => emit(AddReceiptErrorState(failure.message)),
-          (receipt) => emit(AddReceiptSuccessState()),
+          (receiptId) => emit(AddReceiptSuccessState(receiptId)),
     );
   }
 

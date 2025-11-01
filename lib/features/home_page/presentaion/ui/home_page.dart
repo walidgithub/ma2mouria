@@ -270,6 +270,7 @@ class _HomeViewState extends State<HomeView>
             selectedReceiptUserName = "";
             _receiptValueTextController.text = "";
             _receiptDetailTextController.text = "";
+            _receiptShareTextController.text = "";
           });
           showErrorSnackBar(context, state.errorMessage);
         } else if (state is GetActiveCycleSuccessState) {
@@ -280,23 +281,13 @@ class _HomeViewState extends State<HomeView>
             _cycleTextController.text = activeCycleData!.cycleName;
             membersList = activeCycleData!.members;
             receiptsList = activeCycleData!.receipts;
-            for (var i in receiptsList) {
-              receiptsIds.add(i.receiptId);
-            }
-            selectedReceiptUserName = receiptsList.firstWhere((receipt){
-              return receipt.shared == true;
-            }).receiptCreator;
-            _receiptValueTextController.text = receiptsList.firstWhere((receipt){
-              return receipt.shared == true;
-            }).receiptValue.toString();
-            _receiptDetailTextController.text = receiptsList.firstWhere((receipt){
-              return receipt.shared == true;
-            }).receiptDetail;
-            receiptMembersList = receiptsList.firstWhere((receipt){
-              return receipt.shared == true;
-            }).receiptMembers;
+            receiptsIds = receiptsList
+                .where(
+                  (receipt) => receipt.shared,
+                ) // filter only shared receipts
+                .map((receipt) => receipt.receiptId) // get the receiptId
+                .toList();
           });
-
           // ------------------------------------------------------
         } else if (state is GetMembersLoadingState) {
           showLoading();
@@ -349,10 +340,16 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
 
           setState(() {
+            receiptMembersList = [];
+            selectedId = null;
             receiptsList = state.receipts;
-            for (var i in state.receipts) {
-              receiptsIds.add(i.receiptId);
-            }
+            receiptsIds = receiptsList
+                .where((receipt) => receipt.shared)
+                .map((receipt) => receipt.receiptId)
+                .toList();
+            receiptMembersList = receiptsList.firstWhere((receipt) {
+              return receipt.shared == true && receipt.receiptId == selectedId;
+            }).receiptMembers;
           });
           // ------------------------------------------------------
         } else if (state is AddReceiptLoadingState) {
@@ -363,11 +360,16 @@ class _HomeViewState extends State<HomeView>
           _receiptShareTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptValueTextController.text = "";
+          receiptMembersList = [];
         } else if (state is AddReceiptSuccessState) {
           hideLoading();
           _receiptShareTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptValueTextController.text = "";
+          receiptMembersList = [];
+          isReceiptCreator
+              ? savedReceiptId = state.receiptId
+              : savedReceiptId = "";
           HomePageCubit.get(context).getReceipts(activeCycleData!.cycleName);
           // ------------------------------------------------------
         } else if (state is DeleteReceiptLoadingState) {
@@ -846,9 +848,18 @@ class _HomeViewState extends State<HomeView>
                   onChanged: (value) {
                     setState(() {
                       isShared = value!;
-                      if(!isShared) {
+                      _receiptValueTextController.text = "";
+                      _receiptDetailTextController.text = "";
+                      _receiptShareTextController.text = "";
+                      receiptMembersList = [];
+                      savedReceiptId = "";
+                      selectedId = null;
+                      if (!isShared) {
                         isReceiptCreator = false;
                       }
+                      HomePageCubit.get(
+                        context,
+                      ).getReceipts(activeCycleData!.cycleName);
                     });
                   },
                 ),
@@ -865,6 +876,12 @@ class _HomeViewState extends State<HomeView>
                         value: isReceiptCreator,
                         activeColor: Colors.orangeAccent,
                         onChanged: (value) {
+                          _receiptValueTextController.text = "";
+                          _receiptDetailTextController.text = "";
+                          _receiptShareTextController.text = "";
+                          receiptMembersList = [];
+                          savedReceiptId = "";
+                          selectedId = null;
                           setState(() {
                             isReceiptCreator = value!;
                           });
@@ -884,104 +901,129 @@ class _HomeViewState extends State<HomeView>
 
         isShared && !isReceiptCreator
             ? Column(
-          children: [
-            StatefulBuilder(
-              builder: (context, setStateDropdown) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        dropdownColor: const Color(0xFF2E2159),
-                        value: selectedId,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.1),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                            borderSide: BorderSide(
-                              color: Colors.white.withOpacity(0.2),
+                children: [
+                  StatefulBuilder(
+                    builder: (context, setStateDropdown) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              dropdownColor: const Color(0xFF2E2159),
+                              value: selectedId,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  borderSide: BorderSide(
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                ),
+                              ),
+                              hint: Text(
+                                AppStrings.receiptId,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15.sp,
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15.sp,
+                              ),
+                              items: receiptsIds.map((name) {
+                                return DropdownMenuItem(
+                                  value: name,
+                                  child: Text(name),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setStateDropdown(() {
+                                  selectedId = value;
+                                  selectedReceiptUserName = receiptsList
+                                      .firstWhere((receipt) {
+                                        return receipt.shared == true &&
+                                            receipt.receiptId == value;
+                                      })
+                                      .receiptCreator;
+                                  _receiptValueTextController.text =
+                                      receiptsList
+                                          .firstWhere((receipt) {
+                                            return receipt.shared == true &&
+                                                receipt.receiptId == value;
+                                          })
+                                          .receiptValue
+                                          .toString();
+                                  _receiptDetailTextController.text =
+                                      receiptsList.firstWhere((receipt) {
+                                        return receipt.shared == true &&
+                                            receipt.receiptId == value;
+                                      }).receiptDetail;
+                                  receiptMembersList = receiptsList.firstWhere((
+                                    receipt,
+                                  ) {
+                                    return receipt.shared == true &&
+                                        receipt.receiptId == value;
+                                  }).receiptMembers;
+                                  _receiptShareTextController.text = "";
+                                });
+                              },
                             ),
                           ),
-                        ),
-                        hint: Text(
-                          AppStrings.receiptId,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 15.sp,
-                          ),
-                        ),
-                        icon: const Icon(
-                          Icons.arrow_drop_down,
-                          color: Colors.white,
-                        ),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                        ),
-                        items: receiptsIds.map((name) {
-                          return DropdownMenuItem(
-                            value: name,
-                            child: Text(name),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setStateDropdown(() {
-                            selectedId = value;
-                          });
-                          selectedReceiptUserName = receiptsList.firstWhere((receipt){
-                            return receipt.shared == true && receipt.receiptId == value;
-                          }).receiptCreator;
-                          _receiptValueTextController.text = receiptsList.firstWhere((receipt){
-                            return receipt.shared == true && receipt.receiptId == value;
-                          }).receiptValue.toString();
-                          _receiptDetailTextController.text = receiptsList.firstWhere((receipt){
-                            return receipt.shared == true && receipt.receiptId == value;
-                          }).receiptDetail;
-                          receiptMembersList = receiptsList.firstWhere((receipt){
-                            return receipt.shared == true && receipt.receiptId == value;
-                          }).receiptMembers;
-                        },
-                      ),
-                    ),
 
-                    SizedBox(width: 8.w),
+                          SizedBox(width: 8.w),
 
-                    InkWell(
-                      onTap: () {
-                        setStateDropdown(() {
-                          selectedId = null;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(10.r),
-                      child: Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                          InkWell(
+                            onTap: () {
+                              setStateDropdown(() {
+                                selectedId = null;
+                              });
+                              _receiptValueTextController.text = "";
+                              _receiptDetailTextController.text = "";
+                              _receiptShareTextController.text = "";
+                              receiptMembersList = [];
+                              HomePageCubit.get(
+                                context,
+                              ).getReceipts(activeCycleData!.cycleName);
+                            },
+                            borderRadius: BorderRadius.circular(10.r),
+                            child: Container(
+                              padding: EdgeInsets.all(8.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10.r),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.refresh,
+                                color: Colors.white,
+                                size: 20.sp,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                          size: 20.sp,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        )
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              )
             : Container(),
 
-        isShared && !isReceiptCreator ? SizedBox(height: 10.h): Container(),
+        isShared && !isReceiptCreator ? SizedBox(height: 10.h) : Container(),
 
         TextField(
           controller: _receiptDetailTextController,
-          enabled: isShared ? isReceiptCreator ? true : false : true,
+          enabled: isShared
+              ? isReceiptCreator
+                    ? true
+                    : false
+              : true,
           keyboardType: TextInputType.text,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
@@ -991,9 +1033,7 @@ class _HomeViewState extends State<HomeView>
             hintStyle: TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
-              ),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
             ),
           ),
         ),
@@ -1002,7 +1042,11 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _receiptValueTextController,
-          enabled: isShared ? isReceiptCreator ? true : false : true,
+          enabled: isShared
+              ? isReceiptCreator
+                    ? true
+                    : false
+              : true,
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
@@ -1046,30 +1090,33 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 10.h),
 
         isShared && isReceiptCreator
-        ? Row(
-          children: [
-            Text(
-              "${AppStrings.receiptId}: ",
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 15.sp,
-              ),
-            ),
-            Text(
-              savedReceiptId,
-              style: GoogleFonts.poppins(
-                color: Colors.redAccent,
-                fontSize: 15.sp,
-              ),
-            )
-          ],
-        ) : Container(),
+            ? Row(
+                children: [
+                  Text(
+                    "${AppStrings.receiptId}: ",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                  Text(
+                    savedReceiptId,
+                    style: GoogleFonts.poppins(
+                      color: Colors.redAccent,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                ],
+              )
+            : Container(),
 
-        isShared && isReceiptCreator ?
-        SizedBox(height: 10.h) : Container(),
+        isShared && isReceiptCreator ? SizedBox(height: 10.h) : Container(),
 
         Row(
-          mainAxisAlignment: isShared ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+          mainAxisAlignment:
+              isShared && !isReceiptCreator && userData!['name'] == userName
+              ? MainAxisAlignment.spaceBetween
+              : MainAxisAlignment.center,
           children: [
             SizedBox(
               child: Bounceable(
@@ -1109,6 +1156,29 @@ class _HomeViewState extends State<HomeView>
                     return;
                   }
 
+                  if (isShared && !isReceiptCreator) {
+                    String totalValue = receiptMembersList
+                        .fold(0.0, (sum, m) => sum + m.shareValue)
+                        .toStringAsFixed(2);
+                    if (double.parse(_receiptValueTextController.text) < (double.parse(totalValue) + double.parse(_receiptShareTextController.text))) {
+                      showErrorSnackBar(
+                        context,
+                        "My share value is not available.",
+                      );
+                      return;
+                    }
+                  }
+
+                  if (isReceiptCreator &&
+                      double.parse(_receiptShareTextController.text) >=
+                          double.parse(_receiptValueTextController.text)) {
+                    showErrorSnackBar(
+                      context,
+                      "My share value should be smaller than receipt value.",
+                    );
+                    return;
+                  }
+
                   var uuid = Uuid();
                   String id = uuid.v4();
                   String memberId = uuid.v4();
@@ -1116,11 +1186,16 @@ class _HomeViewState extends State<HomeView>
                     cycleName: activeCycleData!.cycleName,
                     receipt: ReceiptModel(
                       id: id,
-                      receiptCreator: !isShared ? userName :
-                      isReceiptCreator ? userName : selectedReceiptUserName!,
+                      receiptCreator: !isShared
+                          ? userName
+                          : isReceiptCreator
+                          ? userName
+                          : selectedReceiptUserName!,
                       receiptDate: "$selectedDay $selectedMonth $selectedYear",
                       receiptDetail: _receiptDetailTextController.text,
-                      receiptId: "${_receiptDetailTextController.text} ${id.substring(0, 7)}",
+                      receiptId: isShared && !isReceiptCreator
+                          ? selectedId!
+                          : "${_receiptDetailTextController.text} ${id.substring(0, 7)}",
                       receiptMembers: [
                         ReceiptMembersModel(
                           id: memberId,
@@ -1177,66 +1252,71 @@ class _HomeViewState extends State<HomeView>
                 ),
               ),
             ),
-            isShared ? SizedBox(
-              child: Bounceable(
-                onTap: () {
-                  if (isShared) {
-                    showModalBottomSheet(
-                      context: context,
-                      constraints: BoxConstraints.expand(
-                          height:
-                          MediaQuery.sizeOf(context).height / 2,
-                          width: MediaQuery.sizeOf(context).width),
-                      isScrollControlled: true,
-                      barrierColor: AppColors.cTransparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(30.r),
-                        ),
-                      ),
-                      builder: (BuildContext context) {
-                        return ReceiptMembersBottomSheet(
-                          userData: userData,
-                          receiptMembersList: receiptMembersList,
-                        );
+            isShared && !isReceiptCreator
+                ? SizedBox(
+                    child: Bounceable(
+                      onTap: () {
+                        if (isShared) {
+                          showModalBottomSheet(
+                            context: context,
+                            constraints: BoxConstraints.expand(
+                              height: MediaQuery.sizeOf(context).height / 2,
+                              width: MediaQuery.sizeOf(context).width,
+                            ),
+                            isScrollControlled: true,
+                            barrierColor: AppColors.cTransparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(30.r),
+                              ),
+                            ),
+                            builder: (BuildContext context) {
+                              return ReceiptMembersBottomSheet(
+                                userData: userData,
+                                receiptMembersList: receiptMembersList,
+                              );
+                            },
+                          );
+                        }
                       },
-                    );
-                  }
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20.r),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                        child: Container(
-                          margin: EdgeInsets.symmetric(horizontal: 10.w),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 10.h,
-                          ),
-                          width: 60.w,
-                          height: 45.h,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
                             borderRadius: BorderRadius.circular(20.r),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1.5.w,
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: 10.h,
+                                sigmaY: 10.w,
+                              ),
+                              child: Container(
+                                margin: EdgeInsets.symmetric(horizontal: 10.w),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w,
+                                  vertical: 10.h,
+                                ),
+                                width: 60.w,
+                                height: 45.h,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1.5.w,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Icon(Icons.group, color: Colors.white),
+                                ),
+                              ),
                             ),
                           ),
-                          child: Center(
-                            child: Icon(Icons.group,color: Colors.white,),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ): Container(),
-            isShared && isReceiptCreator
+                  )
+                : Container(),
+            isShared && !isReceiptCreator && userData!['name'] == userName
                 ? SizedBox(
                     child: Bounceable(
                       onTap: () {},
@@ -1267,7 +1347,10 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                 ),
                                 child: Center(
-                                  child: Icon(Icons.check,color: Colors.redAccent,),
+                                  child: Icon(
+                                    Icons.check,
+                                    color: Colors.redAccent,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1938,7 +2021,13 @@ class _HomeViewState extends State<HomeView>
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                Bounceable(onTap: (){}, child: Icon(Icons.delete,color: Colors.redAccent,))
+                                Bounceable(
+                                  onTap: () {},
+                                  child: Icon(
+                                    Icons.delete,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
                               ],
                             ),
 

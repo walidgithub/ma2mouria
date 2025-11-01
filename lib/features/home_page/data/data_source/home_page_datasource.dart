@@ -6,6 +6,7 @@ import '../../../../core/di/di.dart';
 import '../../../../core/utils/constant/app_strings.dart';
 import '../model/cycle_model.dart';
 import '../model/member_model.dart';
+import '../model/receipt_members_model.dart';
 import '../model/rules_model.dart';
 import '../requests/add_receipt_request.dart';
 import '../requests/add_member_request.dart';
@@ -22,7 +23,7 @@ abstract class BaseDataSource {
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<List<MemberModel>> getMembers(String cycleName);
   Future<List<RulesModel>> getUsers();
-  Future<void> addReceipt(AddReceiptRequest addReceiptRequest);
+  Future<String> addReceipt(AddReceiptRequest addReceiptRequest);
   Future<List<ReceiptModel>> getReceipts(String cycleName);
   Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
 }
@@ -263,7 +264,7 @@ class HomePageDataSource extends BaseDataSource {
   }
 
   @override
-  Future<void> addReceipt(AddReceiptRequest addReceiptRequest) async {
+  Future<String> addReceipt(AddReceiptRequest addReceiptRequest) async {
     try {
       final query = await firestore
           .collection('cycles')
@@ -276,33 +277,57 @@ class HomePageDataSource extends BaseDataSource {
       }
 
       final docRef = query.docs.first.reference;
-
       final snapshot = await docRef.get();
       final data = snapshot.data();
       final currentReceipts = (data?['receipts'] as List<dynamic>?) ?? [];
 
-      final bool exists = currentReceipts.any((m) {
-        return (m is Map<String, dynamic> &&
-            (m['receipt_id'] == addReceiptRequest.receipt.receiptId));
-      });
+      // ✅ Try to find existing receipt by receiptId
+      final existingReceiptIndex = currentReceipts.indexWhere(
+            (r) => r['receipt_id'] == addReceiptRequest.receipt.receiptId,
+      );
 
-      if (exists) {
-        await docRef.update({
-          'receipts': FieldValue.arrayRemove([
-            currentReceipts.firstWhere(
-                  (m) => m['id'] == addReceiptRequest.receipt.id,
-            ),
-          ]),
-        });
+      String usedReceiptId = addReceiptRequest.receipt.receiptId;
+
+      if (existingReceiptIndex != -1) {
+        // ✅ Receipt already exists → just add new member
+        final existingReceipt = Map<String, dynamic>.from(
+          currentReceipts[existingReceiptIndex],
+        );
+
+        final List<dynamic> existingMembers =
+        (existingReceipt['receipt_members'] as List<dynamic>? ?? []);
+
+        // Convert to list of ReceiptMembersModel
+        final members = existingMembers
+            .map((m) => ReceiptMembersModel.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+
+        // Get the new member(s) to add
+        final newMembers = addReceiptRequest.receipt.receiptMembers;
+
+        // ✅ Add new members (avoid duplicates by id)
+        for (var member in newMembers) {
+          final exists = members.any((m) => m.id == member.id);
+          if (!exists) members.add(member);
+        }
+
+        // Update the receipt_members field
+        existingReceipt['receipt_members'] = members.map((m) => m.toJson()).toList();
+
+        // Replace the old receipt in the list
+        currentReceipts[existingReceiptIndex] = existingReceipt;
+
+        // ✅ Save all receipts back
+        await docRef.update({'receipts': currentReceipts});
+      } else {
+        // ✅ No existing receipt found → add new receipt
         await docRef.update({
           'receipts': FieldValue.arrayUnion([addReceiptRequest.receipt.toJson()]),
         });
-        return;
       }
 
-      await docRef.update({
-        'receipts': FieldValue.arrayUnion([addReceiptRequest.receipt.toJson()]),
-      });
+      // ✅ Return the used receiptId (existing or new)
+      return usedReceiptId;
     } catch (e) {
       rethrow;
     }
