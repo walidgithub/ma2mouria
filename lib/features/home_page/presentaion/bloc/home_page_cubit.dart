@@ -165,7 +165,7 @@ class HomePageCubit extends Cubit<HomePageState> {
 
   Future<void> editShare(EditShareRequest editShareRequest) async {
     emit(EditShareLoadingState());
-    final result = await deleteShareUseCase.call(editShareRequest);
+    final result = await editShareUseCase.call(editShareRequest);
     result.fold(
           (failure) => emit(EditShareErrorState(failure.message)),
           (edited) => emit(EditShareSuccessState()),

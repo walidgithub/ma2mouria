@@ -12,6 +12,7 @@ class AppStrings {
   static const String leftOf = "Left of";
   static const String spending = "Spending";
   static const String total = "Total";
+  static const String totalPayed = "Total Payed";
   static const String hi = "Welcome!";
   static const String typeNumbers = "Type numbers (e.g. 10+20+30)";
   static const String shared = "Shared";

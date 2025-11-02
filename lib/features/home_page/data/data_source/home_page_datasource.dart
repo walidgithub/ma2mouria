@@ -409,36 +409,37 @@ class HomePageDataSource extends BaseDataSource {
   @override
   Future<void> deleteShare(DeleteShareRequest deleteShareRequest) async {
     try {
-      final cyclesQuery = await firestore.collection('cycles').get();
+      final query = await firestore
+          .collection('cycles')
+          .where('active', isEqualTo: true)
+          .limit(1)
+          .get();
 
-      for (var cycleDoc in cyclesQuery.docs) {
-        final cycleData = cycleDoc.data();
-
-        if (cycleData['receipts'] == null) continue;
-
-        List<dynamic> receipts = List.from(cycleData['receipts']);
-
-        final receiptIndex = receipts.indexWhere(
-                (r) => r['id'] == deleteShareRequest.receiptId);
-
-        if (receiptIndex != -1) {
-          final receipt = Map<String, dynamic>.from(receipts[receiptIndex]);
-
-          List<dynamic> members = List.from(receipt['receipt_members'] ?? []);
-          members.removeWhere((m) =>
-          m['id'] == deleteShareRequest.receiptMembersModel.id);
-
-          receipts[receiptIndex]['receipt_members'] = members;
-
-          await firestore
-              .collection('cycles')
-              .doc(cycleDoc.id)
-              .update({'receipts': receipts});
-          return;
-        }
+      if (query.docs.isEmpty) {
+        throw Exception('No active cycle found');
       }
 
-      throw Exception('Receipt not found');
+      final cycleDoc = query.docs.first;
+      final receipts = List<Map<String, dynamic>>.from(cycleDoc['receipts'] ?? []);
+
+      final receiptIndex = receipts.indexWhere(
+            (r) => r['receipt_id'] == deleteShareRequest.receiptId,
+      );
+
+      if (receiptIndex == -1) throw Exception('Receipt not found');
+
+      final members = List<Map<String, dynamic>>.from(
+        receipts[receiptIndex]['receipt_members'] ?? [],
+      );
+
+      members.removeWhere(
+            (m) => m['id'] == deleteShareRequest.receiptMembersModel.id,
+      );
+
+      receipts[receiptIndex]['receipt_members'] = members;
+
+      await cycleDoc.reference.update({'receipts': receipts});
+
     } catch (e) {
       rethrow;
     }
@@ -447,31 +448,39 @@ class HomePageDataSource extends BaseDataSource {
   @override
   Future<void> editShare(EditShareRequest editShareRequest) async {
     try {
-      final receiptRef = firestore
-          .collection('receipts')
-          .doc(editShareRequest.receiptId);
+      final query = await firestore
+          .collection('cycles')
+          .where('active', isEqualTo: true)
+          .limit(1)
+          .get();
 
-      final snapshot = await receiptRef.get();
-      if (!snapshot.exists) throw Exception('Receipt not found');
-
-      final data = snapshot.data();
-      final List<dynamic> membersData = data?['receipt_members'] ?? [];
-
-      List<Map<String, dynamic>> updatedMembers = [];
-
-      for (var member in membersData) {
-        if (member['id'] == editShareRequest.receiptMembersModel.id) {
-          updatedMembers.add({
-            'id': member['id'],
-            'name': member['name'],
-            'share_value': editShareRequest.receiptMembersModel.shareValue,
-          });
-        } else {
-          updatedMembers.add(member as Map<String, dynamic>);
-        }
+      if (query.docs.isEmpty) {
+        throw Exception('No active cycle found');
       }
 
-      await receiptRef.update({'receipt_members': updatedMembers});
+      final cycleDoc = query.docs.first;
+      final receipts = List<Map<String, dynamic>>.from(cycleDoc['receipts'] ?? []);
+
+      final receiptIndex = receipts.indexWhere(
+            (r) => r['receipt_id'] == editShareRequest.receiptId,
+      );
+
+      if (receiptIndex == -1) throw Exception('Receipt not found');
+
+      final members = List<Map<String, dynamic>>.from(
+        receipts[receiptIndex]['receipt_members'] ?? [],
+      );
+
+      final memberIndex = members.indexWhere(
+            (m) => m['id'] == editShareRequest.receiptMembersModel.id,
+      );
+
+      if (memberIndex == -1) throw Exception('Member not found in receipt');
+
+      members[memberIndex] = editShareRequest.receiptMembersModel.toJson();
+      receipts[receiptIndex]['receipt_members'] = members;
+
+      await cycleDoc.reference.update({'receipts': receipts});
     } catch (e) {
       rethrow;
     }

@@ -20,12 +20,14 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
   Map<String, String?>? userData;
   String selectedId;
   String cycleName;
+  String totalValue;
   ReceiptMembersBottomSheet({
     super.key,
     required this.receiptMembersList,
     required this.userData,
     required this.selectedId,
     required this.cycleName,
+    required this.totalValue,
   });
 
   @override
@@ -37,12 +39,12 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
   final TextEditingController _receiptShareTextController =
       TextEditingController();
 
-  bool isEditing = false;
+  String? editingMemberId;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<HomePageCubit>(),
+      create: (context) => sl<HomePageCubit>()..getReceipts(widget.cycleName),
       child: BlocConsumer<HomePageCubit, HomePageState>(
         listener: (context, state) async {
           if (state is GetReceiptsLoadingState) {
@@ -136,13 +138,12 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                     ),
                                   ),
                                   SizedBox(height: 10.h),
-                                  isEditing
+                                  editingMemberId == item.id
                                       ? SizedBox(
                                     width: 150.w,
                                     height: 35.h,
                                     child: TextField(
-                                      controller:
-                                      _receiptShareTextController,
+                                      controller: _receiptShareTextController,
                                       keyboardType: TextInputType.number,
                                       style: TextStyle(
                                         color: Colors.white,
@@ -150,20 +151,13 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                       ),
                                       decoration: InputDecoration(
                                         filled: true,
-                                        fillColor: Colors.white.withOpacity(
-                                          0.1,
-                                        ),
+                                        fillColor: Colors.white.withOpacity(0.1),
                                         hintText: AppStrings.myShare,
-                                        hintStyle: TextStyle(
-                                          color: Colors.white70,
-                                        ),
+                                        hintStyle: TextStyle(color: Colors.white70),
                                         border: OutlineInputBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(10.r),
+                                          borderRadius: BorderRadius.circular(10.r),
                                           borderSide: BorderSide(
-                                            color: Colors.white.withOpacity(
-                                              0.2,
-                                            ),
+                                            color: Colors.white.withOpacity(0.2),
                                           ),
                                         ),
                                         contentPadding: EdgeInsets.symmetric(
@@ -190,36 +184,63 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                       Bounceable(
                                         onTap: () {
                                           setState(() {
-                                            _receiptShareTextController
-                                                .text = item.shareValue
-                                                .toString();
-                                            if (isEditing) {
-                                              isEditing = false;
+                                            if (editingMemberId == item.id) {
+                                              editingMemberId = null;
+
+                                              // -----------------
+                                              final receiptShareText = _receiptShareTextController.text
+                                                  .trim();
+
+                                              if (receiptShareText.isEmpty) {
+                                                showWarningSnackBar(
+                                                  context,
+                                                  "Please fill in all required fields.",
+                                                );
+                                                return;
+                                              }
+
+                                              final receiptShare = double.tryParse(receiptShareText);
+
+                                              if (receiptShare == null) {
+                                                showErrorSnackBar(
+                                                  context,
+                                                  "Please enter valid numbers for your share.",
+                                                );
+                                                return;
+                                              }
+
+
+                                                String totalValue = widget.receiptMembersList
+                                                    .fold(0.0, (sum, m) => sum + m.shareValue)
+                                                    .toStringAsFixed(2);
+                                                if (double.parse(widget.totalValue) < (double.parse(totalValue) + double.parse(_receiptShareTextController.text))) {
+                                                  showErrorSnackBar(
+                                                    context,
+                                                    "Your share value is not available.",
+                                                  );
+                                                  return;
+                                              }
+
+                                              // ------------------------------
+
+                                              EditShareRequest editShareRequest = EditShareRequest(
+                                                receiptId: widget.selectedId,
+                                                receiptMembersModel: ReceiptMembersModel(
+                                                  shareValue: double.parse(_receiptShareTextController.text),
+                                                  name: item.name,
+                                                  id: item.id,
+                                                ),
+                                              );
+
+                                              HomePageCubit.get(context).editShare(editShareRequest);
                                             } else {
-                                              isEditing = true;
+                                              editingMemberId = item.id;
+                                              _receiptShareTextController.text = item.shareValue.toString();
                                             }
                                           });
-                                          if (isEditing) {
-                                            EditShareRequest
-                                            editShareRequest = EditShareRequest(
-                                              receiptId: widget.selectedId,
-                                              receiptMembersModel:
-                                              ReceiptMembersModel(
-                                                shareValue: double.parse(
-                                                  _receiptShareTextController
-                                                      .text,
-                                                ),
-                                                name: item.name,
-                                                id: item.id,
-                                              ),
-                                            );
-                                            HomePageCubit.get(context).editShare(editShareRequest);
-                                          }
                                         },
                                         child: Icon(
-                                          isEditing
-                                              ? Icons.check
-                                              : Icons.edit,
+                                          editingMemberId == item.id ? Icons.check : Icons.edit,
                                           color: Colors.orangeAccent,
                                           size: 18.sp,
                                         ),
@@ -263,7 +284,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                 Row(
                   children: [
                     Text(
-                      "${AppStrings.total}: ${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} L.E.",
+                      "${AppStrings.totalPayed}: ${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} L.E.",
                       style: TextStyle(
                         color: AppColors.cSecondary,
                         fontSize: 18.sp,

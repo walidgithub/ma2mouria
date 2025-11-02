@@ -1279,6 +1279,7 @@ class _HomeViewState extends State<HomeView>
                                 receiptMembersList: receiptMembersList,
                                 selectedId: selectedId!,
                                 cycleName: activeCycleData!.cycleName,
+                                totalValue: _receiptValueTextController.text
                               );
                             },
                           ) : showErrorSnackBar(context, "Select the receipt");
