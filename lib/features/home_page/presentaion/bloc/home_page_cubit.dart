@@ -6,6 +6,8 @@ import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.d
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
@@ -15,13 +17,15 @@ import '../../../home_page/domain/usecases/logout_usecase.dart';
 import '../../data/model/cycle_model.dart';
 import '../../data/requests/add_receipt_request.dart';
 import '../../data/requests/delete_receipt_request.dart';
+import '../../data/requests/delete_share_request.dart';
+import '../../data/requests/edit_share_request.dart';
 import '../../domain/usecases/add_member_usecase.dart';
 import '../../domain/usecases/delete_member_usecase.dart';
 import '../../domain/usecases/get_rule_usecase.dart';
 import 'home_page_state.dart';
 
 class HomePageCubit extends Cubit<HomePageState> {
-  HomePageCubit(this.logoutUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase) : super(HomePageInitial());
+  HomePageCubit(this.logoutUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
   
   final LogoutUseCase logoutUseCase;
   final GetRuleUseCase getRuleUseCase;
@@ -35,6 +39,8 @@ class HomePageCubit extends Cubit<HomePageState> {
   final DeleteReceiptUseCase deleteReceiptUseCase;
   final AddReceiptUseCase addReceiptUseCase;
   final GetReceiptsUseCase getReceiptsUseCase;
+  final DeleteShareUseCase deleteShareUseCase;
+  final EditShareUseCase editShareUseCase;
 
   static HomePageCubit get(context) => BlocProvider.of(context);
 
@@ -145,6 +151,24 @@ class HomePageCubit extends Cubit<HomePageState> {
     signOutResult.fold(
       (failure) => emit(LogoutErrorState(failure.message)),
       (loggedOut) => emit(LogoutSuccessState()),
+    );
+  }
+
+  Future<void> deleteShare(DeleteShareRequest deleteShareRequest) async {
+    emit(DeleteShareLoadingState());
+    final result = await deleteShareUseCase.call(deleteShareRequest);
+    result.fold(
+          (failure) => emit(DeleteShareErrorState(failure.message)),
+          (deleted) => emit(DeleteShareSuccessState()),
+    );
+  }
+
+  Future<void> editShare(EditShareRequest editShareRequest) async {
+    emit(EditShareLoadingState());
+    final result = await deleteShareUseCase.call(editShareRequest);
+    result.fold(
+          (failure) => emit(EditShareErrorState(failure.message)),
+          (edited) => emit(EditShareSuccessState()),
     );
   }
 }

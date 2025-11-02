@@ -28,6 +28,8 @@ import '../../../../core/utils/ui_components/snackbar.dart';
 import '../../data/model/cycle_model.dart';
 import '../../data/model/receipt_model.dart';
 import '../../data/requests/add_member_request.dart';
+import '../../data/requests/delete_share_request.dart';
+import '../../data/requests/edit_share_request.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -1257,6 +1259,7 @@ class _HomeViewState extends State<HomeView>
                     child: Bounceable(
                       onTap: () {
                         if (isShared) {
+                          selectedId != null ?
                           showModalBottomSheet(
                             context: context,
                             constraints: BoxConstraints.expand(
@@ -1274,9 +1277,11 @@ class _HomeViewState extends State<HomeView>
                               return ReceiptMembersBottomSheet(
                                 userData: userData,
                                 receiptMembersList: receiptMembersList,
+                                selectedId: selectedId!,
+                                cycleName: activeCycleData!.cycleName,
                               );
                             },
-                          );
+                          ) : showErrorSnackBar(context, "Select the receipt");
                         }
                       },
                       child: Column(
@@ -1316,50 +1321,7 @@ class _HomeViewState extends State<HomeView>
                     ),
                   )
                 : Container(),
-            isShared && !isReceiptCreator && userData!['name'] == userName
-                ? SizedBox(
-                    child: Bounceable(
-                      onTap: () {},
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20.r),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 10.h,
-                                sigmaY: 10.w,
-                              ),
-                              child: Container(
-                                margin: EdgeInsets.symmetric(horizontal: 10.w),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10.w,
-                                  vertical: 10.h,
-                                ),
-                                width: 60.w,
-                                height: 45.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20.r),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1.5.w,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.check,
-                                    color: Colors.redAccent,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : Container(),
+
           ],
         ),
       ],

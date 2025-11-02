@@ -12,6 +12,8 @@ import '../requests/add_receipt_request.dart';
 import '../requests/add_member_request.dart';
 import '../requests/delete_receipt_request.dart';
 import '../requests/delete_member_request.dart';
+import '../requests/delete_share_request.dart';
+import '../requests/edit_share_request.dart';
 
 abstract class BaseDataSource {
   Future<void> logout();
@@ -26,6 +28,8 @@ abstract class BaseDataSource {
   Future<String> addReceipt(AddReceiptRequest addReceiptRequest);
   Future<List<ReceiptModel>> getReceipts(String cycleName);
   Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
+  Future<void> deleteShare(DeleteShareRequest deleteShareRequest);
+  Future<void> editShare(EditShareRequest editShareRequest);
 }
 
 class HomePageDataSource extends BaseDataSource {
@@ -229,20 +233,21 @@ class HomePageDataSource extends BaseDataSource {
 
       final cycle = CycleModel.fromJson(data);
 
-      final isMemberExist =
-      cycle.members.any((m) => m.id == deleteMemberRequest.member.id);
+      final isMemberExist = cycle.members.any(
+        (m) => m.id == deleteMemberRequest.member.id,
+      );
 
       if (!isMemberExist) {
         throw Exception('Member not found in this cycle');
       }
 
-      final updatedMembers =
-      cycle.members.where((m) => m.id != deleteMemberRequest.member.id).toList();
+      final updatedMembers = cycle.members
+          .where((m) => m.id != deleteMemberRequest.member.id)
+          .toList();
 
       await docRef.update({
         'members': updatedMembers.map((e) => e.toJson()).toList(),
       });
-
     } catch (e) {
       rethrow;
     }
@@ -283,7 +288,7 @@ class HomePageDataSource extends BaseDataSource {
 
       // ✅ Try to find existing receipt by receiptId
       final existingReceiptIndex = currentReceipts.indexWhere(
-            (r) => r['receipt_id'] == addReceiptRequest.receipt.receiptId,
+        (r) => r['receipt_id'] == addReceiptRequest.receipt.receiptId,
       );
 
       String usedReceiptId = addReceiptRequest.receipt.receiptId;
@@ -295,11 +300,13 @@ class HomePageDataSource extends BaseDataSource {
         );
 
         final List<dynamic> existingMembers =
-        (existingReceipt['receipt_members'] as List<dynamic>? ?? []);
+            (existingReceipt['receipt_members'] as List<dynamic>? ?? []);
 
         // Convert to list of ReceiptMembersModel
         final members = existingMembers
-            .map((m) => ReceiptMembersModel.fromJson(Map<String, dynamic>.from(m)))
+            .map(
+              (m) => ReceiptMembersModel.fromJson(Map<String, dynamic>.from(m)),
+            )
             .toList();
 
         // Get the new member(s) to add
@@ -312,7 +319,9 @@ class HomePageDataSource extends BaseDataSource {
         }
 
         // Update the receipt_members field
-        existingReceipt['receipt_members'] = members.map((m) => m.toJson()).toList();
+        existingReceipt['receipt_members'] = members
+            .map((m) => m.toJson())
+            .toList();
 
         // Replace the old receipt in the list
         currentReceipts[existingReceiptIndex] = existingReceipt;
@@ -322,7 +331,9 @@ class HomePageDataSource extends BaseDataSource {
       } else {
         // ✅ No existing receipt found → add new receipt
         await docRef.update({
-          'receipts': FieldValue.arrayUnion([addReceiptRequest.receipt.toJson()]),
+          'receipts': FieldValue.arrayUnion([
+            addReceiptRequest.receipt.toJson(),
+          ]),
         });
       }
 
@@ -375,20 +386,80 @@ class HomePageDataSource extends BaseDataSource {
 
       final cycle = CycleModel.fromJson(data);
 
-      final isReceiptExist =
-      cycle.receipts.any((m) => m.id == deleteReceiptRequest.receipt.id);
+      final isReceiptExist = cycle.receipts.any(
+        (m) => m.id == deleteReceiptRequest.receipt.id,
+      );
 
       if (!isReceiptExist) {
         throw Exception('Receipt not found in this cycle');
       }
 
-      final updatedReceipts =
-      cycle.receipts.where((m) => m.id != deleteReceiptRequest.receipt.id).toList();
+      final updatedReceipts = cycle.receipts
+          .where((m) => m.id != deleteReceiptRequest.receipt.id)
+          .toList();
 
       await docRef.update({
         'receipts': updatedReceipts.map((e) => e.toJson()).toList(),
       });
+    } catch (e) {
+      rethrow;
+    }
+  }
 
+  @override
+  Future<void> deleteShare(DeleteShareRequest deleteShareRequest) async {
+    try {
+      final receiptRef = firestore
+          .collection('receipts')
+          .doc(deleteShareRequest.receiptId);
+
+      final snapshot = await receiptRef.get();
+
+      if (!snapshot.exists) {
+        throw Exception('Receipt not found');
+      }
+
+      final data = snapshot.data();
+      final List<dynamic> membersData = data?['receipt_members'] ?? [];
+
+      final updatedMembers = membersData.where((member) {
+        return member['id'] != deleteShareRequest.receiptMembersModel.id;
+      }).toList();
+
+      await receiptRef.update({'receipt_members': updatedMembers});
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> editShare(EditShareRequest editShareRequest) async {
+    try {
+      final receiptRef = firestore
+          .collection('receipts')
+          .doc(editShareRequest.receiptId);
+
+      final snapshot = await receiptRef.get();
+      if (!snapshot.exists) throw Exception('Receipt not found');
+
+      final data = snapshot.data();
+      final List<dynamic> membersData = data?['receipt_members'] ?? [];
+
+      List<Map<String, dynamic>> updatedMembers = [];
+
+      for (var member in membersData) {
+        if (member['id'] == editShareRequest.receiptMembersModel.id) {
+          updatedMembers.add({
+            'id': member['id'],
+            'name': member['name'],
+            'share_value': editShareRequest.receiptMembersModel.shareValue,
+          });
+        } else {
+          updatedMembers.add(member as Map<String, dynamic>);
+        }
+      }
+
+      await receiptRef.update({'receipt_members': updatedMembers});
     } catch (e) {
       rethrow;
     }

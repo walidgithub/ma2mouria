@@ -128,4 +128,20 @@ class DeleteReceiptErrorState extends HomePageState{
 }
 class DeleteReceiptLoadingState extends HomePageState{}
 // --------------------------------------------------------
+class DeleteShareSuccessState extends HomePageState{}
+class DeleteShareErrorState extends HomePageState{
+  final String errorMessage;
+
+  DeleteShareErrorState(this.errorMessage);
+}
+class DeleteShareLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class EditShareSuccessState extends HomePageState{}
+class EditShareErrorState extends HomePageState{
+  final String errorMessage;
+
+  EditShareErrorState(this.errorMessage);
+}
+class EditShareLoadingState extends HomePageState{}
+// --------------------------------------------------------
 class AuthNoInternetState extends HomePageState{}

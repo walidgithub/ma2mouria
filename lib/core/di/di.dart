@@ -4,11 +4,14 @@ import 'package:get_it/get_it.dart';
 import 'package:ma2mouria/features/auth/data/repository_impl/auth_repository_impl.dart';
 import 'package:ma2mouria/features/home_page/data/data_source/home_page_datasource.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
 import 'package:ma2mouria/features/home_page/domain/repository/home_page_repository.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
@@ -68,10 +71,12 @@ class ServiceLocator {
     sl.registerLazySingleton<AddReceiptUseCase>(() => AddReceiptUseCase(sl()));
     sl.registerLazySingleton<DeleteReceiptUseCase>(() => DeleteReceiptUseCase(sl()));
     sl.registerLazySingleton<GetReceiptsUseCase>(() => GetReceiptsUseCase(sl()));
+    sl.registerLazySingleton<DeleteShareUseCase>(() => DeleteShareUseCase(sl()));
+    sl.registerLazySingleton<EditShareUseCase>(() => EditShareUseCase(sl()));
 
 
     // Bloc
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
+    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   }
 }

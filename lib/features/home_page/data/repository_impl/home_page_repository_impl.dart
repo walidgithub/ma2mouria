@@ -6,6 +6,8 @@ import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_receipt_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/edit_share_request.dart';
 import '../../../../core/firebase/error/firebase_error_handler.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../domain/repository/home_page_repository.dart';
@@ -176,6 +178,34 @@ class HomePageRepositoryImpl extends HomePageRepository {
   Future<Either<FirebaseFailure, List<ReceiptModel>>> getReceipts(String cycleName) async {
     try {
       final result = await _homePageDataSource.getReceipts(cycleName);
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
+    } on FirebaseException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
+    } catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<FirebaseFailure, void>> deleteShare(DeleteShareRequest deleteShareRequest) async {
+    try {
+      final result = await _homePageDataSource.deleteShare(deleteShareRequest);
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
+    } on FirebaseException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
+    } catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<FirebaseFailure, void>> editShare(EditShareRequest editShareRequest) async {
+    try {
+      final result = await _homePageDataSource.editShare(editShareRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
