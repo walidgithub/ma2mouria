@@ -5,6 +5,7 @@ import 'package:ma2mouria/features/home_page/data/requests/delete_member_request
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_item_in_member_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
@@ -19,13 +20,16 @@ import '../../data/requests/add_receipt_request.dart';
 import '../../data/requests/delete_receipt_request.dart';
 import '../../data/requests/delete_share_request.dart';
 import '../../data/requests/edit_share_request.dart';
+import '../../data/requests/member_report_request.dart';
 import '../../domain/usecases/add_member_usecase.dart';
 import '../../domain/usecases/delete_member_usecase.dart';
+import '../../domain/usecases/get_head_report_usecase.dart';
+import '../../domain/usecases/get_member_report_usecase.dart';
 import '../../domain/usecases/get_rule_usecase.dart';
 import 'home_page_state.dart';
 
 class HomePageCubit extends Cubit<HomePageState> {
-  HomePageCubit(this.logoutUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
+  HomePageCubit(this.logoutUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
   
   final LogoutUseCase logoutUseCase;
   final GetRuleUseCase getRuleUseCase;
@@ -41,6 +45,9 @@ class HomePageCubit extends Cubit<HomePageState> {
   final GetReceiptsUseCase getReceiptsUseCase;
   final DeleteShareUseCase deleteShareUseCase;
   final EditShareUseCase editShareUseCase;
+  final GetHeadReportUseCase getHeadReportUseCase;
+  final GetMemberReportUseCase getMemberReportUseCase;
+  final DeleteItemInMemberReportUseCase deleteItemInMemberReportUseCase;
 
   static HomePageCubit get(context) => BlocProvider.of(context);
 
@@ -169,6 +176,33 @@ class HomePageCubit extends Cubit<HomePageState> {
     result.fold(
           (failure) => emit(EditShareErrorState(failure.message)),
           (edited) => emit(EditShareSuccessState()),
+    );
+  }
+
+  Future<void> getHeadReport() async {
+    emit(GetHeadReportLoadingState());
+    final result = await getHeadReportUseCase.call(const FirebaseNoParameters());
+    result.fold(
+          (failure) => emit(GetHeadReportErrorState(failure.message)),
+          (headReport) => emit(GetHeadReportSuccessState(headReport)),
+    );
+  }
+
+  Future<void> getMemberReport(MemberReportRequest memberReportRequest) async {
+    emit(GetMemberReportLoadingState());
+    final result = await getMemberReportUseCase.call(memberReportRequest);
+    result.fold(
+          (failure) => emit(GetMemberReportErrorState(failure.message)),
+          (memberReport) => emit(GetMemberReportSuccessState(memberReport)),
+    );
+  }
+
+  Future<void> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest) async {
+    emit(DeleteItemInMemberReportLoadingState());
+    final result = await deleteItemInMemberReportUseCase.call(deleteShareRequest);
+    result.fold(
+          (failure) => emit(DeleteItemInMemberReportErrorState(failure.message)),
+          (deleted) => emit(DeleteItemInMemberReportSuccessState()),
     );
   }
 }

@@ -21,6 +21,7 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
   String selectedId;
   String cycleName;
   String totalValue;
+  Function clearMembersList;
   ReceiptMembersBottomSheet({
     super.key,
     required this.receiptMembersList,
@@ -28,6 +29,7 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
     required this.selectedId,
     required this.cycleName,
     required this.totalValue,
+    required this.clearMembersList,
   });
 
   @override
@@ -51,10 +53,10 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showLoading();
           } else if (state is GetReceiptsErrorState) {
             hideLoading();
-            showErrorSnackBar(context, state.errorMessage);
+            showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is GetReceiptsSuccessState) {
             hideLoading();
-
+            widget.clearMembersList();
             setState(() {
               widget.receiptMembersList = state.receipts.firstWhere((receipt) {
                 return receipt.shared == true && receipt.receiptId == widget.selectedId;
@@ -65,7 +67,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showLoading();
           } else if (state is EditShareErrorState) {
             hideLoading();
-            showErrorSnackBar(context, state.errorMessage);
+            showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is EditShareSuccessState) {
             hideLoading();
             HomePageCubit.get(context).getReceipts(widget.cycleName);
@@ -74,7 +76,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showLoading();
           } else if (state is DeleteShareErrorState) {
             hideLoading();
-            showErrorSnackBar(context, state.errorMessage);
+            showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is DeleteShareSuccessState) {
             hideLoading();
             HomePageCubit.get(context).getReceipts(widget.cycleName);
@@ -192,32 +194,22 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                                   .trim();
 
                                               if (receiptShareText.isEmpty) {
-                                                showWarningSnackBar(
-                                                  context,
-                                                  "Please fill in all required fields.",
-                                                );
+                                                showAppSnackBar(context, "Please fill in all required fields.", type: SnackBarType.error);
                                                 return;
                                               }
 
                                               final receiptShare = double.tryParse(receiptShareText);
 
                                               if (receiptShare == null) {
-                                                showErrorSnackBar(
-                                                  context,
-                                                  "Please enter valid numbers for your share.",
-                                                );
+                                                showAppSnackBar(context, "Please enter valid numbers for your share.", type: SnackBarType.error);
                                                 return;
                                               }
-
 
                                                 String totalValue = widget.receiptMembersList
                                                     .fold(0.0, (sum, m) => sum + m.shareValue)
                                                     .toStringAsFixed(2);
-                                                if (double.parse(widget.totalValue) < (double.parse(totalValue) + double.parse(_receiptShareTextController.text))) {
-                                                  showErrorSnackBar(
-                                                    context,
-                                                    "Your share value is not available.",
-                                                  );
+                                                if (double.parse(widget.totalValue) < ((double.parse(totalValue) - item.shareValue) + double.parse(_receiptShareTextController.text))) {
+                                                  showAppSnackBar(context, "Your share value is not available.", type: SnackBarType.error);
                                                   return;
                                               }
 
@@ -283,13 +275,53 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                 ),
                 Row(
                   children: [
-                    Text(
-                      "${AppStrings.totalPayed}: ${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} L.E.",
-                      style: TextStyle(
-                        color: AppColors.cSecondary,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            text: "${AppStrings.totalPayed}: ",
+                            style: TextStyle(
+                              color: AppColors.cBlack, // color for the label
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            children: [
+                              TextSpan(
+                                text:
+                                "${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} L.E.",
+                                style: TextStyle(
+                                  color: Colors.redAccent, // color for the value
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10.w,
+                        ),
+                        RichText(
+                          text: TextSpan(
+                            text: "${AppStrings.total}: ",
+                            style: TextStyle(
+                              color: AppColors.cBlack, // color for the label
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            children: [
+                              TextSpan(
+                                text:
+                                "${widget.totalValue} L.E.",
+                                style: TextStyle(
+                                  color: AppColors.cSecondary, // color for the value
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(
                       width: 20.w,

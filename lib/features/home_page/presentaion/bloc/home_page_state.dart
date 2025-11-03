@@ -1,8 +1,10 @@
 import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
+import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 
 import '../../data/model/receipt_model.dart';
+import '../../data/responses/head_report_response.dart';
 
 abstract class HomePageState{}
 
@@ -143,5 +145,37 @@ class EditShareErrorState extends HomePageState{
   EditShareErrorState(this.errorMessage);
 }
 class EditShareLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetMemberReportSuccessState extends HomePageState{
+  final List<MemberReportResponse> memberReport;
+
+  GetMemberReportSuccessState(this.memberReport);
+}
+class GetMemberReportErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetMemberReportErrorState(this.errorMessage);
+}
+class GetMemberReportLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetHeadReportSuccessState extends HomePageState{
+  final List<HeadReportResponse> headReport;
+
+  GetHeadReportSuccessState(this.headReport);
+}
+class GetHeadReportErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetHeadReportErrorState(this.errorMessage);
+}
+class GetHeadReportLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class DeleteItemInMemberReportSuccessState extends HomePageState{}
+class DeleteItemInMemberReportErrorState extends HomePageState{
+  final String errorMessage;
+
+  DeleteItemInMemberReportErrorState(this.errorMessage);
+}
+class DeleteItemInMemberReportLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class AuthNoInternetState extends HomePageState{}

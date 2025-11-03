@@ -91,7 +91,7 @@ class _AuthViewState extends State<AuthView> {
                             );
                             Navigator.pushReplacementNamed(context, Routes.homeRoute);
                           } else if (state is LoginErrorState) {
-                            showErrorSnackBar(context, state.errorMessage);
+                            showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
                             hideLoading();
                           }
                         },

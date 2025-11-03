@@ -9,10 +9,13 @@ import 'package:ma2mouria/features/home_page/domain/repository/home_page_reposit
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_item_in_member_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_head_report_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_member_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_rule_usecase.dart';
@@ -73,10 +76,13 @@ class ServiceLocator {
     sl.registerLazySingleton<GetReceiptsUseCase>(() => GetReceiptsUseCase(sl()));
     sl.registerLazySingleton<DeleteShareUseCase>(() => DeleteShareUseCase(sl()));
     sl.registerLazySingleton<EditShareUseCase>(() => EditShareUseCase(sl()));
+    sl.registerLazySingleton<GetMemberReportUseCase>(() => GetMemberReportUseCase(sl()));
+    sl.registerLazySingleton<GetHeadReportUseCase>(() => GetHeadReportUseCase(sl()));
+    sl.registerLazySingleton<DeleteItemInMemberReportUseCase>(() => DeleteItemInMemberReportUseCase(sl()));
 
 
     // Bloc
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
+    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   }
 }

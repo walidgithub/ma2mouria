@@ -12,6 +12,9 @@ import 'package:ma2mouria/features/home_page/data/model/receipt_members_model.da
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/member_report_request.dart';
+import 'package:ma2mouria/features/home_page/data/responses/head_report_response.dart';
+import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_cubit.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_state.dart';
 import 'package:ma2mouria/features/home_page/presentaion/ui/widgets/receipt_members.dart';
@@ -21,7 +24,6 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/di/di.dart';
 import '../../../../core/preferences/app_pref.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/temp.dart';
 import '../../../../core/utils/constant/months.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../core/utils/ui_components/snackbar.dart';
@@ -192,6 +194,8 @@ class _HomeViewState extends State<HomeView>
   List<RulesModel> usersList = [];
   List<ReceiptModel> receiptsList = [];
   List<ReceiptMembersModel> receiptMembersList = [];
+  List<MemberReportResponse> memberReportList = [];
+  List<HeadReportResponse> headReportList = [];
   List<String> years = [];
   List<String> days = [];
   List<String> receiptsIds = [];
@@ -213,7 +217,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is GetRuleByEmailErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is GetRuleByEmailSuccessState) {
           hideLoading();
 
@@ -229,7 +233,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is LogoutErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is LogoutSuccessState) {
           hideLoading();
           await _appPreferences.setUserLoggedOut();
@@ -239,7 +243,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is GetUsersErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is GetUsersSuccessState) {
           hideLoading();
           setState(() {
@@ -250,10 +254,10 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is AddCycleErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is AddCycleSuccessState) {
           hideLoading();
-          showSuccessSnackBar(context, "Cycle added successfully");
+          showAppSnackBar(context, "Cycle added successfully", type: SnackBarType.success);
           _membersCountTextController.text = "";
           _memberBudgetTextController.text = "";
           HomePageCubit.get(context).getActiveCycle();
@@ -274,7 +278,7 @@ class _HomeViewState extends State<HomeView>
             _receiptDetailTextController.text = "";
             _receiptShareTextController.text = "";
           });
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is GetActiveCycleSuccessState) {
           hideLoading();
 
@@ -295,7 +299,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is GetMembersErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is GetMembersSuccessState) {
           hideLoading();
 
@@ -308,7 +312,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is DeleteCycleErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is DeleteCycleSuccessState) {
           hideLoading();
           setState(() {
@@ -319,7 +323,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is AddMemberErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is AddMemberSuccessState) {
           hideLoading();
           HomePageCubit.get(context).getMembers(_cycleTextController.text);
@@ -328,7 +332,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is DeleteMemberErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is DeleteMemberSuccessState) {
           hideLoading();
           HomePageCubit.get(context).getMembers(_cycleTextController.text);
@@ -337,7 +341,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is GetReceiptsErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is GetReceiptsSuccessState) {
           hideLoading();
 
@@ -358,7 +362,7 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is AddReceiptErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           _receiptShareTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptValueTextController.text = "";
@@ -378,9 +382,39 @@ class _HomeViewState extends State<HomeView>
           showLoading();
         } else if (state is DeleteReceiptErrorState) {
           hideLoading();
-          showErrorSnackBar(context, state.errorMessage);
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
         } else if (state is DeleteReceiptSuccessState) {
           hideLoading();
+          // ------------------------------------------------------
+        } else if (state is GetHeadReportLoadingState) {
+          showLoading();
+        } else if (state is GetHeadReportErrorState) {
+          hideLoading();
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
+        } else if (state is GetHeadReportSuccessState) {
+          hideLoading();
+          headReportList = state.headReport;
+          // ------------------------------------------------------
+        } else if (state is GetMemberReportLoadingState) {
+          showLoading();
+        } else if (state is GetMemberReportErrorState) {
+          hideLoading();
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
+        } else if (state is GetMemberReportSuccessState) {
+          hideLoading();
+          memberReportList = state.memberReport;
+          // ------------------------------------------------------
+        } else if (state is DeleteItemInMemberReportLoadingState) {
+          showLoading();
+        } else if (state is DeleteItemInMemberReportErrorState) {
+          hideLoading();
+          showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
+        } else if (state is DeleteItemInMemberReportSuccessState) {
+          hideLoading();
+          MemberReportRequest memberReportRequest = MemberReportRequest(
+              name: userName
+          );
+          HomePageCubit.get(context).getMemberReport(memberReportRequest);
         }
       },
       builder: (context, state) {
@@ -568,6 +602,13 @@ class _HomeViewState extends State<HomeView>
         initDateDropdowns();
         if (index == 3 || index == 2) {
           HomePageCubit.get(context).getActiveCycle();
+        }
+        if (index == 4) {
+          MemberReportRequest memberReportRequest = MemberReportRequest(
+            name: userName
+          );
+          HomePageCubit.get(context).getMemberReport(memberReportRequest);
+          HomePageCubit.get(context).getHeadReport();
         }
         setState(() {
           _currentIndex = index;
@@ -1137,10 +1178,7 @@ class _HomeViewState extends State<HomeView>
                   if (receiptDetailText.isEmpty ||
                       receiptValueText.isEmpty ||
                       receiptShareText.isEmpty) {
-                    showWarningSnackBar(
-                      context,
-                      "Please fill in all required fields.",
-                    );
+                    showAppSnackBar(context, "Please fill in all required fields.", type: SnackBarType.warning);
                     return;
                   }
 
@@ -1151,10 +1189,7 @@ class _HomeViewState extends State<HomeView>
                   if (receiptValue == null ||
                       receiptShare == null ||
                       receiptDetail == null) {
-                    showErrorSnackBar(
-                      context,
-                      "Please enter valid numbers for receipt value and my share.",
-                    );
+                    showAppSnackBar(context, "Please enter valid numbers for receipt value and my share." ,type: SnackBarType.error);
                     return;
                   }
 
@@ -1163,10 +1198,7 @@ class _HomeViewState extends State<HomeView>
                         .fold(0.0, (sum, m) => sum + m.shareValue)
                         .toStringAsFixed(2);
                     if (double.parse(_receiptValueTextController.text) < (double.parse(totalValue) + double.parse(_receiptShareTextController.text))) {
-                      showErrorSnackBar(
-                        context,
-                        "My share value is not available.",
-                      );
+                      showAppSnackBar(context, "My share value is not available.", type: SnackBarType.error);
                       return;
                     }
                   }
@@ -1174,10 +1206,7 @@ class _HomeViewState extends State<HomeView>
                   if (isReceiptCreator &&
                       double.parse(_receiptShareTextController.text) >=
                           double.parse(_receiptValueTextController.text)) {
-                    showErrorSnackBar(
-                      context,
-                      "My share value should be smaller than receipt value.",
-                    );
+                    showAppSnackBar(context, "My share value should be smaller than receipt value.", type: SnackBarType.error);
                     return;
                   }
 
@@ -1279,10 +1308,15 @@ class _HomeViewState extends State<HomeView>
                                 receiptMembersList: receiptMembersList,
                                 selectedId: selectedId!,
                                 cycleName: activeCycleData!.cycleName,
-                                totalValue: _receiptValueTextController.text
+                                totalValue: _receiptValueTextController.text,
+                                clearMembersList: () {
+                                  setState(() {
+                                    receiptMembersList = [];
+                                  });
+                                },
                               );
                             },
-                          ) : showErrorSnackBar(context, "Select the receipt");
+                          ) : showAppSnackBar(context, "Select the receipt", type: SnackBarType.error);
                         }
                       },
                       child: Column(
@@ -1413,10 +1447,7 @@ class _HomeViewState extends State<HomeView>
             final memberBudgetText = _memberBudgetTextController.text.trim();
 
             if (membersCountText.isEmpty || memberBudgetText.isEmpty) {
-              showWarningSnackBar(
-                context,
-                "Please fill in all required fields.",
-              );
+              showAppSnackBar(context, "Please fill in all required fields.", type: SnackBarType.error);
               return;
             }
 
@@ -1424,10 +1455,7 @@ class _HomeViewState extends State<HomeView>
             final memberBudget = double.tryParse(memberBudgetText);
 
             if (membersCount == null || memberBudget == null) {
-              showErrorSnackBar(
-                context,
-                "Please enter valid numbers for members count and budget.",
-              );
+              showAppSnackBar(context, "Please enter valid numbers for members count and budget.", type: SnackBarType.error);
               return;
             }
 
@@ -1858,9 +1886,9 @@ class _HomeViewState extends State<HomeView>
                   radius: Radius.circular(10),
                   child: ListView.builder(
                     padding: EdgeInsets.only(top: 10.h),
-                    itemCount: generalReportList.length,
+                    itemCount: headReportList.length,
                     itemBuilder: (context, index) {
-                      final item = generalReportList[index];
+                      final item = headReportList[index];
                       return Container(
                         margin: EdgeInsets.symmetric(
                           vertical: 6.h,
@@ -1882,7 +1910,8 @@ class _HomeViewState extends State<HomeView>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   "${AppStrings.memberName}:",
@@ -1892,9 +1921,9 @@ class _HomeViewState extends State<HomeView>
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                SizedBox(width: 5.h),
+                                SizedBox(height: 5.h),
                                 Text(
-                                  item["name"],
+                                  item.name,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15.sp,
@@ -1918,7 +1947,7 @@ class _HomeViewState extends State<HomeView>
                                 ),
                                 SizedBox(width: 5.h),
                                 Text(
-                                  "${item["left"].toStringAsFixed(2)} L.E.",
+                                  "${activeCycleData!.memberBudget - double.parse(item.leftOf)} L.E.",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15.sp,
@@ -1941,9 +1970,9 @@ class _HomeViewState extends State<HomeView>
                   radius: Radius.circular(10),
                   child: ListView.builder(
                     padding: EdgeInsets.only(top: 10.h),
-                    itemCount: reportsList.length,
+                    itemCount: memberReportList.length,
                     itemBuilder: (context, index) {
-                      final item = reportsList[index];
+                      final item = memberReportList[index];
                       return Container(
                         margin: EdgeInsets.symmetric(
                           vertical: 6.h,
@@ -1969,15 +1998,7 @@ class _HomeViewState extends State<HomeView>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  item["restaurant"],
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  "${item["receipt_value"].toStringAsFixed(2)} L.E.",
+                                  item.receiptDetail,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15.sp,
@@ -1985,25 +2006,52 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                 ),
                                 Bounceable(
-                                  onTap: () {},
+                                  onTap: () {
+                                    DeleteShareRequest
+                                    deleteShareRequest = DeleteShareRequest(
+                                      receiptId: item.receiptId,
+                                      receiptMembersModel:
+                                      ReceiptMembersModel(
+                                        shareValue: double.parse(item.shareValue),
+                                        name: item.name,
+                                        id: item.receiptMemberId,
+                                      ),
+                                    );
+                                    HomePageCubit.get(context).deleteItemInMemberReport(deleteShareRequest);
+                                  },
                                   child: Icon(
                                     Icons.delete,
                                     color: Colors.redAccent,
+                                    size: 20.w,
                                   ),
                                 ),
                               ],
                             ),
 
-                            SizedBox(height: 5.h),
+                            SizedBox(height: 10.h),
+                            
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item.receiptDate,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  "${item.shareValue} L.E.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            )
 
-                            Text(
-                              item["date"],
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
                           ],
                         ),
                       );
@@ -2020,7 +2068,7 @@ class _HomeViewState extends State<HomeView>
             filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 0.w),
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20.r),
@@ -2029,7 +2077,7 @@ class _HomeViewState extends State<HomeView>
                   width: 1.5.w,
                 ),
               ),
-              child: Row(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
@@ -2046,7 +2094,9 @@ class _HomeViewState extends State<HomeView>
                       SizedBox(width: 10.w),
 
                       Text(
-                        "1250 L.E.",
+                        !showTotal ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue))
+                            .toStringAsFixed(2)} L.E." : "${headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))
+                            .toStringAsFixed(2)} L.E.",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15.sp,
@@ -2054,6 +2104,10 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ),
                     ],
+                  ),
+                  showTotal
+                      ? Container() : SizedBox(
+                    height: 10.h,
                   ),
                   showTotal
                       ? Container()
@@ -2071,7 +2125,7 @@ class _HomeViewState extends State<HomeView>
                             SizedBox(width: 10.w),
 
                             Text(
-                              "1250 L.E.",
+                              "${(activeCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))}",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15.sp,
