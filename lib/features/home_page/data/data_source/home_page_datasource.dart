@@ -390,7 +390,7 @@ class HomePageDataSource extends BaseDataSource {
       final cycle = CycleModel.fromJson(data);
 
       final isReceiptExist = cycle.receipts.any(
-        (m) => m.id == deleteReceiptRequest.receipt.id,
+        (m) => m.receiptId == deleteReceiptRequest.receiptId,
       );
 
       if (!isReceiptExist) {
@@ -398,7 +398,7 @@ class HomePageDataSource extends BaseDataSource {
       }
 
       final updatedReceipts = cycle.receipts
-          .where((m) => m.id != deleteReceiptRequest.receipt.id)
+          .where((m) => m.receiptId != deleteReceiptRequest.receiptId)
           .toList();
 
       await docRef.update({

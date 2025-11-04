@@ -1,7 +1,7 @@
 import '../model/receipt_model.dart';
 
 class DeleteReceiptRequest{
-  ReceiptModel receipt;
+  String receiptId;
   String cycleName;
-  DeleteReceiptRequest({required this.receipt, required this.cycleName});
+  DeleteReceiptRequest({required this.receiptId, required this.cycleName});
 }
