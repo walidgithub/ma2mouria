@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -146,7 +147,10 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                     height: 35.h,
                                     child: TextField(
                                       controller: _receiptShareTextController,
-                                      keyboardType: TextInputType.number,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+                                      ],
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 15.sp,

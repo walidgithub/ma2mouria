@@ -27,7 +27,7 @@ class AppTheme {
           horizontal: 10.h,
           vertical: 5.h,
         ),
-        fillColor: AppColors.cWhite,
+        fillColor: AppColors.cFifth,
         filled: true,
         enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: AppColors.cThird),
