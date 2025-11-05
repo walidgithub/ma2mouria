@@ -304,11 +304,11 @@ class _HomeViewState extends State<HomeView>
           _receiptDetailTextController.text = "";
           _receiptShareTextController.text = "";
           // });
-          showAppSnackBar(
-            context,
-            state.errorMessage,
-            type: SnackBarType.error,
-          );
+          // showAppSnackBar(
+          //   context,
+          //   state.errorMessage,
+          //   type: SnackBarType.error,
+          // );
         } else if (state is GetActiveCycleSuccessState) {
           hideLoading();
 
@@ -436,7 +436,6 @@ class _HomeViewState extends State<HomeView>
           isReceiptCreator
               ? savedReceiptId = state.receiptId
               : savedReceiptId = "";
-          showAppSnackBar(context, "Receipt added successfully");
           HomePageCubit.get(context).getReceipts(activeCycleData!.cycleName);
           // ------------------------------------------------------
         } else if (state is DeleteReceiptLoadingState) {
@@ -1915,7 +1914,17 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               )
-            : Container(),
+            : Center(
+                child: Text(
+                  "No active cycle now",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
       ],
     );
   }
@@ -1949,6 +1958,32 @@ class _HomeViewState extends State<HomeView>
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
               borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10.h),
+
+        InkWell(
+          onTap: () {
+            HomePageCubit.get(
+              context,
+            ).getUsers();
+          },
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+            child: Icon(
+              Icons.refresh,
+              color: Colors.white,
+              size: 20.sp,
             ),
           ),
         ),
@@ -2033,7 +2068,17 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               )
-            : Container(),
+            : Center(
+                child: Text(
+                  "No members found",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
 
         SizedBox(),
 
@@ -2112,299 +2157,291 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               )
-            : Container(),
+            : Center(
+                child: Text(
+                  "No active cycle now",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
       ],
     );
   }
 
   Widget _buildReportsContent() {
-    return activeCycleData != null ? Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Center(
-          child: Text(
-            AppStrings.reports,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-
-        SizedBox(height: 10.h),
-
-        isHead
-            ? Center(
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: showTotal,
-                      activeColor: Colors.orangeAccent,
-                      onChanged: (value) {
-                        setState(() {
-                          showTotal = value!;
-                        });
-                        if (showTotal) {
-                          HomePageCubit.get(context).getHeadReport();
-                        } else {
-                          MemberReportRequest memberReportRequest =
-                              MemberReportRequest(name: userName);
-                          HomePageCubit.get(
-                            context,
-                          ).getMemberReport(memberReportRequest);
-                        }
-                      },
-                    ),
-                    Text(
-                      AppStrings.showTotal,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              )
-            : Container(),
-
-        showTotal
-            ? Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(top: 10.h),
-                    itemCount: headReportList.length,
-                    itemBuilder: (context, index) {
-                      final item = headReportList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 6.h,
-                          horizontal: 5.w,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15.r),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.2),
-                            width: 2.w,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "${AppStrings.memberName}:",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: 5.h),
-                                Text(
-                                  item.name,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: 5.h),
-
-                            Row(
-                              children: [
-                                Text(
-                                  "${AppStrings.leftOf}:",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(width: 5.h),
-                                Text(
-                                  "${activeCycleData!.memberBudget - double.parse(item.leftOf)} L.E.",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              )
-            : Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(top: 10.h),
-                    itemCount: memberReportList.length,
-                    itemBuilder: (context, index) {
-                      final item = memberReportList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 6.h,
-                          horizontal: 5.w,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15.r),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.2),
-                            width: 2.w,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.receiptDetail,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Bounceable(
-                                  onTap: () {
-                                    DeleteShareRequest deleteShareRequest =
-                                        DeleteShareRequest(
-                                          receiptId: item.receiptId,
-                                          receiptMembersModel:
-                                              ReceiptMembersModel(
-                                                shareValue: double.parse(
-                                                  item.shareValue,
-                                                ),
-                                                name: item.name,
-                                                id: item.receiptMemberId,
-                                              ),
-                                        );
-                                    HomePageCubit.get(
-                                      context,
-                                    ).deleteItemInMemberReport(
-                                      deleteShareRequest,
-                                    );
-                                  },
-                                  child: Icon(
-                                    Icons.delete,
-                                    color: Colors.redAccent,
-                                    size: 20.w,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: 10.h),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.receiptDate,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  "${item.shareValue} L.E.",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+    return activeCycleData != null
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  AppStrings.reports,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
 
-        SizedBox(height: 20.h),
+              SizedBox(height: 10.h),
 
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20.r),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 0.w),
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+              isHead
+                  ? Center(
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: showTotal,
+                            activeColor: Colors.orangeAccent,
+                            onChanged: (value) {
+                              setState(() {
+                                showTotal = value!;
+                              });
+                              if (showTotal) {
+                                HomePageCubit.get(context).getHeadReport();
+                              } else {
+                                MemberReportRequest memberReportRequest =
+                                    MemberReportRequest(name: userName);
+                                HomePageCubit.get(
+                                  context,
+                                ).getMemberReport(memberReportRequest);
+                              }
+                            },
+                          ),
+                          Text(
+                            AppStrings.showTotal,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(),
+
+              showTotal
+                  ? Expanded(
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        thickness: 2,
+                        radius: Radius.circular(10),
+                        child: ListView.builder(
+                          padding: EdgeInsets.only(top: 10.h),
+                          itemCount: headReportList.length,
+                          itemBuilder: (context, index) {
+                            final item = headReportList[index];
+                            return Container(
+                              margin: EdgeInsets.symmetric(
+                                vertical: 6.h,
+                                horizontal: 5.w,
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 15.w,
+                                vertical: 10.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(15.r),
+                                border: Border.all(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  width: 2.w,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${AppStrings.memberName}:",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: 5.h),
+                                      Text(
+                                        item.name,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 5.h),
+
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "${AppStrings.leftOf}:",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(width: 5.h),
+                                      Text(
+                                        "${activeCycleData!.memberBudget - double.parse(item.leftOf)} L.E.",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                  : Expanded(
+                      child: Scrollbar(
+                        thumbVisibility: true,
+                        thickness: 2,
+                        radius: Radius.circular(10),
+                        child: ListView.builder(
+                          padding: EdgeInsets.only(top: 10.h),
+                          itemCount: memberReportList.length,
+                          itemBuilder: (context, index) {
+                            final item = memberReportList[index];
+                            return Container(
+                              margin: EdgeInsets.symmetric(
+                                vertical: 6.h,
+                                horizontal: 5.w,
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 15.w,
+                                vertical: 10.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(15.r),
+                                border: Border.all(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  width: 2.w,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        item.receiptDetail,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Bounceable(
+                                        onTap: () {
+                                          DeleteShareRequest
+                                          deleteShareRequest =
+                                              DeleteShareRequest(
+                                                receiptId: item.receiptId,
+                                                receiptMembersModel:
+                                                    ReceiptMembersModel(
+                                                      shareValue: double.parse(
+                                                        item.shareValue,
+                                                      ),
+                                                      name: item.name,
+                                                      id: item.receiptMemberId,
+                                                    ),
+                                              );
+                                          HomePageCubit.get(
+                                            context,
+                                          ).deleteItemInMemberReport(
+                                            deleteShareRequest,
+                                          );
+                                        },
+                                        child: Icon(
+                                          Icons.delete,
+                                          color: Colors.redAccent,
+                                          size: 20.w,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 10.h),
+
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        item.receiptDate,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        "${item.shareValue} L.E.",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+              SizedBox(height: 20.h),
+
+              ClipRRect(
                 borderRadius: BorderRadius.circular(20.r),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.5.w,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "${showTotal ? AppStrings.totalLeft : AppStrings.total}:",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          letterSpacing: 0.5,
-                        ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 0.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 10.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5.w,
                       ),
-
-                      SizedBox(width: 10.w),
-
-                      Text(
-                        !showTotal
-                            ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)).toStringAsFixed(2)} L.E."
-                            : "${(headReportList.length * activeCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} L.E.",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  showTotal ? Container() : SizedBox(height: 10.h),
-                  showTotal
-                      ? Container()
-                      : Row(
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
                           children: [
                             Text(
-                              "${AppStrings.leftOf}:",
+                              "${showTotal ? AppStrings.totalLeft : AppStrings.total}:",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15.sp,
@@ -2415,7 +2452,9 @@ class _HomeViewState extends State<HomeView>
                             SizedBox(width: 10.w),
 
                             Text(
-                              "${(activeCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))}",
+                              !showTotal
+                                  ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)).toStringAsFixed(2)} L.E."
+                                  : "${(headReportList.length * activeCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} L.E.",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15.sp,
@@ -2424,22 +2463,49 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ],
                         ),
-                ],
+                        showTotal ? Container() : SizedBox(height: 10.h),
+                        showTotal
+                            ? Container()
+                            : Row(
+                                children: [
+                                  Text(
+                                    "${AppStrings.leftOf}:",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15.sp,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+
+                                  SizedBox(width: 10.w),
+
+                                  Text(
+                                    "${(activeCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))}",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15.sp,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
+        : Center(
+            child: Text(
+              "No active cycle now",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
               ),
             ),
-          ),
-        ),
-      ],
-    ) : Center(
-    child: Text(
-    "No active cycle now",
-    style: TextStyle(
-    color: Colors.white,
-    fontSize: 20.sp,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
-    ),
-    ),
-    );
+          );
   }
 }
