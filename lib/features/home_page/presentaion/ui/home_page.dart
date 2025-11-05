@@ -512,7 +512,8 @@ class _HomeViewState extends State<HomeView>
       },
       builder: (context, state) {
         return Scaffold(
-          extendBody: true,
+          resizeToAvoidBottomInset: true,
+          backgroundColor: Colors.transparent,
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -537,29 +538,29 @@ class _HomeViewState extends State<HomeView>
 
                     userData != null
                         ? Expanded(
-                            child: _currentIndex == 0
-                                ? _buildCreditContent()
-                                : _currentIndex == 1
-                                ? _buildReceiptContent()
-                                : _currentIndex == 2
-                                ? isHead
-                                      ? _buildCycleContent()
-                                      : Container()
-                                : _currentIndex == 3
-                                ? isHead
-                                      ? _buildCycleMembersContent()
-                                      : Container()
-                                : _buildReportsContent(),
-                          )
+                      child: _currentIndex == 0
+                          ? _buildCreditContent()
+                          : _currentIndex == 1
+                          ? _buildReceiptContent()
+                          : _currentIndex == 2
+                          ? isHead
+                          ? _buildCycleContent()
+                          : Container()
+                          : _currentIndex == 3
+                          ? isHead
+                          ? _buildCycleMembersContent()
+                          : Container()
+                          : _buildReportsContent(),
+                    )
                         : Text(
-                            "User data not ready",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
+                      "User data not ready",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ],
                 ),
               ),
