@@ -512,8 +512,7 @@ class _HomeViewState extends State<HomeView>
       },
       builder: (context, state) {
         return Scaffold(
-          resizeToAvoidBottomInset: true,
-          backgroundColor: Colors.transparent,
+          extendBody: true,
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
