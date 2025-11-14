@@ -513,6 +513,7 @@ class _HomeViewState extends State<HomeView>
       builder: (context, state) {
         return Scaffold(
           extendBody: true,
+          resizeToAvoidBottomInset: false,
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -957,6 +958,9 @@ class _HomeViewState extends State<HomeView>
         TextField(
           controller: _calcTextController,
           keyboardType: TextInputType.text,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9+.]')),
+          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -1280,7 +1284,10 @@ class _HomeViewState extends State<HomeView>
                     ? true
                     : false
               : true,
-          keyboardType: TextInputType.text,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -1300,7 +1307,10 @@ class _HomeViewState extends State<HomeView>
 
                   TextField(
                     controller: _receiptShareTextController,
-                    keyboardType: TextInputType.text,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+                    ],
                     style: TextStyle(color: Colors.white, fontSize: 15.sp),
                     decoration: InputDecoration(
                       filled: true,
@@ -1674,7 +1684,10 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _memberBudgetTextController,
-          keyboardType: TextInputType.text,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -1691,7 +1704,10 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _membersCountTextController,
-          keyboardType: TextInputType.text,
+          keyboardType: const TextInputType.numberWithOptions(decimal: false),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d+$')),
+          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
