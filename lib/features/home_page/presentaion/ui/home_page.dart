@@ -704,12 +704,22 @@ class _HomeViewState extends State<HomeView>
       onTap: () {
         initDateDropdowns();
         if (index == 0) {
+          _calcTextController.text = "";
           MemberReportRequest memberReportRequest = MemberReportRequest(
             name: userData!['name']!,
           );
           HomePageCubit.get(context).getMemberReport(memberReportRequest);
         }
+        if (index == 1) {
+          _receiptValueTextController.text = "";
+          _receiptDetailTextController.text = "";
+          _receiptShareTextController.text = "";
+          isShared = false;
+          isReceiptCreator = false;
+        }
         if (index == 3 || index == 2) {
+          _memberBudgetTextController.text = "";
+          _membersCountTextController.text = "";
           HomePageCubit.get(context).getActiveCycle();
         }
         if (index == 4) {
@@ -947,9 +957,6 @@ class _HomeViewState extends State<HomeView>
         TextField(
           controller: _calcTextController,
           keyboardType: TextInputType.text,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9+.]')),
-          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -1274,9 +1281,6 @@ class _HomeViewState extends State<HomeView>
                     : false
               : true,
           keyboardType: TextInputType.text,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -1297,11 +1301,6 @@ class _HomeViewState extends State<HomeView>
                   TextField(
                     controller: _receiptShareTextController,
                     keyboardType: TextInputType.text,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*\.?\d{0,}$'),
-                      ),
-                    ],
                     style: TextStyle(color: Colors.white, fontSize: 15.sp),
                     decoration: InputDecoration(
                       filled: true,
@@ -1676,9 +1675,6 @@ class _HomeViewState extends State<HomeView>
         TextField(
           controller: _memberBudgetTextController,
           keyboardType: TextInputType.text,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -1696,9 +1692,6 @@ class _HomeViewState extends State<HomeView>
         TextField(
           controller: _membersCountTextController,
           keyboardType: TextInputType.text,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-          ],
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
