@@ -946,7 +946,6 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _calcTextController,
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[0-9+.]')),
           ],
@@ -1273,7 +1272,6 @@ class _HomeViewState extends State<HomeView>
                     ? true
                     : false
               : true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
           ],
@@ -1296,7 +1294,6 @@ class _HomeViewState extends State<HomeView>
 
                   TextField(
                     controller: _receiptShareTextController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
                     ],
@@ -1673,7 +1670,6 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _memberBudgetTextController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
           ],
@@ -1693,7 +1689,6 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _membersCountTextController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
           ],
@@ -1997,7 +1992,7 @@ class _HomeViewState extends State<HomeView>
                     scrollDirection: Axis.horizontal,
                     itemCount: usersList.length,
                     itemBuilder: (context, index) {
-                      if (index == 0) return SizedBox.shrink();
+                      // if (index == 0) return SizedBox.shrink();
                       final item = usersList[index];
                       return Bounceable(
                         onTap: () {},
@@ -2018,40 +2013,40 @@ class _HomeViewState extends State<HomeView>
                               width: 2.w,
                             ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                item.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w600,
+                          child: Bounceable(
+                            onTap: () {
+                              AddMemberRequest addMemberRequest =
+                              AddMemberRequest(
+                                cycleName: _cycleTextController.text,
+                                member: MemberModel(
+                                  id: item.id,
+                                  name: item.name,
+                                  email: item.email,
                                 ),
-                              ),
-                              SizedBox(width: 10.w),
-                              Bounceable(
-                                onTap: () {
-                                  AddMemberRequest addMemberRequest =
-                                      AddMemberRequest(
-                                        cycleName: _cycleTextController.text,
-                                        member: MemberModel(
-                                          id: item.id,
-                                          name: item.name,
-                                          email: item.email,
-                                        ),
-                                      );
-                                  HomePageCubit.get(
-                                    context,
-                                  ).addMember(addMemberRequest);
-                                },
-                                child: Icon(
+                              );
+                              HomePageCubit.get(
+                                context,
+                              ).addMember(addMemberRequest);
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+                                Icon(
                                   Icons.add_box_rounded,
                                   color: Colors.teal,
                                   size: 18.sp,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );

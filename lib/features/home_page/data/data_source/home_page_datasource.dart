@@ -270,6 +270,7 @@ class HomePageDataSource extends BaseDataSource {
 
       final rulesList = snapshot.docs
           .map((doc) => RulesModel.fromJson(doc.data()))
+          .where((rule) => rule.rule != "head")
           .toList();
 
       return rulesList;
