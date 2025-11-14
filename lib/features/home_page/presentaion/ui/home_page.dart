@@ -537,29 +537,29 @@ class _HomeViewState extends State<HomeView>
 
                     userData != null
                         ? Expanded(
-                      child: _currentIndex == 0
-                          ? _buildCreditContent()
-                          : _currentIndex == 1
-                          ? _buildReceiptContent()
-                          : _currentIndex == 2
-                          ? isHead
-                          ? _buildCycleContent()
-                          : Container()
-                          : _currentIndex == 3
-                          ? isHead
-                          ? _buildCycleMembersContent()
-                          : Container()
-                          : _buildReportsContent(),
-                    )
+                            child: _currentIndex == 0
+                                ? _buildCreditContent()
+                                : _currentIndex == 1
+                                ? _buildReceiptContent()
+                                : _currentIndex == 2
+                                ? isHead
+                                      ? _buildCycleContent()
+                                      : Container()
+                                : _currentIndex == 3
+                                ? isHead
+                                      ? _buildCycleMembersContent()
+                                      : Container()
+                                : _buildReportsContent(),
+                          )
                         : Text(
-                      "User data not ready",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                            "User data not ready",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                   ],
                 ),
               ),
@@ -946,6 +946,7 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _calcTextController,
+          keyboardType: TextInputType.text,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[0-9+.]')),
           ],
@@ -1272,6 +1273,7 @@ class _HomeViewState extends State<HomeView>
                     ? true
                     : false
               : true,
+          keyboardType: TextInputType.text,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
           ],
@@ -1294,8 +1296,11 @@ class _HomeViewState extends State<HomeView>
 
                   TextField(
                     controller: _receiptShareTextController,
+                    keyboardType: TextInputType.text,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d*\.?\d{0,}$'),
+                      ),
                     ],
                     style: TextStyle(color: Colors.white, fontSize: 15.sp),
                     decoration: InputDecoration(
@@ -1670,6 +1675,7 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _memberBudgetTextController,
+          keyboardType: TextInputType.text,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
           ],
@@ -1689,6 +1695,7 @@ class _HomeViewState extends State<HomeView>
 
         TextField(
           controller: _membersCountTextController,
+          keyboardType: TextInputType.text,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
           ],
@@ -1944,6 +1951,7 @@ class _HomeViewState extends State<HomeView>
         TextField(
           controller: _cycleTextController,
           keyboardType: TextInputType.text,
+          enabled: false,
           style: TextStyle(color: Colors.white, fontSize: 15.sp),
           decoration: InputDecoration(
             filled: true,
@@ -2016,14 +2024,14 @@ class _HomeViewState extends State<HomeView>
                           child: Bounceable(
                             onTap: () {
                               AddMemberRequest addMemberRequest =
-                              AddMemberRequest(
-                                cycleName: _cycleTextController.text,
-                                member: MemberModel(
-                                  id: item.id,
-                                  name: item.name,
-                                  email: item.email,
-                                ),
-                              );
+                                  AddMemberRequest(
+                                    cycleName: _cycleTextController.text,
+                                    member: MemberModel(
+                                      id: item.id,
+                                      name: item.name,
+                                      email: item.email,
+                                    ),
+                                  );
                               HomePageCubit.get(
                                 context,
                               ).addMember(addMemberRequest);
