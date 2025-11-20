@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -90,7 +91,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             width: MediaQuery.sizeOf(context).width,
             decoration: BoxDecoration(
               color: AppColors.cWhite,
-              border: Border.all(color: AppColors.cPrimary, width: 1.5.w),
+              border: Border.all(color: AppColors.cPrimary, width: isMobile() ? 1.5.w : 0.5.w),
               borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
             ),
             child: Column(
@@ -100,177 +101,188 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                 const CustomDivider(),
 
                 Expanded(
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    thickness: 2,
-                    radius: Radius.circular(10),
-                    child: ListView.builder(
-                      padding: EdgeInsets.only(top: 10.h),
-                      itemCount: widget.receiptMembersList.length,
-                      itemBuilder: (context, index) {
-                        final item = widget.receiptMembersList[index];
-                        return Container(
-                          margin: EdgeInsets.symmetric(
-                            vertical: 6.h,
-                            horizontal: 5.w,
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 10.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.cSecondary,
-                            borderRadius: BorderRadius.circular(15.r),
-                            border: Border.all(
-                              color: Colors.orange.withOpacity(0.2),
-                              width: 2.w,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      scrollbarTheme: ScrollbarThemeData(
+                        thumbColor: WidgetStateProperty.all(Colors.orange),
+                        trackBorderColor: WidgetStateProperty.all(Colors.transparent),
+                        radius: const Radius.circular(10),
+                        thickness: MaterialStateProperty.all(6),
+                      ),
+                    ),
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      thickness: 2,
+                      trackVisibility: true,
+                      radius: Radius.circular(10),
+                      child: ListView.builder(
+                        padding: EdgeInsets.only(top: 10.h),
+                        itemCount: widget.receiptMembersList.length,
+                        itemBuilder: (context, index) {
+                          final item = widget.receiptMembersList[index];
+                          return Container(
+                            margin: EdgeInsets.symmetric(
+                              vertical: 6.h,
+                              horizontal: 5.w,
                             ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.name,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  SizedBox(height: 10.h),
-                                  editingMemberId == item.id
-                                      ? SizedBox(
-                                    width: 150.w,
-                                    height: 35.h,
-                                    child: TextField(
-                                      controller: _receiptShareTextController,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-                                      ],
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 10.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.cSecondary,
+                              borderRadius: BorderRadius.circular(15.r),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.2),
+                                width: isMobile() ? 1.5.w : 0.5.w,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 15.sp,
+                                        fontSize: isMobile() ? 15.sp : 5.sp,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: Colors.white.withOpacity(0.1),
-                                        hintText: AppStrings.myShare,
-                                        hintStyle: TextStyle(color: Colors.white70),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10.r),
-                                          borderSide: BorderSide(
-                                            color: Colors.white.withOpacity(0.2),
+                                    ),
+                                    SizedBox(height: 10.h),
+                                    editingMemberId == item.id
+                                        ? SizedBox(
+                                      width: 150.w,
+                                      height: 35.h,
+                                      child: TextField(
+                                        controller: _receiptShareTextController,
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+                                        ],
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: isMobile() ? 15.sp : 5.sp,
+                                        ),
+                                        decoration: InputDecoration(
+                                          filled: true,
+                                          fillColor: Colors.white.withOpacity(0.1),
+                                          hintText: AppStrings.myShare.tr(),
+                                          hintStyle: TextStyle(color: Colors.white70),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10.r),
+                                            borderSide: BorderSide(
+                                              color: Colors.white.withOpacity(0.2),
+                                            ),
+                                          ),
+                                          contentPadding: EdgeInsets.symmetric(
+                                            vertical: 10.h,
+                                            horizontal: 12.w,
                                           ),
                                         ),
-                                        contentPadding: EdgeInsets.symmetric(
-                                          vertical: 10.h,
-                                          horizontal: 12.w,
-                                        ),
+                                      ),
+                                    )
+                                        : Text(
+                                      "${item.shareValue.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: isMobile() ? 14.sp : 6.sp,
                                       ),
                                     ),
-                                  )
-                                      : Text(
-                                    "${item.shareValue.toStringAsFixed(2)} L.E.",
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  item.name == widget.userData!['name']
-                                      ? Row(
-                                    children: [
-                                      Bounceable(
-                                        onTap: () {
-                                          setState(() {
-                                            if (editingMemberId == item.id) {
-                                              editingMemberId = null;
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    item.name == widget.userData!['name']
+                                        ? Row(
+                                      children: [
+                                        Bounceable(
+                                          onTap: () {
+                                            setState(() {
+                                              if (editingMemberId == item.id) {
+                                                editingMemberId = null;
 
-                                              // -----------------
-                                              final receiptShareText = _receiptShareTextController.text
-                                                  .trim();
+                                                // -----------------
+                                                final receiptShareText = _receiptShareTextController.text
+                                                    .trim();
 
-                                              if (receiptShareText.isEmpty) {
-                                                showAppSnackBar(context, "Please fill in all required fields.", type: SnackBarType.error);
-                                                return;
-                                              }
-
-                                              final receiptShare = double.tryParse(receiptShareText);
-
-                                              if (receiptShare == null) {
-                                                showAppSnackBar(context, "Please enter valid numbers for your share.", type: SnackBarType.error);
-                                                return;
-                                              }
-
-                                                String totalValue = widget.receiptMembersList
-                                                    .fold(0.0, (sum, m) => sum + m.shareValue)
-                                                    .toStringAsFixed(2);
-                                                if (double.parse(widget.totalValue) < ((double.parse(totalValue) - item.shareValue) + double.parse(_receiptShareTextController.text))) {
-                                                  showAppSnackBar(context, "Your share value is not available.", type: SnackBarType.error);
+                                                if (receiptShareText.isEmpty) {
+                                                  showAppSnackBar(context, AppStrings.fillFields.tr(), type: SnackBarType.error);
                                                   return;
+                                                }
+
+                                                final receiptShare = double.tryParse(receiptShareText);
+
+                                                if (receiptShare == null) {
+                                                  showAppSnackBar(context, AppStrings.validShare.tr(), type: SnackBarType.error);
+                                                  return;
+                                                }
+
+                                                  String totalValue = widget.receiptMembersList
+                                                      .fold(0.0, (sum, m) => sum + m.shareValue)
+                                                      .toStringAsFixed(2);
+                                                  if (double.parse(widget.totalValue) < ((double.parse(totalValue) - item.shareValue) + double.parse(_receiptShareTextController.text))) {
+                                                    showAppSnackBar(context, AppStrings.shareValue.tr(), type: SnackBarType.error);
+                                                    return;
+                                                }
+
+                                                // ------------------------------
+
+                                                EditShareRequest editShareRequest = EditShareRequest(
+                                                  receiptId: widget.selectedId,
+                                                  receiptMembersModel: ReceiptMembersModel(
+                                                    shareValue: double.parse(_receiptShareTextController.text),
+                                                    name: item.name,
+                                                    id: item.id,
+                                                  ),
+                                                );
+
+                                                HomePageCubit.get(context).editShare(editShareRequest);
+                                              } else {
+                                                editingMemberId = item.id;
+                                                _receiptShareTextController.text = item.shareValue.toString();
                                               }
-
-                                              // ------------------------------
-
-                                              EditShareRequest editShareRequest = EditShareRequest(
-                                                receiptId: widget.selectedId,
-                                                receiptMembersModel: ReceiptMembersModel(
-                                                  shareValue: double.parse(_receiptShareTextController.text),
-                                                  name: item.name,
-                                                  id: item.id,
-                                                ),
-                                              );
-
-                                              HomePageCubit.get(context).editShare(editShareRequest);
-                                            } else {
-                                              editingMemberId = item.id;
-                                              _receiptShareTextController.text = item.shareValue.toString();
-                                            }
-                                          });
-                                        },
-                                        child: Icon(
-                                          editingMemberId == item.id ? Icons.check : Icons.edit,
-                                          color: Colors.orangeAccent,
-                                          size: 18.sp,
+                                            });
+                                          },
+                                          child: Icon(
+                                            editingMemberId == item.id ? Icons.check : Icons.edit,
+                                            color: Colors.orangeAccent,
+                                            size: isMobile() ? 18.sp : 6.sp,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 15.w),
-                                      Bounceable(
-                                        onTap: () {
-                                          DeleteShareRequest
-                                          deleteShareRequest = DeleteShareRequest(
-                                            receiptId: widget.selectedId,
-                                            receiptMembersModel:
-                                            ReceiptMembersModel(
-                                              shareValue: item.shareValue,
-                                              name: item.name,
-                                              id: item.id,
-                                            ),
-                                          );
-                                          HomePageCubit.get(context).deleteShare(deleteShareRequest);
-                                        },
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.redAccent,
-                                          size: 18.sp,
+                                        SizedBox(width: 15.w),
+                                        Bounceable(
+                                          onTap: () {
+                                            DeleteShareRequest
+                                            deleteShareRequest = DeleteShareRequest(
+                                              receiptId: widget.selectedId,
+                                              receiptMembersModel:
+                                              ReceiptMembersModel(
+                                                shareValue: item.shareValue,
+                                                name: item.name,
+                                                id: item.id,
+                                              ),
+                                            );
+                                            HomePageCubit.get(context).deleteShare(deleteShareRequest);
+                                          },
+                                          child: Icon(
+                                            Icons.delete,
+                                            color: Colors.redAccent,
+                                            size: isMobile() ? 18.sp : 6.sp,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  )
-                                      : Container(),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                                      ],
+                                    )
+                                        : Container(),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -284,16 +296,16 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                       children: [
                         RichText(
                           text: TextSpan(
-                            text: "${AppStrings.totalPayed}: ",
+                            text: "${AppStrings.totalPayed.tr()}: ",
                             style: TextStyle(
                               color: AppColors.cBlack, // color for the label
-                              fontSize: 18.sp,
+                              fontSize: isMobile() ? 18.sp : 7.sp,
                               fontWeight: FontWeight.w600,
                             ),
                             children: [
                               TextSpan(
                                 text:
-                                "${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} L.E.",
+                                "${widget.receiptMembersList.fold(0.0, (sum, m) => sum + m.shareValue).toStringAsFixed(2)} ${AppStrings.currency.tr()}",
                                 style: TextStyle(
                                   color: Colors.redAccent, // color for the value
                                   fontWeight: FontWeight.bold,
@@ -307,16 +319,16 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                         ),
                         RichText(
                           text: TextSpan(
-                            text: "${AppStrings.total}: ",
+                            text: "${AppStrings.total.tr()}: ",
                             style: TextStyle(
                               color: AppColors.cBlack, // color for the label
-                              fontSize: 18.sp,
+                              fontSize: isMobile() ? 18.sp : 7.sp,
                               fontWeight: FontWeight.w600,
                             ),
                             children: [
                               TextSpan(
                                 text:
-                                "${widget.totalValue} L.E.",
+                                "${widget.totalValue} ${AppStrings.currency.tr()}",
                                 style: TextStyle(
                                   color: AppColors.cSecondary, // color for the value
                                   fontWeight: FontWeight.bold,
@@ -338,7 +350,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                       },
                       borderRadius: BorderRadius.circular(10.r),
                       child: Container(
-                        padding: EdgeInsets.all(8.w),
+                        padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
                         decoration: BoxDecoration(
                           color: AppColors.cSecondary,
                           borderRadius: BorderRadius.circular(10.r),
@@ -349,7 +361,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                         child: Icon(
                           Icons.refresh,
                           color: Colors.white,
-                          size: 20.sp,
+                          size: isMobile() ? 20.sp : 8.sp,
                         ),
                       ),
                     )

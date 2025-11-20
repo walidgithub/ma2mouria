@@ -66,9 +66,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, CycleModel>> getActiveCycle() async {
+  Future<Either<FirebaseFailure, CycleModel>> getActiveCycle(String zoneName) async {
     try {
-      final result = await _homePageDataSource.getActiveCycle();
+      final result = await _homePageDataSource.getActiveCycle(zoneName);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));

@@ -1,4 +1,8 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +37,7 @@ import '../../data/model/cycle_model.dart';
 import '../../data/model/receipt_model.dart';
 import '../../data/requests/add_member_request.dart';
 import '../../data/requests/delete_share_request.dart';
+import 'dart:html' as html;
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -47,6 +52,11 @@ class _HomeViewState extends State<HomeView>
   late Animation<double> _animation;
 
   final AppPreferences _appPreferences = sl<AppPreferences>();
+
+  _changeLanguage() {
+    _appPreferences.changeAppLanguage();
+    Phoenix.rebirth(context);
+  }
 
   double startValue = 0.0;
   double endValue = 0.0;
@@ -78,6 +88,19 @@ class _HomeViewState extends State<HomeView>
   String? selectedId;
   String? selectedReceiptUserName;
 
+  bool isMobile() {
+    if (kIsWeb) {
+      final ua = web.window.navigator.userAgent.toLowerCase();
+      return ua.contains("iphone") ||
+          ua.contains("android") ||
+          ua.contains("ipad") ||
+          ua.contains("mobile");
+    } else {
+      return defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -103,7 +126,6 @@ class _HomeViewState extends State<HomeView>
 
     getUserData();
     HomePageCubit.get(context).getUsers();
-    HomePageCubit.get(context).getActiveCycle();
     HomePageCubit.get(context).getRuleByEmail(userData!['email'] ?? 'Guest');
     MemberReportRequest memberReportRequest = MemberReportRequest(
       name: userData!['name']!,
@@ -177,6 +199,7 @@ class _HomeViewState extends State<HomeView>
   String? selectedYear;
 
   String userName = "";
+  String zone = "";
   String? photoUrl;
 
   void _updateDays() {
@@ -233,9 +256,11 @@ class _HomeViewState extends State<HomeView>
 
           // setState(() {
           userName = state.rulesModel.name;
+          zone = state.rulesModel.zone;
           if (state.rulesModel.rule == "head") {
             isHead = true;
           }
+          HomePageCubit.get(context).getActiveCycle(zone);
           // });
 
           // ------------------------------------------------------
@@ -281,12 +306,12 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           showAppSnackBar(
             context,
-            "Cycle added successfully",
+            AppStrings.cycleAdded.tr(),
             type: SnackBarType.success,
           );
           _membersCountTextController.text = "";
           _memberBudgetTextController.text = "";
-          HomePageCubit.get(context).getActiveCycle();
+          HomePageCubit.get(context).getActiveCycle(zone);
           // ------------------------------------------------------
         } else if (state is GetActiveCycleLoadingState) {
           showLoading();
@@ -303,12 +328,6 @@ class _HomeViewState extends State<HomeView>
           _receiptValueTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptShareTextController.text = "";
-          // });
-          // showAppSnackBar(
-          //   context,
-          //   state.errorMessage,
-          //   type: SnackBarType.error,
-          // );
         } else if (state is GetActiveCycleSuccessState) {
           hideLoading();
 
@@ -511,107 +530,125 @@ class _HomeViewState extends State<HomeView>
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          extendBody: true,
-          resizeToAvoidBottomInset: false,
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF1C1633),
-                  Color(0xFF2E2159),
-                  Color(0xFF443182),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: SafeArea(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: _buildHeader(),
-                    ),
-
-                    userData != null
-                        ? Expanded(
-                            child: _currentIndex == 0
-                                ? _buildCreditContent()
-                                : _currentIndex == 1
-                                ? _buildReceiptContent()
-                                : _currentIndex == 2
-                                ? isHead
-                                      ? _buildCycleContent()
-                                      : Container()
-                                : _currentIndex == 3
-                                ? isHead
-                                      ? _buildCycleMembersContent()
-                                      : Container()
-                                : _buildReportsContent(),
-                          )
-                        : Text(
-                            "User data not ready",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          bottomNavigationBar: ClipRRect(
-            borderRadius: BorderRadius.circular(20.r),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-              child: Container(
-                margin: EdgeInsets.all(10.w),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20.r),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1.5,
+        return OrientationBlocker(
+          child: WillPopScope(
+            onWillPop: () async {
+              if (html.window.history.length > 1) {
+                html.window.history.back();
+              } else {
+                html.window.location.href = "https://google.com";
+              }
+              return false;
+            },
+            child: Scaffold(
+              extendBody: true,
+              resizeToAvoidBottomInset: false,
+              body: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF1C1633),
+                      Color(0xFF2E2159),
+                      Color(0xFF443182),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildNavItem(
-                      icon: Icons.attach_money,
-                      index: 0,
-                      isActive: _currentIndex == 0,
+                child: SafeArea(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 10.h,
                     ),
-                    _buildNavItem(
-                      icon: Icons.add,
-                      index: 1,
-                      isActive: _currentIndex == 1,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: _buildHeader(),
+                        ),
+
+                        userData != null
+                            ? Expanded(
+                                child: _currentIndex == 0
+                                    ? _buildCreditContent()
+                                    : _currentIndex == 1
+                                    ? _buildReceiptContent()
+                                    : _currentIndex == 2
+                                    ? isHead
+                                          ? _buildCycleContent()
+                                          : Container()
+                                    : _currentIndex == 3
+                                    ? isHead
+                                          ? _buildCycleMembersContent()
+                                          : Container()
+                                    : _buildReportsContent(),
+                              )
+                            : Text(
+                                AppStrings.userDataNotReady.tr(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isMobile() ? 20.sp : 8.sp,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ],
                     ),
-                    if (isHead)
-                      _buildNavItem(
-                        icon: Icons.add_to_drive_rounded,
-                        index: 2,
-                        isActive: _currentIndex == 2,
+                  ),
+                ),
+              ),
+              bottomNavigationBar: ClipRRect(
+                borderRadius: BorderRadius.circular(20.r),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                  child: Container(
+                    margin: EdgeInsets.all(10.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 10.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
                       ),
-                    if (isHead)
-                      _buildNavItem(
-                        icon: Icons.person,
-                        index: 3,
-                        isActive: _currentIndex == 3,
-                      ),
-                    _buildNavItem(
-                      icon: Icons.bar_chart_sharp,
-                      index: 4,
-                      isActive: _currentIndex == 4,
                     ),
-                  ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavItem(
+                          icon: Icons.attach_money,
+                          index: 0,
+                          isActive: _currentIndex == 0,
+                        ),
+                        _buildNavItem(
+                          icon: Icons.add,
+                          index: 1,
+                          isActive: _currentIndex == 1,
+                        ),
+                        if (isHead)
+                          _buildNavItem(
+                            icon: Icons.add_to_drive_rounded,
+                            index: 2,
+                            isActive: _currentIndex == 2,
+                          ),
+                        if (isHead)
+                          _buildNavItem(
+                            icon: Icons.person,
+                            index: 3,
+                            isActive: _currentIndex == 3,
+                          ),
+                        _buildNavItem(
+                          icon: Icons.bar_chart_sharp,
+                          index: 4,
+                          isActive: _currentIndex == 4,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -631,17 +668,21 @@ class _HomeViewState extends State<HomeView>
             Row(
               children: [
                 Text(
-                  AppStrings.hi,
+                  AppStrings.hi.tr(),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 25.sp,
+                    fontSize: isMobile() ? 20.sp : 8.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(width: 5.w),
-                Text('👋', style: TextStyle(fontSize: 15.sp)),
+                Text(
+                  '👋',
+                  style: TextStyle(fontSize: isMobile() ? 15.sp : 5.sp),
+                ),
               ],
             ),
+            SizedBox(width: 10.w),
             Row(
               children: [
                 Bounceable(
@@ -655,10 +696,35 @@ class _HomeViewState extends State<HomeView>
                       borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
-                    child: Icon(Icons.logout, color: Colors.white, size: 15.sp),
+                    child: Icon(
+                      Icons.logout,
+                      color: Colors.white,
+                      size: isMobile() ? 15.sp : 5.sp,
+                    ),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 15.w),
+                Bounceable(
+                  onTap: () {
+                    setState(() {
+                      _changeLanguage();
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Icon(
+                      Icons.language,
+                      color: Colors.white,
+                      size: isMobile() ? 15.sp : 5.sp,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 5.w),
                 CircleAvatar(
                   radius: 25.r,
                   backgroundColor: AppColors.cWhite,
@@ -674,7 +740,7 @@ class _HomeViewState extends State<HomeView>
                           : CachedNetworkImage(
                               placeholder: (context, url) =>
                                   CircularProgressIndicator(
-                                    strokeWidth: 2.w,
+                                    strokeWidth: isMobile() ? 2.w : 1.w,
                                     color: AppColors.cIsActive,
                                   ),
                               errorWidget: (context, url, error) =>
@@ -690,7 +756,10 @@ class _HomeViewState extends State<HomeView>
         ),
         Text(
           userName,
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isMobile() ? 15.sp : 5.sp,
+          ),
         ),
       ],
     );
@@ -721,7 +790,7 @@ class _HomeViewState extends State<HomeView>
         if (index == 3 || index == 2) {
           _memberBudgetTextController.text = "";
           _membersCountTextController.text = "";
-          HomePageCubit.get(context).getActiveCycle();
+          HomePageCubit.get(context).getActiveCycle(zone);
         }
         if (index == 4) {
           MemberReportRequest memberReportRequest = MemberReportRequest(
@@ -740,7 +809,7 @@ class _HomeViewState extends State<HomeView>
           color: isActive ? const Color(0xFFFF8C61) : const Color(0xFF2E2159),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.white, size: 18.sp),
+        child: Icon(icon, color: Colors.white, size: isMobile() ? 18.sp : 6.sp),
       ),
     );
   }
@@ -763,7 +832,10 @@ class _HomeViewState extends State<HomeView>
             const SizedBox(width: 10),
             Text(
               label,
-              style: TextStyle(color: Colors.white, fontSize: 15.sp),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isMobile() ? 15.sp : 5.sp,
+              ),
             ),
           ],
         ),
@@ -773,7 +845,7 @@ class _HomeViewState extends State<HomeView>
               amount,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 15.sp,
+                fontSize: isMobile() ? 15.sp : 5.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -802,12 +874,18 @@ class _HomeViewState extends State<HomeView>
           value: value,
           hint: Text(
             hint,
-            style: TextStyle(color: Colors.white70, fontSize: 15.sp),
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: isMobile() ? 15.sp : 5.sp,
+            ),
           ),
           dropdownColor: Colors.black87,
           iconEnabledColor: Colors.white70,
           isDense: true,
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isMobile() ? 15.sp : 5.sp,
+          ),
           items: items
               .map((item) => DropdownMenuItem(value: item, child: Text(item)))
               .toList(),
@@ -821,10 +899,10 @@ class _HomeViewState extends State<HomeView>
     if (activeCycleData == null) {
       return Center(
         child: Text(
-          "No active cycle now",
+          AppStrings.noActiveCycleNow.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -840,10 +918,10 @@ class _HomeViewState extends State<HomeView>
     if (userMember == null) {
       return Center(
         child: Text(
-          "You are not registered in active cycle",
+          AppStrings.notRegistered.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -854,10 +932,10 @@ class _HomeViewState extends State<HomeView>
     return Column(
       children: [
         Text(
-          AppStrings.myCredit,
+          AppStrings.myCredit.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -875,7 +953,7 @@ class _HomeViewState extends State<HomeView>
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.2),
-                  width: 1.5.w,
+                  width: isMobile() ? 1.5.w : 0.5.w,
                 ),
               ),
               child: Column(
@@ -884,7 +962,7 @@ class _HomeViewState extends State<HomeView>
                     cycleDate,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 15.sp,
+                      fontSize: isMobile() ? 15.sp : 5.sp,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
                     ),
@@ -898,7 +976,7 @@ class _HomeViewState extends State<HomeView>
 
                       return CircularPercentIndicator(
                         radius: 50.r,
-                        lineWidth: 7.w,
+                        lineWidth: isMobile() ? 7.w : 3.w,
                         percent: percent,
                         circularStrokeCap: CircularStrokeCap.round,
                         backgroundColor: Colors.white.withOpacity(0.1),
@@ -919,7 +997,7 @@ class _HomeViewState extends State<HomeView>
                           '${(percent * 100).toStringAsFixed(2)}%',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 15.sp,
+                            fontSize: isMobile() ? 15.sp : 5.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -929,21 +1007,24 @@ class _HomeViewState extends State<HomeView>
                   Column(
                     children: [
                       _buildSpendingRow(
-                        label: AppStrings.leftOf,
+                        label: AppStrings.leftOf.tr(),
                         color: const Color(0xFFFF8C61),
-                        amount: "${result.toStringAsFixed(2)} L.E.",
+                        amount:
+                            "${result.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
                       ),
                       const SizedBox(height: 16),
                       _buildSpendingRow(
-                        label: AppStrings.spending,
+                        label: AppStrings.spending.tr(),
                         color: const Color(0xFFAF133D),
-                        amount: "${spending.toStringAsFixed(2)} L.E.",
+                        amount:
+                            "${spending.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
                       ),
                       const SizedBox(height: 16),
                       _buildSpendingRow(
-                        label: AppStrings.total,
+                        label: AppStrings.total.tr(),
                         color: const Color(0xFF6B4EFF),
-                        amount: "${total.toStringAsFixed(2)} L.E.",
+                        amount:
+                            "${total.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
                       ),
                     ],
                   ),
@@ -961,16 +1042,23 @@ class _HomeViewState extends State<HomeView>
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[0-9+.]')),
           ],
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isMobile() ? 15.sp : 5.sp,
+          ),
           decoration: InputDecoration(
             filled: true,
-            hintText: AppStrings.typeNumbers,
+            hintText: AppStrings.typeNumbers.tr(),
             hintStyle: const TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
               borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
             ),
-            prefixIcon: Icon(Icons.calculate, color: Colors.white, size: 20.sp),
+            prefixIcon: Icon(
+              Icons.calculate,
+              color: Colors.white,
+              size: isMobile() ? 20.sp : 8.sp,
+            ),
           ),
         ),
       ],
@@ -981,10 +1069,10 @@ class _HomeViewState extends State<HomeView>
     if (activeCycleData == null) {
       return Center(
         child: Text(
-          "No active cycle now",
+          AppStrings.noActiveCycleNow.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1000,10 +1088,10 @@ class _HomeViewState extends State<HomeView>
     if (userMember == null) {
       return Center(
         child: Text(
-          "You are not registered in active cycle",
+          AppStrings.notRegistered.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1011,932 +1099,968 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Center(
-          child: Text(
-            AppStrings.addReceipt,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              AppStrings.addReceipt.tr(),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isMobile() ? 20.sp : 8.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
-        ),
-        SizedBox(height: 10.h),
+          SizedBox(height: 10.h),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildDropdown(
-              hint: AppStrings.year,
-              value: selectedYear,
-              items: years,
-              onChanged: (v) {
-                setState(() => selectedYear = v);
-                _updateDays();
-              },
-            ),
-            SizedBox(width: 10.w),
-            _buildDropdown(
-              hint: AppStrings.month,
-              value: selectedMonth,
-              items: months,
-              onChanged: (v) {
-                setState(() => selectedMonth = v);
-                _updateDays();
-              },
-            ),
-            SizedBox(width: 10.w),
-            _buildDropdown(
-              hint: AppStrings.day,
-              value: selectedDay,
-              items: days,
-              onChanged: (v) {
-                setState(() => selectedDay = v);
-              },
-            ),
-          ],
-        ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildDropdown(
+                hint: AppStrings.year.tr(),
+                value: selectedYear,
+                items: years,
+                onChanged: (v) {
+                  setState(() => selectedYear = v);
+                  _updateDays();
+                },
+              ),
+              SizedBox(width: 10.w),
+              _buildDropdown(
+                hint: AppStrings.month.tr(),
+                value: selectedMonth,
+                items: months,
+                onChanged: (v) {
+                  setState(() => selectedMonth = v);
+                  _updateDays();
+                },
+              ),
+              SizedBox(width: 10.w),
+              _buildDropdown(
+                hint: AppStrings.day.tr(),
+                value: selectedDay,
+                items: days,
+                onChanged: (v) {
+                  setState(() => selectedDay = v);
+                },
+              ),
+            ],
+          ),
 
-        SizedBox(height: 10.h),
+          SizedBox(height: 10.h),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Checkbox(
-                  value: isShared,
-                  activeColor: Colors.orangeAccent,
-                  onChanged: (value) {
-                    setState(() {
-                      isShared = value!;
-                      _receiptValueTextController.text = "";
-                      _receiptDetailTextController.text = "";
-                      _receiptShareTextController.text = "";
-                      receiptMembersList = [];
-                      savedReceiptId = "";
-                      selectedId = null;
-                      if (!isShared) {
-                        isReceiptCreator = false;
-                      }
-                      HomePageCubit.get(
-                        context,
-                      ).getReceipts(activeCycleData!.cycleName);
-                    });
-                  },
-                ),
-                Text(AppStrings.shared, style: TextStyle(color: Colors.white)),
-              ],
-            ),
-
-            SizedBox(width: 20.w),
-
-            isShared
-                ? Row(
-                    children: [
-                      Checkbox(
-                        value: isReceiptCreator,
-                        activeColor: Colors.orangeAccent,
-                        onChanged: (value) {
-                          _receiptValueTextController.text = "";
-                          _receiptDetailTextController.text = "";
-                          _receiptShareTextController.text = "";
-                          receiptMembersList = [];
-                          savedReceiptId = "";
-                          selectedId = null;
-                          setState(() {
-                            isReceiptCreator = value!;
-                          });
-                        },
-                      ),
-                      Text(
-                        AppStrings.receiptCreator,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  )
-                : Container(),
-          ],
-        ),
-
-        SizedBox(height: 10.h),
-
-        isShared && !isReceiptCreator
-            ? Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
                 children: [
-                  StatefulBuilder(
-                    builder: (context, setStateDropdown) {
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              dropdownColor: const Color(0xFF2E2159),
-                              value: selectedId,
-                              decoration: InputDecoration(
-                                filled: true,
-                                border: OutlineInputBorder(
+                  Checkbox(
+                    value: isShared,
+                    activeColor: Colors.orangeAccent,
+                    onChanged: (value) {
+                      setState(() {
+                        isShared = value!;
+                        _receiptValueTextController.text = "";
+                        _receiptDetailTextController.text = "";
+                        _receiptShareTextController.text = "";
+                        receiptMembersList = [];
+                        savedReceiptId = "";
+                        selectedId = null;
+                        if (!isShared) {
+                          isReceiptCreator = false;
+                        }
+                        HomePageCubit.get(
+                          context,
+                        ).getReceipts(activeCycleData!.cycleName);
+                      });
+                    },
+                  ),
+                  Text(
+                    AppStrings.shared.tr(),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+
+              SizedBox(width: 20.w),
+
+              isShared
+                  ? Row(
+                      children: [
+                        Checkbox(
+                          value: isReceiptCreator,
+                          activeColor: Colors.orangeAccent,
+                          onChanged: (value) {
+                            _receiptValueTextController.text = "";
+                            _receiptDetailTextController.text = "";
+                            _receiptShareTextController.text = "";
+                            receiptMembersList = [];
+                            savedReceiptId = "";
+                            selectedId = null;
+                            setState(() {
+                              isReceiptCreator = value!;
+                            });
+                          },
+                        ),
+                        Text(
+                          AppStrings.receiptCreator.tr(),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    )
+                  : Container(),
+            ],
+          ),
+
+          SizedBox(height: 10.h),
+
+          isShared && !isReceiptCreator
+              ? Column(
+                  children: [
+                    StatefulBuilder(
+                      builder: (context, setStateDropdown) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                dropdownColor: const Color(0xFF2E2159),
+                                value: selectedId,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.2),
+                                    ),
+                                  ),
+                                ),
+                                hint: Text(
+                                  AppStrings.receiptId.tr(),
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: isMobile() ? 15.sp : 5.sp,
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                ),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isMobile() ? 15.sp : 5.sp,
+                                ),
+                                items: receiptsIds.map((name) {
+                                  return DropdownMenuItem(
+                                    value: name,
+                                    child: Text(name),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setStateDropdown(() {
+                                    selectedId = value;
+                                    selectedReceiptUserName = receiptsList
+                                        .firstWhere((receipt) {
+                                          return receipt.shared == true &&
+                                              receipt.receiptId == value;
+                                        })
+                                        .receiptCreator;
+
+                                    setState(() {
+                                      if (userData!['name'] ==
+                                          selectedReceiptUserName) {
+                                        showDeleteForCreator = true;
+                                      } else {
+                                        showDeleteForCreator = false;
+                                      }
+                                    });
+
+                                    _receiptValueTextController.text =
+                                        receiptsList
+                                            .firstWhere((receipt) {
+                                              return receipt.shared == true &&
+                                                  receipt.receiptId == value;
+                                            })
+                                            .receiptValue
+                                            .toString();
+
+                                    _receiptDetailTextController.text =
+                                        receiptsList.firstWhere((receipt) {
+                                          return receipt.shared == true &&
+                                              receipt.receiptId == value;
+                                        }).receiptDetail;
+
+                                    receiptMembersList = receiptsList
+                                        .firstWhere((receipt) {
+                                          return receipt.shared == true &&
+                                              receipt.receiptId == value;
+                                        })
+                                        .receiptMembers;
+
+                                    _receiptShareTextController.text = "";
+                                  });
+                                },
+                              ),
+                            ),
+
+                            SizedBox(width: 8.w),
+
+                            InkWell(
+                              onTap: () {
+                                setStateDropdown(() {
+                                  selectedId = null;
+                                });
+                                _receiptValueTextController.text = "";
+                                _receiptDetailTextController.text = "";
+                                _receiptShareTextController.text = "";
+                                receiptMembersList = [];
+                                HomePageCubit.get(
+                                  context,
+                                ).getReceipts(activeCycleData!.cycleName);
+                              },
+                              borderRadius: BorderRadius.circular(10.r),
+                              child: Container(
+                                padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10.r),
-                                  borderSide: BorderSide(
+                                  border: Border.all(
                                     color: Colors.white.withOpacity(0.2),
                                   ),
                                 ),
-                              ),
-                              hint: Text(
-                                AppStrings.receiptId,
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 15.sp,
+                                child: Icon(
+                                  Icons.refresh,
+                                  color: Colors.white,
+                                  size: isMobile() ? 20.sp : 8.sp,
                                 ),
                               ),
-                              icon: const Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.white,
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.sp,
-                              ),
-                              items: receiptsIds.map((name) {
-                                return DropdownMenuItem(
-                                  value: name,
-                                  child: Text(name),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setStateDropdown(() {
-                                  selectedId = value;
-                                  selectedReceiptUserName = receiptsList
-                                      .firstWhere((receipt) {
-                                        return receipt.shared == true &&
-                                            receipt.receiptId == value;
-                                      })
-                                      .receiptCreator;
-
-                                  setState(() {
-                                    if (userData!['name'] ==
-                                        selectedReceiptUserName) {
-                                      showDeleteForCreator = true;
-                                    } else {
-                                      showDeleteForCreator = false;
-                                    }
-                                  });
-
-                                  _receiptValueTextController.text =
-                                      receiptsList
-                                          .firstWhere((receipt) {
-                                            return receipt.shared == true &&
-                                                receipt.receiptId == value;
-                                          })
-                                          .receiptValue
-                                          .toString();
-
-                                  _receiptDetailTextController.text =
-                                      receiptsList.firstWhere((receipt) {
-                                        return receipt.shared == true &&
-                                            receipt.receiptId == value;
-                                      }).receiptDetail;
-
-                                  receiptMembersList = receiptsList.firstWhere((
-                                    receipt,
-                                  ) {
-                                    return receipt.shared == true &&
-                                        receipt.receiptId == value;
-                                  }).receiptMembers;
-
-                                  _receiptShareTextController.text = "";
-                                });
-                              },
                             ),
-                          ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                )
+              : Container(),
 
-                          SizedBox(width: 8.w),
+          isShared && !isReceiptCreator ? SizedBox(height: 10.h) : Container(),
 
-                          InkWell(
-                            onTap: () {
-                              setStateDropdown(() {
-                                selectedId = null;
-                              });
-                              _receiptValueTextController.text = "";
-                              _receiptDetailTextController.text = "";
-                              _receiptShareTextController.text = "";
-                              receiptMembersList = [];
-                              HomePageCubit.get(
-                                context,
-                              ).getReceipts(activeCycleData!.cycleName);
-                            },
-                            borderRadius: BorderRadius.circular(10.r),
-                            child: Container(
-                              padding: EdgeInsets.all(8.w),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                ),
-                              ),
-                              child: Icon(
-                                Icons.refresh,
-                                color: Colors.white,
-                                size: 20.sp,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              )
-            : Container(),
-
-        isShared && !isReceiptCreator ? SizedBox(height: 10.h) : Container(),
-
-        TextField(
-          controller: _receiptDetailTextController,
-          enabled: isShared
-              ? isReceiptCreator
-                    ? true
-                    : false
-              : true,
-          keyboardType: TextInputType.text,
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
-          decoration: InputDecoration(
-            filled: true,
-            hintText: AppStrings.receiptDetail,
-            hintStyle: TextStyle(color: Colors.white70),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+          TextField(
+            controller: _receiptDetailTextController,
+            enabled: isShared
+                ? isReceiptCreator
+                      ? true
+                      : false
+                : true,
+            keyboardType: TextInputType.text,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isMobile() ? 15.sp : 5.sp,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              hintText: AppStrings.receiptDetail.tr(),
+              hintStyle: TextStyle(color: Colors.white70),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.r),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+              ),
             ),
           ),
-        ),
 
-        SizedBox(height: 10.h),
+          SizedBox(height: 10.h),
 
-        TextField(
-          controller: _receiptValueTextController,
-          enabled: isShared
-              ? isReceiptCreator
-                    ? true
-                    : false
-              : true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-          ],
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
-          decoration: InputDecoration(
-            filled: true,
-            hintText: AppStrings.receiptValue,
-            hintStyle: TextStyle(color: Colors.white70),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+          TextField(
+            controller: _receiptValueTextController,
+            enabled: isShared
+                ? isReceiptCreator
+                      ? true
+                      : false
+                : true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+            ],
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isMobile() ? 15.sp : 5.sp,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              hintText: AppStrings.receiptValue.tr(),
+              hintStyle: TextStyle(color: Colors.white70),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.r),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+              ),
             ),
           ),
-        ),
 
-        isShared
-            ? Column(
-                children: [
-                  SizedBox(height: 10.h),
+          isShared
+              ? Column(
+                  children: [
+                    SizedBox(height: 10.h),
 
-                  TextField(
-                    controller: _receiptShareTextController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-                    ],
-                    style: TextStyle(color: Colors.white, fontSize: 15.sp),
-                    decoration: InputDecoration(
-                      filled: true,
-                      hintText: AppStrings.myShare,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.r),
-                        borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.2),
-                        ),
+                    TextField(
+                      controller: _receiptShareTextController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
-                    ),
-                  ),
-                ],
-              )
-            : Container(),
-
-        SizedBox(height: 10.h),
-
-        isShared && isReceiptCreator
-            ? Row(
-                children: [
-                  Text(
-                    "${AppStrings.receiptId}: ",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 15.sp,
-                    ),
-                  ),
-                  Text(
-                    savedReceiptId,
-                    style: GoogleFonts.poppins(
-                      color: Colors.redAccent,
-                      fontSize: 15.sp,
-                    ),
-                  ),
-                ],
-              )
-            : Container(),
-
-        isShared && isReceiptCreator ? SizedBox(height: 10.h) : Container(),
-
-        Row(
-          mainAxisAlignment:
-              isShared && !isReceiptCreator && userData!['name'] == userName
-              ? MainAxisAlignment.spaceBetween
-              : MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              child: Bounceable(
-                onTap: () {
-                  if (!isShared) {
-                    _receiptShareTextController.text =
-                        _receiptValueTextController.text;
-                  }
-                  final receiptDetailText = _receiptDetailTextController.text
-                      .trim();
-                  final receiptValueText = _receiptValueTextController.text
-                      .trim();
-                  final receiptShareText = _receiptShareTextController.text
-                      .trim();
-
-                  if (receiptDetailText.isEmpty ||
-                      receiptValueText.isEmpty ||
-                      receiptShareText.isEmpty) {
-                    showAppSnackBar(
-                      context,
-                      "Please fill in all required fields.",
-                      type: SnackBarType.warning,
-                    );
-                    return;
-                  }
-
-                  final receiptValue = double.tryParse(receiptValueText);
-                  final receiptShare = double.tryParse(receiptShareText);
-                  final receiptDetail = receiptDetailText;
-
-                  if (receiptValue == null ||
-                      receiptShare == null ||
-                      receiptDetail == null) {
-                    showAppSnackBar(
-                      context,
-                      "Please enter valid numbers for receipt value and my share.",
-                      type: SnackBarType.error,
-                    );
-                    return;
-                  }
-
-                  if (isShared && !isReceiptCreator) {
-                    String totalValue = receiptMembersList
-                        .fold(0.0, (sum, m) => sum + m.shareValue)
-                        .toStringAsFixed(2);
-                    if (double.parse(_receiptValueTextController.text) <
-                        (double.parse(totalValue) +
-                            double.parse(_receiptShareTextController.text))) {
-                      showAppSnackBar(
-                        context,
-                        "My share value is not available.",
-                        type: SnackBarType.error,
-                      );
-                      return;
-                    }
-                  }
-
-                  if (isReceiptCreator &&
-                      double.parse(_receiptShareTextController.text) >=
-                          double.parse(_receiptValueTextController.text)) {
-                    showAppSnackBar(
-                      context,
-                      "My share value should be smaller than receipt value.",
-                      type: SnackBarType.error,
-                    );
-                    return;
-                  }
-
-                  var uuid = Uuid();
-                  String id = uuid.v4();
-                  String memberId = uuid.v4();
-                  AddReceiptRequest receipt = AddReceiptRequest(
-                    cycleName: activeCycleData!.cycleName,
-                    receipt: ReceiptModel(
-                      id: id,
-                      receiptCreator: !isShared
-                          ? userName
-                          : isReceiptCreator
-                          ? userName
-                          : selectedReceiptUserName!,
-                      receiptDate: "$selectedDay $selectedMonth $selectedYear",
-                      receiptDetail: _receiptDetailTextController.text,
-                      receiptId: isShared && !isReceiptCreator
-                          ? selectedId!
-                          : "${_receiptDetailTextController.text} ${id.substring(0, 7)}",
-                      receiptMembers: [
-                        ReceiptMembersModel(
-                          id: memberId,
-                          name: userName,
-                          shareValue: double.parse(
-                            _receiptShareTextController.text,
-                          ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d{0,}$'),
                         ),
                       ],
-                      receiptValue: double.parse(
-                        _receiptValueTextController.text,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isMobile() ? 15.sp : 5.sp,
                       ),
-                      shared: isShared,
-                    ),
-                  );
-                  HomePageCubit.get(context).addReceipt(receipt);
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20.r),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                        child: Container(
-                          margin: EdgeInsets.symmetric(horizontal: 10.w),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 10.h,
-                          ),
-                          width: 120.w,
-                          height: 45.h,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1.5.w,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              AppStrings.save,
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 15.sp,
-                              ),
-                            ),
+                      decoration: InputDecoration(
+                        filled: true,
+                        hintText: AppStrings.myShare.tr(),
+                        hintStyle: TextStyle(color: Colors.white70),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                          borderSide: BorderSide(
+                            color: Colors.white.withOpacity(0.2),
                           ),
                         ),
                       ),
                     ),
                   ],
+                )
+              : Container(),
+
+          SizedBox(height: 10.h),
+
+          isShared && isReceiptCreator
+              ? Row(
+                  children: [
+                    Text(
+                      "${AppStrings.receiptId.tr()}: ",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: isMobile() ? 15.sp : 5.sp,
+                      ),
+                    ),
+                    Text(
+                      savedReceiptId,
+                      style: GoogleFonts.poppins(
+                        color: Colors.redAccent,
+                        fontSize: isMobile() ? 15.sp : 5.sp,
+                      ),
+                    ),
+                  ],
+                )
+              : Container(),
+
+          isShared && isReceiptCreator ? SizedBox(height: 10.h) : Container(),
+
+          Row(
+            mainAxisAlignment:
+                isShared && !isReceiptCreator && userData!['name'] == userName
+                ? MainAxisAlignment.spaceBetween
+                : MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                child: Bounceable(
+                  onTap: () {
+                    if (!isShared) {
+                      _receiptShareTextController.text =
+                          _receiptValueTextController.text;
+                    }
+                    final receiptDetailText = _receiptDetailTextController.text
+                        .trim();
+                    final receiptValueText = _receiptValueTextController.text
+                        .trim();
+                    final receiptShareText = _receiptShareTextController.text
+                        .trim();
+
+                    if (receiptDetailText.isEmpty ||
+                        receiptValueText.isEmpty ||
+                        receiptShareText.isEmpty) {
+                      showAppSnackBar(
+                        context,
+                        AppStrings.fillFields.tr(),
+                        type: SnackBarType.warning,
+                      );
+                      return;
+                    }
+
+                    final receiptValue = double.tryParse(receiptValueText);
+                    final receiptShare = double.tryParse(receiptShareText);
+                    final receiptDetail = receiptDetailText;
+
+                    if (receiptValue == null ||
+                        receiptShare == null ||
+                        receiptDetail == null) {
+                      showAppSnackBar(
+                        context,
+                        AppStrings.validReceiptValNShare.tr(),
+                        type: SnackBarType.error,
+                      );
+                      return;
+                    }
+
+                    if (isShared && !isReceiptCreator) {
+                      String totalValue = receiptMembersList
+                          .fold(0.0, (sum, m) => sum + m.shareValue)
+                          .toStringAsFixed(2);
+                      if (double.parse(_receiptValueTextController.text) <
+                          (double.parse(totalValue) +
+                              double.parse(_receiptShareTextController.text))) {
+                        showAppSnackBar(
+                          context,
+                          AppStrings.shareValue.tr(),
+                          type: SnackBarType.error,
+                        );
+                        return;
+                      }
+                    }
+
+                    if (isReceiptCreator &&
+                        double.parse(_receiptShareTextController.text) >=
+                            double.parse(_receiptValueTextController.text)) {
+                      showAppSnackBar(
+                        context,
+                        AppStrings.myShareValue.tr(),
+                        type: SnackBarType.error,
+                      );
+                      return;
+                    }
+
+                    var uuid = Uuid();
+                    String id = uuid.v4();
+                    String memberId = uuid.v4();
+                    AddReceiptRequest receipt = AddReceiptRequest(
+                      cycleName: activeCycleData!.cycleName,
+                      receipt: ReceiptModel(
+                        id: id,
+                        receiptCreator: !isShared
+                            ? userName
+                            : isReceiptCreator
+                            ? userName
+                            : selectedReceiptUserName!,
+                        receiptDate:
+                            "$selectedDay $selectedMonth $selectedYear",
+                        receiptDetail: _receiptDetailTextController.text,
+                        receiptId: isShared && !isReceiptCreator
+                            ? selectedId!
+                            : "${_receiptDetailTextController.text} ${id.substring(0, 7)}",
+                        receiptMembers: [
+                          ReceiptMembersModel(
+                            id: memberId,
+                            name: userName,
+                            shareValue: double.parse(
+                              _receiptShareTextController.text,
+                            ),
+                          ),
+                        ],
+                        receiptValue: double.parse(
+                          _receiptValueTextController.text,
+                        ),
+                        shared: isShared,
+                      ),
+                    );
+                    HomePageCubit.get(context).addReceipt(receipt);
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20.r),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                          child: Container(
+                            margin: EdgeInsets.symmetric(horizontal: 10.w),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 10.h,
+                            ),
+                            width: 120.w,
+                            height: 45.h,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: isMobile() ? 1.5.w : 0.5.w,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                AppStrings.save.tr(),
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: isMobile() ? 15.sp : 5.sp,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            isShared && !isReceiptCreator
-                ? SizedBox(
-                    child: Bounceable(
-                      onTap: () {
-                        if (isShared) {
-                          selectedId != null
-                              ? showModalBottomSheet(
-                                  context: context,
-                                  constraints: BoxConstraints.expand(
-                                    height:
-                                        MediaQuery.sizeOf(context).height / 2,
-                                    width: MediaQuery.sizeOf(context).width,
+              isShared && !isReceiptCreator
+                  ? SizedBox(
+                      child: Bounceable(
+                        onTap: () {
+                          if (isShared) {
+                            selectedId != null
+                                ? showModalBottomSheet(
+                                    context: context,
+                                    constraints: BoxConstraints.expand(
+                                      height:
+                                          MediaQuery.sizeOf(context).height / 2,
+                                      width: MediaQuery.sizeOf(context).width,
+                                    ),
+                                    isScrollControlled: true,
+                                    barrierColor: AppColors.cTransparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(30.r),
+                                      ),
+                                    ),
+                                    builder: (BuildContext context) {
+                                      return ReceiptMembersBottomSheet(
+                                        userData: userData,
+                                        receiptMembersList: receiptMembersList,
+                                        selectedId: selectedId!,
+                                        cycleName: activeCycleData!.cycleName,
+                                        totalValue:
+                                            _receiptValueTextController.text,
+                                        clearMembersList: () {
+                                          setState(() {
+                                            receiptMembersList = [];
+                                          });
+                                        },
+                                      );
+                                    },
+                                  )
+                                : showAppSnackBar(
+                                    context,
+                                    AppStrings.selectReceipt.tr(),
+                                    type: SnackBarType.error,
+                                  );
+                          }
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20.r),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 10.h,
+                                  sigmaY: 10.w,
+                                ),
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: 10.w,
                                   ),
-                                  isScrollControlled: true,
-                                  barrierColor: AppColors.cTransparent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(30.r),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 10.w,
+                                    vertical: 10.h,
+                                  ),
+                                  width: 60.w,
+                                  height: 45.h,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20.r),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: isMobile() ? 1.5.w : 0.5.w,
                                     ),
                                   ),
-                                  builder: (BuildContext context) {
-                                    return ReceiptMembersBottomSheet(
-                                      userData: userData,
-                                      receiptMembersList: receiptMembersList,
-                                      selectedId: selectedId!,
-                                      cycleName: activeCycleData!.cycleName,
-                                      totalValue:
-                                          _receiptValueTextController.text,
-                                      clearMembersList: () {
-                                        setState(() {
-                                          receiptMembersList = [];
-                                        });
-                                      },
-                                    );
-                                  },
-                                )
-                              : showAppSnackBar(
-                                  context,
-                                  "Select the receipt",
-                                  type: SnackBarType.error,
-                                );
-                        }
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20.r),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 10.h,
-                                sigmaY: 10.w,
-                              ),
-                              child: Container(
-                                margin: EdgeInsets.symmetric(horizontal: 10.w),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10.w,
-                                  vertical: 10.h,
-                                ),
-                                width: 60.w,
-                                height: 45.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20.r),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1.5.w,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.group,
+                                      color: Colors.white,
+                                      size: isMobile() ? 20.sp : 8.sp,
+                                    ),
                                   ),
-                                ),
-                                child: Center(
-                                  child: Icon(Icons.group, color: Colors.white),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                : Container(),
+                    )
+                  : Container(),
 
-            showDeleteForCreator && selectedId != null
-                ? SizedBox(
-                    child: Bounceable(
-                      onTap: () {
-                        DeleteReceiptRequest deleteReceiptRequest =
-                            DeleteReceiptRequest(
-                              receiptId: selectedId!,
-                              cycleName: activeCycleData!.cycleName,
-                            );
-                        HomePageCubit.get(
-                          context,
-                        ).deleteReceipt(deleteReceiptRequest);
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20.r),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 10.h,
-                                sigmaY: 10.w,
-                              ),
-                              child: Container(
-                                margin: EdgeInsets.symmetric(horizontal: 10.w),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10.w,
-                                  vertical: 10.h,
+              showDeleteForCreator && isShared && selectedId != null
+                  ? SizedBox(
+                      child: Bounceable(
+                        onTap: () {
+                          DeleteReceiptRequest deleteReceiptRequest =
+                              DeleteReceiptRequest(
+                                receiptId: selectedId!,
+                                cycleName: activeCycleData!.cycleName,
+                              );
+                          HomePageCubit.get(
+                            context,
+                          ).deleteReceipt(deleteReceiptRequest);
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20.r),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 10.h,
+                                  sigmaY: 10.w,
                                 ),
-                                width: 60.w,
-                                height: 45.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20.r),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1.5.w,
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: 10.w,
                                   ),
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.delete,
-                                    color: Colors.redAccent,
-                                    size: 25.w,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 10.w,
+                                    vertical: 10.h,
+                                  ),
+                                  width: 60.w,
+                                  height: 45.h,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20.r),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: isMobile() ? 1.5.w : 0.5.w,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.delete,
+                                      color: Colors.redAccent,
+                                      size: isMobile() ? 20.w : 8.sp,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                : Container(),
-          ],
-        ),
-      ],
+                    )
+                  : Container(),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCycleContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Center(
-          child: Text(
-            AppStrings.addCycle,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              AppStrings.addCycle.tr(),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isMobile() ? 20.sp : 8.sp,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildDropdown(
+                hint: AppStrings.month.tr(),
+                value: selectedMonth,
+                items: months,
+                onChanged: (v) {
+                  setState(() => selectedMonth = v);
+                },
+              ),
+              SizedBox(width: 10.w),
+              _buildDropdown(
+                hint: AppStrings.year.tr(),
+                value: selectedYear,
+                items: years,
+                onChanged: (v) {
+                  setState(() => selectedYear = v);
+                },
+              ),
+            ],
+          ),
+
+          SizedBox(height: 10.h),
+
+          TextField(
+            controller: _memberBudgetTextController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
+            ],
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
+              fontSize: isMobile() ? 15.sp : 5.sp,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              hintText: AppStrings.memberBudget.tr(),
+              hintStyle: TextStyle(color: Colors.white70),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.r),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: 10.h),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildDropdown(
-              hint: AppStrings.month,
-              value: selectedMonth,
-              items: months,
-              onChanged: (v) {
-                setState(() => selectedMonth = v);
-              },
+          SizedBox(height: 10.h),
+
+          TextField(
+            controller: _membersCountTextController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: false),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d+$')),
+            ],
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isMobile() ? 15.sp : 5.sp,
             ),
-            SizedBox(width: 10.w),
-            _buildDropdown(
-              hint: AppStrings.year,
-              value: selectedYear,
-              items: years,
-              onChanged: (v) {
-                setState(() => selectedYear = v);
-              },
-            ),
-          ],
-        ),
-
-        SizedBox(height: 10.h),
-
-        TextField(
-          controller: _memberBudgetTextController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,}$')),
-          ],
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
-          decoration: InputDecoration(
-            filled: true,
-            hintText: AppStrings.memberBudget,
-            hintStyle: TextStyle(color: Colors.white70),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            decoration: InputDecoration(
+              filled: true,
+              hintText: AppStrings.membersCount.tr(),
+              hintStyle: TextStyle(color: Colors.white70),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.r),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+              ),
             ),
           ),
-        ),
 
-        SizedBox(height: 10.h),
+          SizedBox(height: 15.h),
 
-        TextField(
-          controller: _membersCountTextController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: false),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d+$')),
-          ],
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
-          decoration: InputDecoration(
-            filled: true,
-            hintText: AppStrings.membersCount,
-            hintStyle: TextStyle(color: Colors.white70),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-          ),
-        ),
+          Bounceable(
+            onTap: () {
+              final membersCountText = _membersCountTextController.text.trim();
+              final memberBudgetText = _memberBudgetTextController.text.trim();
 
-        SizedBox(height: 15.h),
+              if (membersCountText.isEmpty || memberBudgetText.isEmpty) {
+                showAppSnackBar(
+                  context,
+                  AppStrings.fillFields.tr(),
+                  type: SnackBarType.error,
+                );
+                return;
+              }
 
-        Bounceable(
-          onTap: () {
-            final membersCountText = _membersCountTextController.text.trim();
-            final memberBudgetText = _memberBudgetTextController.text.trim();
+              final membersCount = int.tryParse(membersCountText);
+              final memberBudget = double.tryParse(memberBudgetText);
 
-            if (membersCountText.isEmpty || memberBudgetText.isEmpty) {
-              showAppSnackBar(
-                context,
-                "Please fill in all required fields.",
-                type: SnackBarType.error,
+              if (membersCount == null || memberBudget == null) {
+                showAppSnackBar(
+                  context,
+                  AppStrings.validCountNBudget.tr(),
+                  type: SnackBarType.error,
+                );
+                return;
+              }
+
+              var uuid = Uuid();
+              String id = uuid.v4();
+              String userId = uuid.v4();
+              CycleModel cycle = CycleModel(
+                id: id,
+                membersCount: int.parse(_membersCountTextController.text),
+                active: true,
+                cycleDate: "$selectedMonth  $selectedYear",
+                cycleName: "$selectedMonth  $selectedYear",
+                memberBudget: double.parse(_memberBudgetTextController.text),
+                members: [
+                  MemberModel(
+                    id: userId,
+                    name: userData!['name']!,
+                    email: userData!['email']!,
+                  ),
+                ],
+                receipts: [],
+                zone: "Damietta"
               );
-              return;
-            }
-
-            final membersCount = int.tryParse(membersCountText);
-            final memberBudget = double.tryParse(memberBudgetText);
-
-            if (membersCount == null || memberBudget == null) {
-              showAppSnackBar(
-                context,
-                "Please enter valid numbers for members count and budget.",
-                type: SnackBarType.error,
-              );
-              return;
-            }
-
-            var uuid = Uuid();
-            String id = uuid.v4();
-            String userId = uuid.v4();
-            CycleModel cycle = CycleModel(
-              id: id,
-              membersCount: int.parse(_membersCountTextController.text),
-              active: true,
-              cycleDate: "$selectedMonth  $selectedYear",
-              cycleName: "$selectedMonth  $selectedYear",
-              memberBudget: double.parse(_memberBudgetTextController.text),
-              members: [
-                MemberModel(
-                  id: userId,
-                  name: userData!['name']!,
-                  email: userData!['email']!,
+              HomePageCubit.get(context).addCycle(cycle);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                    child: Center(
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 10.w),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 10.h,
+                        ),
+                        width: 120.w,
+                        height: 45.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20.r),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: isMobile() ? 1.5.w : 0.5.w,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            AppStrings.save.tr(),
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: isMobile() ? 15.sp : 5.sp,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
-              receipts: [],
-            );
-            HomePageCubit.get(context).addCycle(cycle);
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20.r),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                  child: Center(
+            ),
+          ),
+
+          SizedBox(height: 20.h),
+
+          activeCycleData != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
                     child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 10.w),
+                      margin: EdgeInsets.symmetric(horizontal: 0.w),
                       padding: EdgeInsets.symmetric(
                         horizontal: 20.w,
                         vertical: 10.h,
                       ),
-                      width: 120.w,
-                      height: 45.h,
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20.r),
                         border: Border.all(
                           color: Colors.white.withOpacity(0.2),
-                          width: 1.5.w,
+                          width: isMobile() ? 1.5.w : 0.5.w,
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          AppStrings.save,
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 15.sp,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        SizedBox(height: 20.h),
-
-        activeCycleData != null
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(20.r),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 0.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                        width: 1.5.w,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppStrings.activeCycle,
-                              style: TextStyle(
-                                color: Colors.deepOrangeAccent,
-                                fontSize: 15.sp,
-                                letterSpacing: 0.5,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppStrings.activeCycle.tr(),
+                                style: TextStyle(
+                                  color: Colors.deepOrangeAccent,
+                                  fontSize: isMobile() ? 15.sp : 5.sp,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
 
-                            SizedBox(height: 10.h),
+                              SizedBox(height: 10.h),
 
-                            Text(
-                              activeCycleData!.cycleName,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15.sp,
-                                letterSpacing: 0.5,
+                              Text(
+                                activeCycleData!.cycleName,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isMobile() ? 15.sp : 5.sp,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
 
-                            SizedBox(height: 10.h),
+                              SizedBox(height: 10.h),
 
-                            Row(
-                              children: [
-                                Text(
-                                  "${AppStrings.memberBudget}:",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    letterSpacing: 0.5,
+                              Row(
+                                children: [
+                                  Text(
+                                    "${AppStrings.memberBudget.tr()}:",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
-                                ),
 
-                                SizedBox(width: 10.w),
+                                  SizedBox(width: 10.w),
 
-                                Text(
-                                  "${activeCycleData!.memberBudget} L.E.",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    letterSpacing: 0.5,
+                                  Text(
+                                    "${activeCycleData!.memberBudget} ${AppStrings.currency.tr()}",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  "${AppStrings.membersCount}:",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    letterSpacing: 0.5,
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "${AppStrings.membersCount.tr()}:",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
-                                ),
 
-                                SizedBox(width: 10.w),
+                                  SizedBox(width: 10.w),
 
-                                Text(
-                                  activeCycleData!.membersCount.toString(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    letterSpacing: 0.5,
+                                  Text(
+                                    activeCycleData!.membersCount.toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Bounceable(
-                          onTap: () {
-                            HomePageCubit.get(
-                              context,
-                            ).deleteCycle(activeCycleData!.cycleName);
-                          },
-                          child: Icon(
-                            Icons.delete,
-                            color: Colors.redAccent,
-                            size: 18.sp,
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          Bounceable(
+                            onTap: () {
+                              HomePageCubit.get(
+                                context,
+                              ).deleteCycle(activeCycleData!.cycleName);
+                            },
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.redAccent,
+                              size: isMobile() ? 18.sp : 7.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : Center(
+                  child: Text(
+                    AppStrings.noActiveCycleNow.tr(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isMobile() ? 20.sp : 8.sp,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
-              )
-            : Center(
-                child: Text(
-                  "No active cycle now",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1946,10 +2070,10 @@ class _HomeViewState extends State<HomeView>
       children: [
         Center(
           child: Text(
-            AppStrings.cycleMembers,
+            AppStrings.cycleMembers.tr(),
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20.sp,
+              fontSize: isMobile() ? 20.sp : 8.sp,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -1961,10 +2085,13 @@ class _HomeViewState extends State<HomeView>
           controller: _cycleTextController,
           keyboardType: TextInputType.text,
           enabled: false,
-          style: TextStyle(color: Colors.white, fontSize: 15.sp),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isMobile() ? 15.sp : 5.sp,
+          ),
           decoration: InputDecoration(
             filled: true,
-            hintText: AppStrings.cycleName,
+            hintText: AppStrings.cycleName.tr(),
             hintStyle: TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
@@ -1982,38 +2109,161 @@ class _HomeViewState extends State<HomeView>
             },
             borderRadius: BorderRadius.circular(10.r),
             child: Container(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10.r),
                 border: Border.all(color: Colors.white.withOpacity(0.2)),
               ),
-              child: Icon(Icons.refresh, color: Colors.white, size: 20.sp),
+              child: Icon(
+                Icons.refresh,
+                color: Colors.white,
+                size: isMobile() ? 20.sp : 8.sp,
+              ),
             ),
           ),
         ),
 
+        isMobile()
+            ? SizedBox.shrink()
+            : Text(
+                AppStrings.horizontalScroll.tr(),
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 5.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+
         usersList.isNotEmpty
             ? SizedBox(
                 height: 70.h,
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  notificationPredicate: (notif) => notif.depth == 0,
-                  controller: _scrollController,
-                  scrollbarOrientation: ScrollbarOrientation.bottom,
-                  child: ListView.builder(
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    scrollbarTheme: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(Colors.white),
+                      trackBorderColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      radius: const Radius.circular(10),
+                      thickness: MaterialStateProperty.all(6),
+                    ),
+                  ),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    thickness: 2,
+                    trackVisibility: true,
+                    radius: Radius.circular(10),
+                    notificationPredicate: (notif) => notif.depth == 0,
                     controller: _scrollController,
-                    padding: EdgeInsets.only(top: 10.h),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: usersList.length,
-                    itemBuilder: (context, index) {
-                      // if (index == 0) return SizedBox.shrink();
-                      final item = usersList[index];
-                      return Bounceable(
-                        onTap: () {},
-                        child: Container(
+                    scrollbarOrientation: ScrollbarOrientation.bottom,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: EdgeInsets.fromLTRB(0, 10.h, 0, 5.h),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: usersList.length,
+                      itemBuilder: (context, index) {
+                        // if (index == 0) return SizedBox.shrink();
+                        final item = usersList[index];
+                        return Bounceable(
+                          onTap: () {},
+                          child: Container(
+                            margin: EdgeInsets.symmetric(
+                              vertical: 6.h,
+                              horizontal: 5.w,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 15.w,
+                              vertical: 10.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(15.r),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.2),
+                                width: isMobile() ? 2.w : 1.w,
+                              ),
+                            ),
+                            child: Bounceable(
+                              onTap: () {
+                                AddMemberRequest addMemberRequest =
+                                    AddMemberRequest(
+                                      cycleName: _cycleTextController.text,
+                                      member: MemberModel(
+                                        id: item.id,
+                                        name: item.name,
+                                        email: item.email,
+                                      ),
+                                    );
+                                HomePageCubit.get(
+                                  context,
+                                ).addMember(addMemberRequest);
+                              },
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    item.name,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 12.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Icon(
+                                    Icons.add_box_rounded,
+                                    color: Colors.teal,
+                                    size: isMobile() ? 18.sp : 6.sp,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              )
+            : Center(
+                child: Text(
+                  AppStrings.noMembers.tr(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isMobile() ? 20.sp : 8.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+
+        membersList.isNotEmpty
+            ? Expanded(
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    scrollbarTheme: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(Colors.white),
+                      trackBorderColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      radius: const Radius.circular(10),
+                      thickness: MaterialStateProperty.all(6),
+                    ),
+                  ),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    thickness: 2,
+                    trackVisibility: true,
+                    radius: Radius.circular(10),
+                    child: ListView.builder(
+                      padding: EdgeInsets.only(top: 10.h),
+                      itemCount: membersList.length,
+                      itemBuilder: (context, index) {
+                        final item = membersList[index];
+                        return Container(
                           margin: EdgeInsets.symmetric(
                             vertical: 6.h,
                             horizontal: 5.w,
@@ -2027,145 +2277,64 @@ class _HomeViewState extends State<HomeView>
                             borderRadius: BorderRadius.circular(15.r),
                             border: Border.all(
                               color: Colors.orange.withOpacity(0.2),
-                              width: 2.w,
+                              width: isMobile() ? 2.w : 1.w,
                             ),
                           ),
-                          child: Bounceable(
-                            onTap: () {
-                              AddMemberRequest addMemberRequest =
-                                  AddMemberRequest(
-                                    cycleName: _cycleTextController.text,
-                                    member: MemberModel(
-                                      id: item.id,
-                                      name: item.name,
-                                      email: item.email,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    item.name,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  );
-                              HomePageCubit.get(
-                                context,
-                              ).addMember(addMemberRequest);
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.name,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                                SizedBox(width: 10.w),
-                                Icon(
-                                  Icons.add_box_rounded,
-                                  color: Colors.teal,
-                                  size: 18.sp,
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+
+                              item.name != userData!['name']
+                                  ? Bounceable(
+                                      onTap: () {
+                                        DeleteMemberRequest
+                                        deleteMemberRequest =
+                                            DeleteMemberRequest(
+                                              cycleName:
+                                                  _cycleTextController.text,
+                                              member: MemberModel(
+                                                id: item.id,
+                                                name: item.name,
+                                                email: item.email,
+                                              ),
+                                            );
+                                        HomePageCubit.get(
+                                          context,
+                                        ).deleteMember(deleteMemberRequest);
+                                      },
+                                      child: Icon(
+                                        Icons.delete,
+                                        color: Colors.redAccent,
+                                        size: isMobile() ? 18.sp : 6.sp,
+                                      ),
+                                    )
+                                  : Container(),
+                            ],
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               )
             : Center(
                 child: Text(
-                  "No members found",
+                  AppStrings.noActiveCycleNow.tr(),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-
-        SizedBox(),
-
-        membersList.isNotEmpty
-            ? Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(top: 10.h),
-                    itemCount: membersList.length,
-                    itemBuilder: (context, index) {
-                      final item = membersList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 6.h,
-                          horizontal: 5.w,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15.r),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.2),
-                            width: 2.w,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  item.name,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            item.name != userData!['name']
-                                ? Bounceable(
-                                    onTap: () {
-                                      DeleteMemberRequest deleteMemberRequest =
-                                          DeleteMemberRequest(
-                                            cycleName:
-                                                _cycleTextController.text,
-                                            member: MemberModel(
-                                              id: item.id,
-                                              name: item.name,
-                                              email: item.email,
-                                            ),
-                                          );
-                                      HomePageCubit.get(
-                                        context,
-                                      ).deleteMember(deleteMemberRequest);
-                                    },
-                                    child: Icon(
-                                      Icons.delete,
-                                      color: Colors.redAccent,
-                                      size: 18.sp,
-                                    ),
-                                  )
-                                : Container(),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              )
-            : Center(
-                child: Text(
-                  "No active cycle now",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.sp,
+                    fontSize: isMobile() ? 20.sp : 8.sp,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -2179,10 +2348,10 @@ class _HomeViewState extends State<HomeView>
     if (activeCycleData == null) {
       return Center(
         child: Text(
-          "No active cycle now",
+          AppStrings.noActiveCycleNow.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -2198,10 +2367,10 @@ class _HomeViewState extends State<HomeView>
     if (userMember == null) {
       return Center(
         child: Text(
-          "You are not registered in active cycle",
+          AppStrings.notRegistered.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: 20.sp,
+            fontSize: isMobile() ? 20.sp : 8.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -2214,10 +2383,10 @@ class _HomeViewState extends State<HomeView>
       children: [
         Center(
           child: Text(
-            AppStrings.reports,
+            AppStrings.reports.tr(),
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20.sp,
+              fontSize: isMobile() ? 20.sp : 8.sp,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -2249,7 +2418,7 @@ class _HomeViewState extends State<HomeView>
                       },
                     ),
                     Text(
-                      AppStrings.showTotal,
+                      AppStrings.showTotal.tr(),
                       style: TextStyle(color: Colors.white),
                     ),
                   ],
@@ -2259,187 +2428,215 @@ class _HomeViewState extends State<HomeView>
 
         showTotal
             ? Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(top: 10.h),
-                    itemCount: headReportList.length,
-                    itemBuilder: (context, index) {
-                      final item = headReportList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 6.h,
-                          horizontal: 5.w,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15.r),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.2),
-                            width: 2.w,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    scrollbarTheme: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(Colors.white),
+                      trackBorderColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      radius: const Radius.circular(10),
+                      thickness: MaterialStateProperty.all(6),
+                    ),
+                  ),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    thickness: 2,
+                    trackVisibility: true,
+                    radius: Radius.circular(10),
+                    child: ListView.builder(
+                      padding: EdgeInsets.only(top: 10.h),
+                      itemCount: headReportList.length,
+                      itemBuilder: (context, index) {
+                        final item = headReportList[index];
+                        return Container(
+                          margin: EdgeInsets.symmetric(
+                            vertical: 6.h,
+                            horizontal: 5.w,
                           ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "${AppStrings.memberName}:",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: 5.h),
-                                Text(
-                                  item.name,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 15.w,
+                            vertical: 10.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(15.r),
+                            border: Border.all(
+                              color: Colors.orange.withOpacity(0.2),
+                              width: isMobile() ? 2.w : 1.w,
                             ),
-
-                            SizedBox(height: 5.h),
-
-                            Row(
-                              children: [
-                                Text(
-                                  "${AppStrings.leftOf}:",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${AppStrings.memberName.tr()}:",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 5.h),
-                                Text(
-                                  "${activeCycleData!.memberBudget - double.parse(item.leftOf)} L.E.",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
+                                  SizedBox(height: 5.h),
+                                  Text(
+                                    item.name,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                                ],
+                              ),
+
+                              SizedBox(height: 5.h),
+
+                              Row(
+                                children: [
+                                  Text(
+                                    "${AppStrings.leftOf.tr()}:",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 5.h),
+                                  Text(
+                                    "${activeCycleData!.memberBudget - double.parse(item.leftOf)} ${AppStrings.currency.tr()}",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               )
             : Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 2,
-                  radius: Radius.circular(10),
-                  child: ListView.builder(
-                    padding: EdgeInsets.only(top: 10.h),
-                    itemCount: memberReportList.length,
-                    itemBuilder: (context, index) {
-                      final item = memberReportList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 6.h,
-                          horizontal: 5.w,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 15.w,
-                          vertical: 10.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15.r),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.2),
-                            width: 2.w,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    scrollbarTheme: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(Colors.white),
+                      trackBorderColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      radius: const Radius.circular(10),
+                      thickness: MaterialStateProperty.all(6),
+                    ),
+                  ),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    thickness: 2,
+                    trackVisibility: true,
+                    radius: Radius.circular(10),
+                    child: ListView.builder(
+                      padding: EdgeInsets.only(top: 10.h),
+                      itemCount: memberReportList.length,
+                      itemBuilder: (context, index) {
+                        final item = memberReportList[index];
+                        return Container(
+                          margin: EdgeInsets.symmetric(
+                            vertical: 6.h,
+                            horizontal: 5.w,
                           ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.receiptDetail,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 15.w,
+                            vertical: 10.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(15.r),
+                            border: Border.all(
+                              color: Colors.orange.withOpacity(0.2),
+                              width: isMobile() ? 2.w : 1.w,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    item.receiptDetail,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                Bounceable(
-                                  onTap: () {
-                                    DeleteShareRequest deleteShareRequest =
-                                        DeleteShareRequest(
-                                          receiptId: item.receiptId,
-                                          receiptMembersModel:
-                                              ReceiptMembersModel(
-                                                shareValue: double.parse(
-                                                  item.shareValue,
+                                  Bounceable(
+                                    onTap: () {
+                                      DeleteShareRequest deleteShareRequest =
+                                          DeleteShareRequest(
+                                            receiptId: item.receiptId,
+                                            receiptMembersModel:
+                                                ReceiptMembersModel(
+                                                  shareValue: double.parse(
+                                                    item.shareValue,
+                                                  ),
+                                                  name: item.name,
+                                                  id: item.receiptMemberId,
                                                 ),
-                                                name: item.name,
-                                                id: item.receiptMemberId,
-                                              ),
-                                        );
-                                    HomePageCubit.get(
-                                      context,
-                                    ).deleteItemInMemberReport(
-                                      deleteShareRequest,
-                                    );
-                                  },
-                                  child: Icon(
-                                    Icons.delete,
-                                    color: Colors.redAccent,
-                                    size: 20.w,
+                                          );
+                                      HomePageCubit.get(
+                                        context,
+                                      ).deleteItemInMemberReport(
+                                        deleteShareRequest,
+                                      );
+                                    },
+                                    child: Icon(
+                                      Icons.delete,
+                                      color: Colors.redAccent,
+                                      size: isMobile() ? 20.w : 8.sp,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
 
-                            SizedBox(height: 10.h),
+                              SizedBox(height: 10.h),
 
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item.receiptDate,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    item.receiptDate,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  "${item.shareValue} L.E.",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
+                                  Text(
+                                    "${item.shareValue} ${AppStrings.currency.tr()}",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: isMobile() ? 15.sp : 5.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -2458,7 +2655,7 @@ class _HomeViewState extends State<HomeView>
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.2),
-                  width: 1.5.w,
+                  width: isMobile() ? 1.5.w : 0.5.w,
                 ),
               ),
               child: Column(
@@ -2467,10 +2664,10 @@ class _HomeViewState extends State<HomeView>
                   Row(
                     children: [
                       Text(
-                        "${showTotal ? AppStrings.totalLeft : AppStrings.total}:",
+                        "${showTotal ? AppStrings.totalLeft.tr() : AppStrings.total.tr()}:",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15.sp,
+                          fontSize: isMobile() ? 15.sp : 5.sp,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -2479,11 +2676,11 @@ class _HomeViewState extends State<HomeView>
 
                       Text(
                         !showTotal
-                            ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)).toStringAsFixed(2)} L.E."
-                            : "${(headReportList.length * activeCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} L.E.",
+                            ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)).toStringAsFixed(2)} ${AppStrings.currency.tr()}"
+                            : "${(headReportList.length * activeCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} ${AppStrings.currency.tr()}",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 15.sp,
+                          fontSize: isMobile() ? 15.sp : 5.sp,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -2495,10 +2692,10 @@ class _HomeViewState extends State<HomeView>
                       : Row(
                           children: [
                             Text(
-                              "${AppStrings.leftOf}:",
+                              "${AppStrings.leftOf.tr()}:",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 15.sp,
+                                fontSize: isMobile() ? 15.sp : 5.sp,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -2506,10 +2703,10 @@ class _HomeViewState extends State<HomeView>
                             SizedBox(width: 10.w),
 
                             Text(
-                              "${(activeCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))} L.E.",
+                              "${(activeCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))} ${AppStrings.currency.tr()}",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 15.sp,
+                                fontSize: isMobile() ? 15.sp : 5.sp,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -2521,6 +2718,69 @@ class _HomeViewState extends State<HomeView>
           ),
         ),
       ],
+    );
+  }
+}
+
+class OrientationBlocker extends StatelessWidget {
+  final Widget child;
+
+  const OrientationBlocker({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    bool isMobile() {
+      if (kIsWeb) {
+        final ua = web.window.navigator.userAgent.toLowerCase();
+        return ua.contains("iphone") ||
+            ua.contains("android") ||
+            ua.contains("ipad") ||
+            ua.contains("mobile");
+      } else {
+        return defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS;
+      }
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isLandscape = constraints.maxWidth > constraints.maxHeight;
+
+        if (isLandscape && isMobile()) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              body: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF1C1633),
+                      Color(0xFF2E2159),
+                      Color(0xFF443182),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: SafeArea(
+                  child: Center(
+                    child: Text(
+                      AppStrings.pleaseRotate.tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isMobile() ? 24.sp : 10.sp,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return child; // show your normal app
+      },
     );
   }
 }

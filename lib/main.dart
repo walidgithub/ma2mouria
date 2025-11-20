@@ -1,12 +1,17 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'core/di/di.dart';
 import 'core/preferences/app_pref.dart';
 import 'core/router/app_router.dart';
+import 'core/utils/constant/app_constants.dart';
 import 'core/utils/constant/app_strings.dart';
+import 'core/utils/constant/language_manager.dart';
+import 'core/utils/style/app_colors.dart';
 import 'core/utils/style/app_theme.dart';
 
 Future<void> main() async {
@@ -22,10 +27,14 @@ Future<void> main() async {
   );
   await ServiceLocator().init();
   await ScreenUtil.ensureScreenSize();
+  await EasyLocalization.ensureInitialized();
 
   final isLoggedIn = await checkUserLoginStatus();
 
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  runApp(EasyLocalization(
+      supportedLocales: [ARABIC_LOCAL, ENGLISH_LOCAL],
+      path: ASSET_PATH_LOCALISATIONS,
+      child: Phoenix(child: MyApp(isLoggedIn: isLoggedIn))));
 }
 
 Future<bool> checkUserLoginStatus() async {
@@ -33,10 +42,23 @@ Future<bool> checkUserLoginStatus() async {
   return appPreferences.isUserLoggedIn();
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key, required this.isLoggedIn});
 
   final bool isLoggedIn;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final AppPreferences _appPreferences = sl<AppPreferences>();
+
+  @override
+  void didChangeDependencies() {
+    _appPreferences.getLocal().then((local) => {context.setLocale(local)});
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,12 +68,16 @@ class MyApp extends StatelessWidget {
         splitScreenMode: true,
         builder: (context, child) {
           return MaterialApp(
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
               debugShowCheckedModeBanner: false,
-              title: AppStrings.appName,
+              title: AppStrings.Ma2mouria.tr(),
               builder: (context, widget) => EasyLoading.init()(context, widget),
               onGenerateRoute: RouteGenerator.getRoute,
-              initialRoute: isLoggedIn ? Routes.homeRoute : Routes.loginRoute,
+              initialRoute: widget.isLoggedIn ? Routes.homeRoute : Routes.loginRoute,
               theme: AppTheme.lightTheme);
         });
   }
 }
+

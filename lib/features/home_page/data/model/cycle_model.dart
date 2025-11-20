@@ -10,6 +10,7 @@ class CycleModel {
   final List<ReceiptModel> receipts;
   final bool active;
   final String cycleName;
+  final String zone;
 
   CycleModel({
     required this.id,
@@ -20,6 +21,7 @@ class CycleModel {
     required this.receipts,
     required this.active,
     required this.cycleName,
+    required this.zone,
   });
 
   factory CycleModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,7 @@ class CycleModel {
           .toList(),
       active: json['active'] ?? false,
       cycleName: json['cycle_name'] ?? '',
+      zone: json['zone'] ?? '',
     );
   }
 
@@ -49,6 +52,7 @@ class CycleModel {
       'receipts': receipts.map((e) => e.toJson()).toList(),
       'active': active,
       'cycle_name': cycleName,
+      'zone': zone,
     };
   }
 }

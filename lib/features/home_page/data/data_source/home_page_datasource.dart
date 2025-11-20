@@ -23,7 +23,7 @@ abstract class BaseDataSource {
   Future<RulesModel?> getRuleByEmail(String email);
   Future<void> addCycle(CycleModel cycle);
   Future<void> deleteCycle(String cycleName);
-  Future<CycleModel> getActiveCycle();
+  Future<CycleModel> getActiveCycle(String zoneName);
   Future<void> addMember(AddMemberRequest addMemberRequest);
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<List<MemberModel>> getMembers(String cycleName);
@@ -42,6 +42,7 @@ class HomePageDataSource extends BaseDataSource {
   final FirebaseAuth auth = sl<FirebaseAuth>();
   final FirebaseFirestore firestore = sl<FirebaseFirestore>();
 
+  // doneeee------------------------
   @override
   Future<RulesModel> getRuleByEmail(String email) async {
     try {
@@ -61,12 +62,14 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
+  // doneeee------------------------
   @override
-  Future<CycleModel> getActiveCycle() async {
+  Future<CycleModel> getActiveCycle(String zoneName) async {
     try {
       final query = await firestore
           .collection('cycles')
           .where('active', isEqualTo: true)
+          .where('zone', isEqualTo: zoneName)
           .limit(1)
           .get();
 
@@ -80,6 +83,7 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
+  // doneeee------------------------
   @override
   Future<void> logout() async {
     try {
@@ -95,6 +99,7 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
+  // doneeee------------------------
   @override
   Future<void> addCycle(CycleModel cycle) async {
     try {
@@ -102,6 +107,7 @@ class HomePageDataSource extends BaseDataSource {
 
       final existing = await collectionRef
           .where('cycle_name', isEqualTo: cycle.cycleName)
+          .where('zone', isEqualTo: cycle.zone)
           .get();
 
       if (existing.docs.isNotEmpty) {
@@ -263,6 +269,7 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
+  // doneeee------------------------
   @override
   Future<List<RulesModel>> getUsers() async {
     try {

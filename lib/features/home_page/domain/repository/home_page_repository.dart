@@ -20,7 +20,7 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, RulesModel>> getRuleByEmail(String email);
   Future<Either<FirebaseFailure, void>> addCycle(CycleModel cycle);
   Future<Either<FirebaseFailure, void>> deleteCycle(String cycleName);
-  Future<Either<FirebaseFailure, CycleModel>> getActiveCycle();
+  Future<Either<FirebaseFailure, CycleModel>> getActiveCycle(String zoneName);
   Future<Either<FirebaseFailure, void>> addMember(AddMemberRequest addMemberRequest);
   Future<Either<FirebaseFailure, void>> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(String cycleName);

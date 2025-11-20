@@ -60,9 +60,9 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> getActiveCycle() async {
+  Future<void> getActiveCycle(String zoneName) async {
     emit(GetActiveCycleLoadingState());
-    final result = await getActiveCycleUseCase.call(const FirebaseNoParameters());
+    final result = await getActiveCycleUseCase.call(zoneName);
     result.fold(
           (failure) => emit(GetActiveCycleErrorState(failure.message)),
           (cycle) => emit(GetActiveCycleSuccessState(cycle)),

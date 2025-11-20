@@ -1,13 +1,7 @@
 class AppStrings {
-  static const String appName = "Ma2mouria";
-  static const String yes = "Yes";
-  static const String no = "No";
+  static const String Ma2mouria = "Ma2mouria";
   static const String loading = "Loading";
-  static const String warning = "Warning";
-  static const String closeApp = "Close app";
-  static const String error = "Error";
-  static const String ok = "Ok";
-  static const String letsStart = "Let\'s start";
+  static const String letsStart = "Let's start";
   static const String signIn = "Sign in";
   static const String leftOf = "Left of";
   static const String spending = "Spending";
@@ -22,7 +16,6 @@ class AppStrings {
   static const String myShare = "My Share";
   static const String receiptDetail = "Restaurant Or Shop";
   static const String save = "Save";
-  static const String approve = "Approve";
   static const String myCredit = "My Credit";
   static const String addReceipt = "Add Receipt";
   static const String addCycle = "Add Cycle";
@@ -34,11 +27,25 @@ class AppStrings {
   static const String month = "Month";
   static const String year = "Year";
   static const String day = "Day";
+  static const String currency = "L.E.";
   static const String showTotal = "Show Total";
   static const String memberName = "Member Name";
-  static const String logOut = "Log Out";
   static const String totalLeft = "Total Left";
   static const String activeCycle = "Active Cycle:";
   static const String noCycleFound = "No Active Cycle Found";
   static const String userNotFound = "This user not found";
+  static const String userDataNotReady = "User data not ready";
+  static const String noActiveCycleNow = "No active cycle now";
+  static const String noMembers = "No members found";
+  static const String selectReceipt = "Select the receipt";
+  static const String notRegistered = "You are not registered in active cycle";
+  static const String cycleAdded = "Cycle added successfully";
+  static const String fillFields = "Please fill in all required fields.";
+  static const String shareValue = "Your share value is not available.";
+  static const String myShareValue = "My share value should be smaller than receipt value.";
+  static const String validShare = "Please enter valid numbers for your share.";
+  static const String validReceiptValNShare = "Please enter valid numbers for receipt value and my share.";
+  static const String validCountNBudget = "Please enter valid numbers for members count and budget.";
+  static const String horizontalScroll = "\"Use Shift + Scroll to move horizontally and add users.\"";
+  static const String pleaseRotate = "Please rotate your phone to portrait mode";
 }
