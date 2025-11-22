@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ma2mouria/features/auth/presentaion/bloc/auth_state.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
@@ -10,9 +9,11 @@ import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usec
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_all_users_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_users_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_zones_usecase.dart';
 import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../home_page/domain/usecases/logout_usecase.dart';
 import '../../data/model/cycle_model.dart';
@@ -29,7 +30,7 @@ import '../../domain/usecases/get_rule_usecase.dart';
 import 'home_page_state.dart';
 
 class HomePageCubit extends Cubit<HomePageState> {
-  HomePageCubit(this.logoutUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
+  HomePageCubit(this.logoutUseCase, this.getZonesUseCase, this.getAllUsersUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
   
   final LogoutUseCase logoutUseCase;
   final GetRuleUseCase getRuleUseCase;
@@ -48,6 +49,8 @@ class HomePageCubit extends Cubit<HomePageState> {
   final GetHeadReportUseCase getHeadReportUseCase;
   final GetMemberReportUseCase getMemberReportUseCase;
   final DeleteItemInMemberReportUseCase deleteItemInMemberReportUseCase;
+  final GetAllUsersUseCase getAllUsersUseCase;
+  final GetZonesUseCase getZonesUseCase;
 
   static HomePageCubit get(context) => BlocProvider.of(context);
 
@@ -69,12 +72,30 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
+  Future<void> getZones() async {
+    emit(GetZonesLoadingState());
+    final result = await getZonesUseCase.call(const FirebaseNoParameters());
+    result.fold(
+          (failure) => emit(GetZonesErrorState(failure.message)),
+          (zones) => emit(GetZonesSuccessState(zones)),
+    );
+  }
+
   Future<void> getUsers() async {
     emit(GetUsersLoadingState());
     final result = await getUsersUseCase.call(const FirebaseNoParameters());
     result.fold(
           (failure) => emit(GetUsersErrorState(failure.message)),
           (users) => emit(GetUsersSuccessState(users)),
+    );
+  }
+
+  Future<void> getAllUsers() async {
+    emit(GetAllUsersLoadingState());
+    final result = await getAllUsersUseCase.call(const FirebaseNoParameters());
+    result.fold(
+          (failure) => emit(GetAllUsersErrorState(failure.message)),
+          (users) => emit(GetAllUsersSuccessState(users)),
     );
   }
 

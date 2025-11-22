@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
 import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 
@@ -25,6 +26,8 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, void>> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(String cycleName);
   Future<Either<FirebaseFailure, List<RulesModel>>> getUsers();
+  Future<Either<FirebaseFailure, List<RulesModel>>> getAllUsers();
+  Future<Either<FirebaseFailure, List<ZonesModel>>> getZones();
   Future<Either<FirebaseFailure, String>> addReceipt(AddReceiptRequest addReceiptRequest);
   Future<Either<FirebaseFailure,List<ReceiptModel>>> getReceipts(String cycleName);
   Future<Either<FirebaseFailure, void>> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);

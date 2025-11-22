@@ -1,6 +1,7 @@
 import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 
 import '../../data/model/receipt_model.dart';
@@ -73,6 +74,30 @@ class GetUsersErrorState extends HomePageState{
   GetUsersErrorState(this.errorMessage);
 }
 class GetUsersLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetAllUsersSuccessState extends HomePageState{
+  final List<RulesModel> members;
+
+  GetAllUsersSuccessState(this.members);
+}
+class GetAllUsersErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetAllUsersErrorState(this.errorMessage);
+}
+class GetAllUsersLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class GetZonesSuccessState extends HomePageState{
+  final List<ZonesModel> zones;
+
+  GetZonesSuccessState(this.zones);
+}
+class GetZonesErrorState extends HomePageState{
+  final String errorMessage;
+
+  GetZonesErrorState(this.errorMessage);
+}
+class GetZonesLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class LogoutSuccessState extends HomePageState{}
 class LogoutErrorState extends HomePageState{

@@ -4,6 +4,7 @@ import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
@@ -251,6 +252,34 @@ class HomePageRepositoryImpl extends HomePageRepository {
   Future<Either<FirebaseFailure, void>> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest) async {
     try {
       final result = await _homePageDataSource.deleteItemInMemberReport(deleteShareRequest);
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
+    } on FirebaseException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
+    } catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<FirebaseFailure, List<RulesModel>>> getAllUsers() async {
+    try {
+      final result = await _homePageDataSource.getAllUsers();
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
+    } on FirebaseException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
+    } catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<FirebaseFailure, List<ZonesModel>>> getZones() async {
+    try {
+      final result = await _homePageDataSource.getZones();
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));

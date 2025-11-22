@@ -8,6 +8,7 @@ import '../model/cycle_model.dart';
 import '../model/member_model.dart';
 import '../model/receipt_members_model.dart';
 import '../model/rules_model.dart';
+import '../model/zones_model.dart';
 import '../requests/add_receipt_request.dart';
 import '../requests/add_member_request.dart';
 import '../requests/delete_receipt_request.dart';
@@ -28,6 +29,8 @@ abstract class BaseDataSource {
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<List<MemberModel>> getMembers(String cycleName);
   Future<List<RulesModel>> getUsers();
+  Future<List<RulesModel>> getAllUsers();
+  Future<List<ZonesModel>> getZones();
   Future<String> addReceipt(AddReceiptRequest addReceiptRequest);
   Future<List<ReceiptModel>> getReceipts(String cycleName);
   Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
@@ -278,6 +281,8 @@ class HomePageDataSource extends BaseDataSource {
       final rulesList = snapshot.docs
           .map((doc) => RulesModel.fromJson(doc.data()))
           .where((rule) => rule.rule != "head")
+          .where((rule) => rule.rule != "admin")
+          .where((rule) => rule.zone == "")
           .toList();
 
       return rulesList;
@@ -627,6 +632,41 @@ class HomePageDataSource extends BaseDataSource {
 
       await cycleDoc.reference.update({'receipts': receipts});
 
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<RulesModel>> getAllUsers() async {
+    try {
+      final snapshot = await firestore.collection('rules').get();
+
+      final rulesList = snapshot.docs
+          .map((doc) => RulesModel.fromJson(doc.data()))
+          .where((rule) => rule.rule != "admin")
+          .toList();
+
+      return rulesList;
+    } on FirebaseException catch (e) {
+      throw Exception('Firebase error: ${e.message}');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ZonesModel>> getZones() async {
+    try {
+      final snapshot = await firestore.collection('zones').get();
+
+      final zonesList = snapshot.docs
+          .map((doc) => ZonesModel.fromJson(doc.data()))
+          .toList();
+
+      return zonesList;
+    } on FirebaseException catch (e) {
+      throw Exception('Firebase error: ${e.message}');
     } catch (e) {
       rethrow;
     }

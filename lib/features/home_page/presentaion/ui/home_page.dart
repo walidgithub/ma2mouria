@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,6 +67,7 @@ class _HomeViewState extends State<HomeView>
   bool isReceiptCreator = false;
   bool showTotal = false;
   bool isHead = false;
+  bool isAdmin = false;
   bool showDeleteForCreator = false;
 
   final TextEditingController _calcTextController = TextEditingController();
@@ -86,7 +88,9 @@ class _HomeViewState extends State<HomeView>
 
   CycleModel? activeCycleData;
   String? selectedId;
+  String? selectedZone;
   String? selectedReceiptUserName;
+  String? selectedUserName;
 
   bool isMobile() {
     if (kIsWeb) {
@@ -126,6 +130,8 @@ class _HomeViewState extends State<HomeView>
 
     getUserData();
     HomePageCubit.get(context).getUsers();
+    HomePageCubit.get(context).getAllUsers();
+    HomePageCubit.get(context).getZones();
     HomePageCubit.get(context).getRuleByEmail(userData!['email'] ?? 'Guest');
     MemberReportRequest memberReportRequest = MemberReportRequest(
       name: userData!['name']!,
@@ -196,6 +202,7 @@ class _HomeViewState extends State<HomeView>
 
   String? selectedDay;
   String? selectedMonth;
+  String? selectedPermission;
   String? selectedYear;
 
   String userName = "";
@@ -221,6 +228,8 @@ class _HomeViewState extends State<HomeView>
 
   List<MemberModel> membersList = [];
   List<RulesModel> usersList = [];
+  List<RulesModel> allUsersList = [];
+  List<ZonesModel> zonesList = [];
   List<ReceiptModel> receiptsList = [];
   List<ReceiptMembersModel> receiptMembersList = [];
   List<MemberReportResponse> memberReportList = [];
@@ -260,6 +269,10 @@ class _HomeViewState extends State<HomeView>
           if (state.rulesModel.rule == "head") {
             isHead = true;
           }
+
+          if (state.rulesModel.rule == "admin") {
+            isAdmin = true;
+          }
           HomePageCubit.get(context).getActiveCycle(zone);
           // });
 
@@ -292,6 +305,32 @@ class _HomeViewState extends State<HomeView>
           // setState(() {
           usersList = state.members;
           // });
+          // ------------------------------------------------------
+        } else if (state is GetAllUsersLoadingState) {
+          showLoading();
+        } else if (state is GetAllUsersErrorState) {
+          hideLoading();
+          showAppSnackBar(
+            context,
+            state.errorMessage,
+            type: SnackBarType.error,
+          );
+        } else if (state is GetAllUsersSuccessState) {
+          hideLoading();
+          allUsersList = state.members;
+          // ------------------------------------------------------
+        } else if (state is GetZonesLoadingState) {
+          showLoading();
+        } else if (state is GetZonesErrorState) {
+          hideLoading();
+          showAppSnackBar(
+            context,
+            state.errorMessage,
+            type: SnackBarType.error,
+          );
+        } else if (state is GetZonesSuccessState) {
+          hideLoading();
+          zonesList = state.zones;
           // ------------------------------------------------------
         } else if (state is AddCycleLoadingState) {
           showLoading();
@@ -568,8 +607,9 @@ class _HomeViewState extends State<HomeView>
                           child: _buildHeader(),
                         ),
 
-                        userData != null
-                            ? Expanded(
+                        userData != null ?
+                         isAdmin ? Expanded(child: _buildAdminContent()) :
+                            Expanded(
                                 child: _currentIndex == 0
                                     ? _buildCreditContent()
                                     : _currentIndex == 1
@@ -2230,7 +2270,7 @@ class _HomeViewState extends State<HomeView>
               )
             : Center(
                 child: Text(
-                  AppStrings.noMembers.tr(),
+                  AppStrings.noLoggedUsers.tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: isMobile() ? 20.sp : 8.sp,
@@ -2713,6 +2753,240 @@ class _HomeViewState extends State<HomeView>
                           ],
                         ),
                 ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            AppStrings.settings.tr(),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isMobile() ? 20.sp : 8.sp,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        SizedBox(height: 10.h),
+
+        Center(
+          child: InkWell(
+            onTap: () {
+              HomePageCubit.get(context).getAllUsers();
+            },
+            borderRadius: BorderRadius.circular(10.r),
+            child: Container(
+              padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Icon(
+                Icons.refresh,
+                color: Colors.white,
+                size: isMobile() ? 20.sp : 8.sp,
+              ),
+            ),
+          ),
+        ),
+
+        isMobile()
+            ? SizedBox.shrink()
+            : Text(
+          AppStrings.horizontalScroll.tr(),
+          style: TextStyle(
+            color: Colors.redAccent,
+            fontSize: 5.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+
+        allUsersList.isNotEmpty
+            ? SizedBox(
+          height: 70.h,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              scrollbarTheme: ScrollbarThemeData(
+                thumbColor: WidgetStateProperty.all(Colors.white),
+                trackBorderColor: WidgetStateProperty.all(
+                  Colors.transparent,
+                ),
+                radius: const Radius.circular(10),
+                thickness: MaterialStateProperty.all(6),
+              ),
+            ),
+            child: Scrollbar(
+              thumbVisibility: true,
+              thickness: 2,
+              trackVisibility: true,
+              radius: Radius.circular(10),
+              notificationPredicate: (notif) => notif.depth == 0,
+              controller: _scrollController,
+              scrollbarOrientation: ScrollbarOrientation.bottom,
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.fromLTRB(0, 10.h, 0, 5.h),
+                scrollDirection: Axis.horizontal,
+                itemCount: allUsersList.length,
+                itemBuilder: (context, index) {
+                  final item = allUsersList[index];
+                  return Bounceable(
+                    onTap: () {
+                      setState(() {
+                        selectedUserName = item.name;
+                      });
+                    },
+                    child: Container(
+                      margin: EdgeInsets.symmetric(
+                        vertical: 6.h,
+                        horizontal: 5.w,
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 15.w,
+                        vertical: 10.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15.r),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.2),
+                          width: isMobile() ? 2.w : 1.w,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        )
+            : Center(
+          child: Text(
+            AppStrings.noLoggedUsers.tr(),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isMobile() ? 20.sp : 8.sp,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10.h,),
+        Text(
+          selectedUserName.toString() ?? "",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+        SizedBox(height: 10.h,),
+
+        StatefulBuilder(
+          builder: (context, setStateDropdown) {
+            return Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    dropdownColor: const Color(0xFF2E2159),
+                    value: selectedZone,
+                    decoration: InputDecoration(
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                        borderSide: BorderSide(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                      ),
+                    ),
+                    hint: Text(
+                      AppStrings.zoneName.tr(),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: isMobile() ? 15.sp : 5.sp,
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white,
+                    ),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isMobile() ? 15.sp : 5.sp,
+                    ),
+                    items: zonesList.map((zoneModel) {
+                      return DropdownMenuItem(
+                        value: zoneModel.zone,   // 👈 String
+                        child: Text(zoneModel.zone),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setStateDropdown(() {
+                        selectedZone = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        SizedBox(height: 10.h,),
+        _buildDropdown(
+          hint: AppStrings.permission.tr(),
+          value: selectedPermission,
+          items: months,
+          onChanged: (v) {
+            setState(() => selectedPermission = v);
+          },
+        ),
+        SizedBox(height: 10.h,),
+        Bounceable(
+          onTap: () {
+            // update rules collection with rule
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20.r),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 10.w),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10.w,
+                  vertical: 10.h,
+                ),
+                width: 120.w,
+                height: 45.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: isMobile() ? 1.5.w : 0.5.w,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    AppStrings.save.tr(),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: isMobile() ? 15.sp : 5.sp,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

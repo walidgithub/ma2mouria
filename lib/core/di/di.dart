@@ -14,12 +14,14 @@ import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usec
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_all_users_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_head_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_member_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_rule_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_users_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_zones_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/preferences/app_pref.dart';
 import '../../features/auth/data/data_source/auth_datasource.dart';
@@ -79,10 +81,12 @@ class ServiceLocator {
     sl.registerLazySingleton<GetMemberReportUseCase>(() => GetMemberReportUseCase(sl()));
     sl.registerLazySingleton<GetHeadReportUseCase>(() => GetHeadReportUseCase(sl()));
     sl.registerLazySingleton<DeleteItemInMemberReportUseCase>(() => DeleteItemInMemberReportUseCase(sl()));
+    sl.registerLazySingleton<GetAllUsersUseCase>(() => GetAllUsersUseCase(sl()));
+    sl.registerLazySingleton<GetZonesUseCase>(() => GetZonesUseCase(sl()));
 
 
     // Bloc
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
+    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   }
 }
