@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
 import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 
@@ -14,10 +15,13 @@ import '../../data/requests/delete_cycle_request.dart';
 import '../../data/requests/delete_receipt_request.dart';
 import '../../data/requests/delete_member_request.dart';
 import '../../data/requests/edit_share_request.dart';
+import '../../data/requests/get_active_cycle_request.dart';
 import '../../data/requests/get_head_report_request.dart';
 import '../../data/requests/get_members_request.dart';
 import '../../data/requests/get_receipts_request.dart';
 import '../../data/requests/member_report_request.dart';
+import '../../data/requests/reset_rule_request.dart';
+import '../../data/requests/update_rule_request.dart';
 import '../../data/responses/head_report_response.dart';
 
 abstract class HomePageRepository {
@@ -25,7 +29,7 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, RulesModel>> getRuleByEmail(String email);
   Future<Either<FirebaseFailure, void>> addCycle(CycleModel cycle);
   Future<Either<FirebaseFailure, void>> deleteCycle(DeleteCycleRequest deleteCycleRequest);
-  Future<Either<FirebaseFailure, CycleModel>> getActiveCycle(String zoneName);
+  Future<Either<FirebaseFailure, List<CycleModel>>> getActiveCycle();
   Future<Either<FirebaseFailure, void>> addMember(AddMemberRequest addMemberRequest);
   Future<Either<FirebaseFailure, void>> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(GetMembersRequest getMembersRequest);
@@ -37,6 +41,8 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, void>> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
   Future<Either<FirebaseFailure, void>> deleteShare(DeleteShareRequest deleteShareRequest);
   Future<Either<FirebaseFailure, void>> editShare(EditShareRequest editShareRequest);
+  Future<Either<FirebaseFailure, void>> updateRule(UpdateRuleRequest updateRuleRequest);
+  Future<Either<FirebaseFailure, void>> resetRule(ResetRuleRequest resetRuleRequest);
   Future<Either<FirebaseFailure, List<MemberReportResponse>>> getMemberReport(MemberReportRequest memberReportRequest);
   Future<Either<FirebaseFailure, List<HeadReportResponse>>> getHeadReport(GetHeadReportRequest getHeadReportRequest);
   Future<Either<FirebaseFailure, void>> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest);

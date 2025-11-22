@@ -11,6 +11,8 @@ import 'package:ma2mouria/features/home_page/data/requests/delete_receipt_reques
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/edit_share_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/member_report_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/reset_rule_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/update_rule_request.dart';
 import 'package:ma2mouria/features/home_page/data/responses/head_report_response.dart';
 import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 import '../../../../core/firebase/error/firebase_error_handler.dart';
@@ -20,6 +22,7 @@ import '../data_source/home_page_datasource.dart';
 import '../requests/add_member_request.dart';
 import '../requests/delete_cycle_request.dart';
 import '../requests/delete_member_request.dart';
+import '../requests/get_active_cycle_request.dart';
 import '../requests/get_head_report_request.dart';
 import '../requests/get_members_request.dart';
 import '../requests/get_receipts_request.dart';
@@ -72,9 +75,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, CycleModel>> getActiveCycle(String zoneName) async {
+  Future<Either<FirebaseFailure, List<CycleModel>>> getActiveCycle() async {
     try {
-      final result = await _homePageDataSource.getActiveCycle(zoneName);
+      final result = await _homePageDataSource.getActiveCycle();
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -285,6 +288,34 @@ class HomePageRepositoryImpl extends HomePageRepository {
   Future<Either<FirebaseFailure, List<ZonesModel>>> getZones() async {
     try {
       final result = await _homePageDataSource.getZones();
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
+    } on FirebaseException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
+    } catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<FirebaseFailure, void>> updateRule(UpdateRuleRequest updateRuleRequest) async {
+    try {
+      final result = await _homePageDataSource.updateRule(updateRuleRequest);
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
+    } on FirebaseException catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
+    } catch (e) {
+      return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<FirebaseFailure, void>> resetRule(ResetRuleRequest resetRuleRequest) async {
+    try {
+      final result = await _homePageDataSource.resetRule(resetRuleRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));

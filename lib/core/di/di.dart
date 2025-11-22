@@ -22,6 +22,7 @@ import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase
 import 'package:ma2mouria/features/home_page/domain/usecases/get_rule_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_users_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_zones_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/reset_rule_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/preferences/app_pref.dart';
 import '../../features/auth/data/data_source/auth_datasource.dart';
@@ -32,6 +33,7 @@ import '../../features/home_page/domain/usecases/add_member_usecase.dart';
 import '../../features/home_page/domain/usecases/delete_member_usecase.dart';
 import '../../features/home_page/domain/usecases/logout_usecase.dart';
 import '../../features/auth/presentaion/bloc/auth_cubit.dart';
+import '../../features/home_page/domain/usecases/update_rule_usecase.dart';
 import '../../features/home_page/presentaion/bloc/home_page_cubit.dart';
 
 
@@ -83,10 +85,12 @@ class ServiceLocator {
     sl.registerLazySingleton<DeleteItemInMemberReportUseCase>(() => DeleteItemInMemberReportUseCase(sl()));
     sl.registerLazySingleton<GetAllUsersUseCase>(() => GetAllUsersUseCase(sl()));
     sl.registerLazySingleton<GetZonesUseCase>(() => GetZonesUseCase(sl()));
+    sl.registerLazySingleton<UpdateRuleShareUseCase>(() => UpdateRuleShareUseCase(sl()));
+    sl.registerLazySingleton<ResetRuleShareUseCase>(() => ResetRuleShareUseCase(sl()));
 
 
     // Bloc
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
+    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   }
 }

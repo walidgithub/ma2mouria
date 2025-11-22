@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/get_head_report_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/reset_rule_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/update_rule_request.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
@@ -15,6 +17,8 @@ import 'package:ma2mouria/features/home_page/domain/usecases/get_receipts_usecas
 import 'package:ma2mouria/features/home_page/domain/usecases/get_members_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_users_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_zones_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/reset_rule_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/update_rule_usecase.dart';
 import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../home_page/domain/usecases/logout_usecase.dart';
 import '../../data/model/cycle_model.dart';
@@ -23,6 +27,7 @@ import '../../data/requests/delete_cycle_request.dart';
 import '../../data/requests/delete_receipt_request.dart';
 import '../../data/requests/delete_share_request.dart';
 import '../../data/requests/edit_share_request.dart';
+import '../../data/requests/get_active_cycle_request.dart';
 import '../../data/requests/get_members_request.dart';
 import '../../data/requests/get_receipts_request.dart';
 import '../../data/requests/member_report_request.dart';
@@ -34,7 +39,7 @@ import '../../domain/usecases/get_rule_usecase.dart';
 import 'home_page_state.dart';
 
 class HomePageCubit extends Cubit<HomePageState> {
-  HomePageCubit(this.logoutUseCase, this.getZonesUseCase, this.getAllUsersUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
+  HomePageCubit(this.logoutUseCase, this.updateRuleShareUseCase, this.resetRuleShareUseCase, this.getZonesUseCase, this.getAllUsersUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
   
   final LogoutUseCase logoutUseCase;
   final GetRuleUseCase getRuleUseCase;
@@ -55,6 +60,8 @@ class HomePageCubit extends Cubit<HomePageState> {
   final DeleteItemInMemberReportUseCase deleteItemInMemberReportUseCase;
   final GetAllUsersUseCase getAllUsersUseCase;
   final GetZonesUseCase getZonesUseCase;
+  final UpdateRuleShareUseCase updateRuleShareUseCase;
+  final ResetRuleShareUseCase resetRuleShareUseCase;
 
   static HomePageCubit get(context) => BlocProvider.of(context);
 
@@ -67,12 +74,12 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> getActiveCycle(String zoneName) async {
+  Future<void> getActiveCycle() async {
     emit(GetActiveCycleLoadingState());
-    final result = await getActiveCycleUseCase.call(zoneName);
+    final result = await getActiveCycleUseCase.call(const FirebaseNoParameters());
     result.fold(
           (failure) => emit(GetActiveCycleErrorState(failure.message)),
-          (cycle) => emit(GetActiveCycleSuccessState(cycle)),
+          (activeCycles) => emit(GetActiveCycleSuccessState(activeCycles)),
     );
   }
 
@@ -228,6 +235,24 @@ class HomePageCubit extends Cubit<HomePageState> {
     result.fold(
           (failure) => emit(DeleteItemInMemberReportErrorState(failure.message)),
           (deleted) => emit(DeleteItemInMemberReportSuccessState()),
+    );
+  }
+
+  Future<void> updateRule(UpdateRuleRequest updateRuleRequest) async {
+    emit(UpdateRuleLoadingState());
+    final result = await updateRuleShareUseCase.call(updateRuleRequest);
+    result.fold(
+          (failure) => emit(UpdateRuleErrorState(failure.message)),
+          (updates) => emit(UpdateRuleSuccessState()),
+    );
+  }
+
+  Future<void> resetRule(ResetRuleRequest resetRuleRequest) async {
+    emit(ResetRuleLoadingState());
+    final result = await resetRuleShareUseCase.call(resetRuleRequest);
+    result.fold(
+          (failure) => emit(ResetRuleErrorState(failure.message)),
+          (reset) => emit(ResetRuleSuccessState()),
     );
   }
 }

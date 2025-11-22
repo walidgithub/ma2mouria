@@ -40,9 +40,9 @@ class AddMemberErrorState extends HomePageState{
 class AddMemberLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class GetActiveCycleSuccessState extends HomePageState{
-  final CycleModel cycleModel;
+  final List<CycleModel> activeCycles;
 
-  GetActiveCycleSuccessState(this.cycleModel);
+  GetActiveCycleSuccessState(this.activeCycles);
 }
 class GetActiveCycleErrorState extends HomePageState{
   final String errorMessage;
@@ -202,5 +202,21 @@ class DeleteItemInMemberReportErrorState extends HomePageState{
   DeleteItemInMemberReportErrorState(this.errorMessage);
 }
 class DeleteItemInMemberReportLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class UpdateRuleSuccessState extends HomePageState{}
+class UpdateRuleErrorState extends HomePageState{
+  final String errorMessage;
+
+  UpdateRuleErrorState(this.errorMessage);
+}
+class UpdateRuleLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class ResetRuleSuccessState extends HomePageState{}
+class ResetRuleErrorState extends HomePageState{
+  final String errorMessage;
+
+  ResetRuleErrorState(this.errorMessage);
+}
+class ResetRuleLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class AuthNoInternetState extends HomePageState{}

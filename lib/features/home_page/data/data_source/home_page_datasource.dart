@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
+import 'package:ma2mouria/features/home_page/data/requests/reset_rule_request.dart';
 
 import '../../../../core/di/di.dart';
 import '../../../../core/utils/constant/app_strings.dart';
@@ -17,10 +18,12 @@ import '../requests/delete_receipt_request.dart';
 import '../requests/delete_member_request.dart';
 import '../requests/delete_share_request.dart';
 import '../requests/edit_share_request.dart';
+import '../requests/get_active_cycle_request.dart';
 import '../requests/get_head_report_request.dart';
 import '../requests/get_members_request.dart';
 import '../requests/get_receipts_request.dart';
 import '../requests/member_report_request.dart';
+import '../requests/update_rule_request.dart';
 import '../responses/head_report_response.dart';
 import '../responses/member_report_response.dart';
 
@@ -29,7 +32,7 @@ abstract class BaseDataSource {
   Future<RulesModel?> getRuleByEmail(String email);
   Future<void> addCycle(CycleModel cycle);
   Future<void> deleteCycle(DeleteCycleRequest deleteCycleRequest);
-  Future<CycleModel> getActiveCycle(String zoneName);
+  Future<List<CycleModel>> getActiveCycle();
   Future<void> addMember(AddMemberRequest addMemberRequest);
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<List<MemberModel>> getMembers(GetMembersRequest getMembersRequest);
@@ -41,6 +44,8 @@ abstract class BaseDataSource {
   Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest);
   Future<void> deleteShare(DeleteShareRequest deleteShareRequest);
   Future<void> editShare(EditShareRequest editShareRequest);
+  Future<void> updateRule(UpdateRuleRequest updateRuleRequest);
+  Future<void> resetRule(ResetRuleRequest resetRuleRequest);
   Future<List<MemberReportResponse>> getMemberReport(MemberReportRequest memberReportRequest);
   Future<List<HeadReportResponse>> getHeadReport(GetHeadReportRequest getHeadReportRequest);
   Future<void> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest);
@@ -74,20 +79,20 @@ class HomePageDataSource extends BaseDataSource {
 
   // done------------------------
   @override
-  Future<CycleModel> getActiveCycle(String zoneName) async {
+  Future<List<CycleModel>> getActiveCycle() async {
     try {
       final query = await firestore
           .collection('cycles')
           .where('active', isEqualTo: true)
-          .where('zone', isEqualTo: zoneName)
-          .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw AppStrings.noCycleFound;
+        return [];
       }
 
-      return CycleModel.fromJson(query.docs.first.data());
+      return query.docs
+          .map((doc) => CycleModel.fromJson(doc.data()))
+          .toList();
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {
@@ -261,7 +266,6 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
-
   // done------------------------
   @override
   Future<List<MemberModel>> getMembers(GetMembersRequest getMembersRequest) async {
@@ -349,6 +353,8 @@ class HomePageDataSource extends BaseDataSource {
       final rulesList = snapshot.docs
           .map((doc) => RulesModel.fromJson(doc.data()))
           .where((rule) => rule.rule != "head")
+          .where((rule) => rule.rule != "admin")
+          .where((rule) => rule.zone == "")
           .toList();
 
       return rulesList;
@@ -765,6 +771,58 @@ class HomePageDataSource extends BaseDataSource {
           .toList();
 
       return zonesList;
+    } on FirebaseException catch (e) {
+      throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateRule(UpdateRuleRequest updateRuleRequest) async {
+    try {
+      final query = await firestore
+          .collection('rules')
+          .where('email', isEqualTo: updateRuleRequest.email)
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+
+        await firestore
+            .collection('rules')
+            .doc(docId)
+            .update({'rule': updateRuleRequest.rule});
+      } else {
+        throw Exception(AppStrings.noUserWithThisEmail.tr());
+      }
+    } on FirebaseException catch (e) {
+      throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> resetRule(ResetRuleRequest resetRuleRequest) async {
+    try {
+      final query = await firestore
+          .collection('rules')
+          .where('email', isEqualTo: resetRuleRequest.email)
+          .limit(1)
+          .get();
+
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+
+        await firestore
+            .collection('rules')
+            .doc(docId)
+            .update({'rule': 'user', 'zone': "", 'cycle': ""});
+      } else {
+        throw Exception(AppStrings.noUserWithThisEmail.tr());
+      }
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {

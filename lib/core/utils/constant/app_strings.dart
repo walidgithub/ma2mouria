@@ -13,9 +13,11 @@ class AppStrings {
   static const String receiptCreator = "Receipt Creator";
   static const String receiptValue = "Receipt Value";
   static const String receiptId = "Receipt Id";
+  static const String zoneName = "Zone Name";
   static const String myShare = "My Share";
   static const String receiptDetail = "Restaurant Or Shop";
   static const String save = "Save";
+  static const String reset = "Reset";
   static const String myCredit = "My Credit";
   static const String addReceipt = "Add Receipt";
   static const String addCycle = "Add Cycle";
@@ -27,6 +29,7 @@ class AppStrings {
   static const String month = "Month";
   static const String year = "Year";
   static const String day = "Day";
+  static const String permission = "Permission";
   static const String currency = "L.E.";
   static const String showTotal = "Show Total";
   static const String memberName = "Member Name";
@@ -36,7 +39,7 @@ class AppStrings {
   static const String userNotFound = "This user not found";
   static const String userDataNotReady = "User data not ready";
   static const String noActiveCycleNow = "No active cycle now";
-  static const String noMembers = "No members found";
+  static const String noLoggedUsers = "No logged users found";
   static const String selectReceipt = "Select the receipt";
   static const String notRegistered = "You are not registered in active cycle";
   static const String cycleAdded = "Cycle added successfully";
@@ -58,4 +61,6 @@ class AppStrings {
   static const String inCycle = "in cycle";
   static const String memberNotFoundInCycle = "member not found in cycle";
   static const String memberNotFoundInReceipt = "member not found in receipt";
+  static const String settings = "Settings";
+  static const String noUserWithThisEmail = "No user found with this email";
 }
