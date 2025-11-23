@@ -4,13 +4,13 @@ import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../data/responses/head_report_response.dart';
 
-class GetHeadReportUseCase extends FirebaseBaseUseCase<void, FirebaseNoParameters> {
+class GetHeadReportUseCase extends FirebaseBaseUseCase {
   final HomePageRepository homePageRepository;
 
   GetHeadReportUseCase(this.homePageRepository);
 
   @override
-  Future<Either<FirebaseFailure, List<HeadReportResponse>>> call(FirebaseNoParameters parameters) async {
-    return await homePageRepository.getHeadReport();
+  Future<Either<FirebaseFailure, List<HeadReportResponse>>> call(parameters) async {
+    return await homePageRepository.getHeadReport(parameters);
   }
 }

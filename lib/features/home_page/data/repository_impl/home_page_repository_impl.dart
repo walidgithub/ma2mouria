@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ma2mouria/features/auth/data/model/user_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
@@ -17,7 +18,11 @@ import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../domain/repository/home_page_repository.dart';
 import '../data_source/home_page_datasource.dart';
 import '../requests/add_member_request.dart';
+import '../requests/delete_cycle_request.dart';
 import '../requests/delete_member_request.dart';
+import '../requests/get_head_report_request.dart';
+import '../requests/get_members_request.dart';
+import '../requests/get_receipts_request.dart';
 
 class HomePageRepositoryImpl extends HomePageRepository {
   final HomePageDataSource _homePageDataSource;
@@ -81,9 +86,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, void>> deleteCycle(String cycleName) async {
+  Future<Either<FirebaseFailure, void>> deleteCycle(DeleteCycleRequest deleteCycleRequest) async {
     try {
-      final result = await _homePageDataSource.deleteCycle(cycleName);
+      final result = await _homePageDataSource.deleteCycle(deleteCycleRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -109,9 +114,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(String cycleName) async {
+  Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(GetMembersRequest getMembersRequest) async {
     try {
-      final result = await _homePageDataSource.getMembers(cycleName);
+      final result = await _homePageDataSource.getMembers(getMembersRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -179,9 +184,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, List<ReceiptModel>>> getReceipts(String cycleName) async {
+  Future<Either<FirebaseFailure, List<ReceiptModel>>> getReceipts(GetReceiptsRequest getReceiptsRequest) async {
     try {
-      final result = await _homePageDataSource.getReceipts(cycleName);
+      final result = await _homePageDataSource.getReceipts(getReceiptsRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -221,9 +226,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, List<HeadReportResponse>>> getHeadReport() async {
+  Future<Either<FirebaseFailure, List<HeadReportResponse>>> getHeadReport(GetHeadReportRequest getHeadReportRequest) async {
     try {
-      final result = await _homePageDataSource.getHeadReport();
+      final result = await _homePageDataSource.getHeadReport(getHeadReportRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));

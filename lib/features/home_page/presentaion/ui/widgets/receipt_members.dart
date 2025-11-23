@@ -14,6 +14,7 @@ import '../../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../../core/utils/ui_components/snackbar.dart';
 import '../../../data/model/receipt_members_model.dart';
 import '../../../data/requests/delete_share_request.dart';
+import '../../../data/requests/get_receipts_request.dart';
 import '../../bloc/home_page_cubit.dart';
 import '../../bloc/home_page_state.dart';
 
@@ -22,6 +23,7 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
   Map<String, String?>? userData;
   String selectedId;
   String cycleName;
+  String zone;
   String totalValue;
   Function clearMembersList;
   ReceiptMembersBottomSheet({
@@ -30,6 +32,7 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
     required this.userData,
     required this.selectedId,
     required this.cycleName,
+    required this.zone,
     required this.totalValue,
     required this.clearMembersList,
   });
@@ -48,7 +51,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<HomePageCubit>()..getReceipts(widget.cycleName),
+      create: (context) => sl<HomePageCubit>()..getReceipts(GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName)),
       child: BlocConsumer<HomePageCubit, HomePageState>(
         listener: (context, state) async {
           if (state is GetReceiptsLoadingState) {
@@ -72,7 +75,8 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is EditShareSuccessState) {
             hideLoading();
-            HomePageCubit.get(context).getReceipts(widget.cycleName);
+            GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName);
+            HomePageCubit.get(context).getReceipts(getReceiptsRequest);
             // ------------------------------------------------------
           } else if (state is DeleteShareLoadingState) {
             showLoading();
@@ -81,7 +85,8 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is DeleteShareSuccessState) {
             hideLoading();
-            HomePageCubit.get(context).getReceipts(widget.cycleName);
+            GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName);
+            HomePageCubit.get(context).getReceipts(getReceiptsRequest);
           }
         },
         builder: (context, state) {
@@ -237,6 +242,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                                     name: item.name,
                                                     id: item.id,
                                                   ),
+                                                  zone: widget.zone
                                                 );
 
                                                 HomePageCubit.get(context).editShare(editShareRequest);
@@ -263,7 +269,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                                 shareValue: item.shareValue,
                                                 name: item.name,
                                                 id: item.id,
-                                              ),
+                                              ), zone: widget.zone
                                             );
                                             HomePageCubit.get(context).deleteShare(deleteShareRequest);
                                           },
@@ -344,9 +350,8 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                     ),
                     InkWell(
                       onTap: () {
-                        HomePageCubit.get(
-                          context,
-                        ).getReceipts(widget.cycleName);
+                        GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName);
+                        HomePageCubit.get(context).getReceipts(getReceiptsRequest);
                       },
                       borderRadius: BorderRadius.circular(10.r),
                       child: Container(

@@ -1,4 +1,5 @@
 class MemberReportRequest{
   String name;
-  MemberReportRequest({required this.name});
+  String zone;
+  MemberReportRequest({required this.name,required this.zone});
 }

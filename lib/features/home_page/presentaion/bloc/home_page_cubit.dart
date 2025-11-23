@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
+import 'package:ma2mouria/features/home_page/data/requests/get_head_report_request.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
@@ -18,9 +19,12 @@ import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../home_page/domain/usecases/logout_usecase.dart';
 import '../../data/model/cycle_model.dart';
 import '../../data/requests/add_receipt_request.dart';
+import '../../data/requests/delete_cycle_request.dart';
 import '../../data/requests/delete_receipt_request.dart';
 import '../../data/requests/delete_share_request.dart';
 import '../../data/requests/edit_share_request.dart';
+import '../../data/requests/get_members_request.dart';
+import '../../data/requests/get_receipts_request.dart';
 import '../../data/requests/member_report_request.dart';
 import '../../domain/usecases/add_member_usecase.dart';
 import '../../domain/usecases/delete_member_usecase.dart';
@@ -117,9 +121,9 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> deleteCycle(String cycleName) async {
+  Future<void> deleteCycle(DeleteCycleRequest deleteCycleRequest) async {
     emit(DeleteCycleLoadingState());
-    final result = await deleteCycleUseCase.call(cycleName);
+    final result = await deleteCycleUseCase.call(deleteCycleRequest);
     result.fold(
           (failure) => emit(DeleteCycleErrorState(failure.message)),
           (deleted) => emit(DeleteCycleSuccessState()),
@@ -135,9 +139,9 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> getMembers(String cycleName) async {
+  Future<void> getMembers(GetMembersRequest getMembersRequest) async {
     emit(GetMembersLoadingState());
-    final result = await getMembersUseCase.call(cycleName);
+    final result = await getMembersUseCase.call(getMembersRequest);
     result.fold(
           (failure) => emit(GetMembersErrorState(failure.message)),
           (members) => emit(GetMembersSuccessState(members)),
@@ -162,9 +166,9 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> getReceipts(String cycleName) async {
+  Future<void> getReceipts(GetReceiptsRequest getReceiptsRequest) async {
     emit(GetReceiptsLoadingState());
-    final result = await getReceiptsUseCase.call(cycleName);
+    final result = await getReceiptsUseCase.call(getReceiptsRequest);
     result.fold(
           (failure) => emit(GetReceiptsErrorState(failure.message)),
           (receipts) => emit(GetReceiptsSuccessState(receipts)),
@@ -200,9 +204,9 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> getHeadReport() async {
+  Future<void> getHeadReport(GetHeadReportRequest getHeadReportRequest) async {
     emit(GetHeadReportLoadingState());
-    final result = await getHeadReportUseCase.call(const FirebaseNoParameters());
+    final result = await getHeadReportUseCase.call(getHeadReportRequest);
     result.fold(
           (failure) => emit(GetHeadReportErrorState(failure.message)),
           (headReport) => emit(GetHeadReportSuccessState(headReport)),
