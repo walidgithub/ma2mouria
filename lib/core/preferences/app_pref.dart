@@ -64,7 +64,6 @@ class AppPreferences {
 
   Future<void> setUserLoggedOut() async {
     _sharedPreferences.remove(userLoggedIn);
-    await _sharedPreferences.clear();
   }
 
   Future<void> saveUserData({
@@ -75,6 +74,12 @@ class AppPreferences {
     await _sharedPreferences.setString(_userEmailKey, email);
     await _sharedPreferences.setString(_userNameKey, name);
     if (photoUrl != null) await _sharedPreferences.setString(_userPhotoKey, photoUrl);
+  }
+
+  Future<void> removeUserData() async {
+    await _sharedPreferences.remove(_userEmailKey);
+    await _sharedPreferences.remove(_userNameKey);
+    await _sharedPreferences.remove(_userPhotoKey);
   }
 
   Map<String, String?> getUserData() {

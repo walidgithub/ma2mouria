@@ -39,7 +39,7 @@ class AppStrings {
   static const String userNotFound = "This user not found";
   static const String userDataNotReady = "User data not ready";
   static const String noActiveCycleNow = "No active cycle now";
-  static const String noLoggedUsers = "No logged users found";
+  static const String noLoggedUsers = "No logged or more users found";
   static const String selectReceipt = "Select the receipt";
   static const String notRegistered = "You are not registered in active cycle";
   static const String cycleAdded = "Cycle added successfully";

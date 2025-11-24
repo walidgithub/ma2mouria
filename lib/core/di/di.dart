@@ -85,8 +85,8 @@ class ServiceLocator {
     sl.registerLazySingleton<DeleteItemInMemberReportUseCase>(() => DeleteItemInMemberReportUseCase(sl()));
     sl.registerLazySingleton<GetAllUsersUseCase>(() => GetAllUsersUseCase(sl()));
     sl.registerLazySingleton<GetZonesUseCase>(() => GetZonesUseCase(sl()));
-    sl.registerLazySingleton<UpdateRuleShareUseCase>(() => UpdateRuleShareUseCase(sl()));
-    sl.registerLazySingleton<ResetRuleShareUseCase>(() => ResetRuleShareUseCase(sl()));
+    sl.registerLazySingleton<UpdateRuleUseCase>(() => UpdateRuleUseCase(sl()));
+    sl.registerLazySingleton<ResetRuleUseCase>(() => ResetRuleUseCase(sl()));
 
 
     // Bloc

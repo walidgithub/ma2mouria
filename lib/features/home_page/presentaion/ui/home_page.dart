@@ -95,7 +95,7 @@ class _HomeViewState extends State<HomeView>
   double result = 0;
 
   List<CycleModel>? activeCycles;
-  CycleModel? activeCycleData;
+  CycleModel? userActiveCycleData;
   String? selectedId;
   String? selectedZone;
   String? selectedReceiptUserName;
@@ -141,7 +141,6 @@ class _HomeViewState extends State<HomeView>
     HomePageCubit.get(context).getUsers();
     HomePageCubit.get(context).getAllUsers();
     HomePageCubit.get(context).getZones();
-    HomePageCubit.get(context).getActiveCycle();
     HomePageCubit.get(context).getRuleByEmail(userData!['email'] ?? 'Guest');
   }
 
@@ -278,7 +277,7 @@ class _HomeViewState extends State<HomeView>
           if (state.rulesModel.rule == "admin") {
             isAdmin = true;
           }
-          
+          HomePageCubit.get(context).getActiveCycle();
           // ------------------------------------------------------
         } else if (state is LogoutLoadingState) {
           showLoading();
@@ -292,6 +291,7 @@ class _HomeViewState extends State<HomeView>
         } else if (state is LogoutSuccessState) {
           hideLoading();
           await _appPreferences.setUserLoggedOut();
+          await _appPreferences.removeUserData();
           Navigator.pushReplacementNamed(context, Routes.loginRoute);
           // ------------------------------------------------------
         } else if (state is GetUsersLoadingState) {
@@ -383,6 +383,7 @@ class _HomeViewState extends State<HomeView>
         } else if (state is GetActiveCycleErrorState) {
           hideLoading();
           activeCycles = null;
+          userActiveCycleData = null;
           _cycleTextController.text = "";
           membersList = [];
           receiptsList = [];
@@ -394,30 +395,49 @@ class _HomeViewState extends State<HomeView>
           _receiptShareTextController.text = "";
         } else if (state is GetActiveCycleSuccessState) {
           hideLoading();
-
-          // get cycle with zone match with user email and email------------------------
-
           activeCycles = state.activeCycles;
-          _cycleTextController.text = activeCycleData!.cycleName;
-          membersList = activeCycleData!.members;
-          // home page ------------
-          cycleDate = activeCycleData!.cycleDate;
-          total = activeCycleData!.memberBudget;
-          spending = receiptMembersList.fold(
-            0.0,
-            (sum, m) => sum + m.shareValue,
+          // get cycle with zone match with user email and email------------------------
+          CycleModel? getCycleByMemberEmail(
+            List<CycleModel> cycles,
+            String email,
+          ) {
+            try {
+              return cycles.firstWhere(
+                (cycle) => cycle.members.any((m) => m.email == email),
+              );
+            } catch (e) {
+              return null;
+            }
+          }
+
+          userActiveCycleData = getCycleByMemberEmail(
+            activeCycles!,
+            userData!['email']!,
           );
-          // ---------------------------------------
-          receiptsList = activeCycleData!.receipts;
-          receiptsIds = receiptsList
-              .where((receipt) => receipt.shared)
-              .map((receipt) => receipt.receiptId)
-              .toList();
-          MemberReportRequest memberReportRequest = MemberReportRequest(
-            name: userData!['name']!,
-            zone: zone,
-          );
-          HomePageCubit.get(context).getMemberReport(memberReportRequest);
+          if (userActiveCycleData != null) {
+            _cycleTextController.text = userActiveCycleData!.cycleName;
+            membersList = userActiveCycleData!.members;
+            // home page ------------
+            cycleDate = userActiveCycleData!.cycleDate;
+            total = userActiveCycleData!.memberBudget;
+            spending = receiptMembersList.fold(
+              0.0,
+              (sum, m) => sum + m.shareValue,
+            );
+            // ---------------------------------------
+            receiptsList = userActiveCycleData!.receipts;
+            receiptsIds = receiptsList
+                .where((receipt) => receipt.shared)
+                .map((receipt) => receipt.receiptId)
+                .toList();
+            MemberReportRequest memberReportRequest = MemberReportRequest(
+              name: userData!['name']!,
+              zone: zone,
+            );
+            HomePageCubit.get(context).getMemberReport(memberReportRequest);
+          } else {
+            userActiveCycleData = null;
+          }
           // ------------------------------------------------------
         } else if (state is GetMembersLoadingState) {
           showLoading();
@@ -431,6 +451,7 @@ class _HomeViewState extends State<HomeView>
         } else if (state is GetMembersSuccessState) {
           hideLoading();
           membersList = state.members;
+          HomePageCubit.get(context).getUsers();
           // ------------------------------------------------------
         } else if (state is DeleteCycleLoadingState) {
           showLoading();
@@ -525,7 +546,7 @@ class _HomeViewState extends State<HomeView>
               : savedReceiptId = "";
           GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(
             zone: zone,
-            cycleName: activeCycleData!.cycleName,
+            cycleName: userActiveCycleData!.cycleName,
           );
           HomePageCubit.get(context).getReceipts(getReceiptsRequest);
           // ------------------------------------------------------
@@ -542,7 +563,7 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(
             zone: zone,
-            cycleName: activeCycleData!.cycleName,
+            cycleName: userActiveCycleData!.cycleName,
           );
           HomePageCubit.get(context).getReceipts(getReceiptsRequest);
           // ------------------------------------------------------
@@ -677,59 +698,61 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               ),
-              bottomNavigationBar: isAdmin ? SizedBox.shrink() : ClipRRect(
-                borderRadius: BorderRadius.circular(20.r),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
-                  child: Container(
-                    margin: EdgeInsets.all(10.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+              bottomNavigationBar: isAdmin
+                  ? SizedBox.shrink()
+                  : ClipRRect(
                       borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                        width: 1.5,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
+                        child: Container(
+                          margin: EdgeInsets.all(10.w),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20.w,
+                            vertical: 10.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20.r),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildNavItem(
+                                icon: Icons.attach_money,
+                                index: 0,
+                                isActive: _currentIndex == 0,
+                              ),
+                              _buildNavItem(
+                                icon: Icons.add,
+                                index: 1,
+                                isActive: _currentIndex == 1,
+                              ),
+                              if (isHead)
+                                _buildNavItem(
+                                  icon: Icons.add_to_drive_rounded,
+                                  index: 2,
+                                  isActive: _currentIndex == 2,
+                                ),
+                              if (isHead)
+                                _buildNavItem(
+                                  icon: Icons.person,
+                                  index: 3,
+                                  isActive: _currentIndex == 3,
+                                ),
+                              _buildNavItem(
+                                icon: Icons.bar_chart_sharp,
+                                index: 4,
+                                isActive: _currentIndex == 4,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildNavItem(
-                          icon: Icons.attach_money,
-                          index: 0,
-                          isActive: _currentIndex == 0,
-                        ),
-                        _buildNavItem(
-                          icon: Icons.add,
-                          index: 1,
-                          isActive: _currentIndex == 1,
-                        ),
-                        if (isHead)
-                          _buildNavItem(
-                            icon: Icons.add_to_drive_rounded,
-                            index: 2,
-                            isActive: _currentIndex == 2,
-                          ),
-                        if (isHead)
-                          _buildNavItem(
-                            icon: Icons.person,
-                            index: 3,
-                            isActive: _currentIndex == 3,
-                          ),
-                        _buildNavItem(
-                          icon: Icons.bar_chart_sharp,
-                          index: 4,
-                          isActive: _currentIndex == 4,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
         );
@@ -854,11 +877,13 @@ class _HomeViewState extends State<HomeView>
         initDateDropdowns();
         if (index == 0) {
           _calcTextController.text = "";
-          MemberReportRequest memberReportRequest = MemberReportRequest(
-            name: userData!['name']!,
-            zone: zone,
-          );
-          HomePageCubit.get(context).getMemberReport(memberReportRequest);
+          if (userActiveCycleData != null) {
+            MemberReportRequest memberReportRequest = MemberReportRequest(
+              name: userData!['name']!,
+              zone: zone,
+            );
+            HomePageCubit.get(context).getMemberReport(memberReportRequest);
+          }
         }
         if (index == 1) {
           _receiptValueTextController.text = "";
@@ -870,7 +895,7 @@ class _HomeViewState extends State<HomeView>
         if (index == 3 || index == 2) {
           _memberBudgetTextController.text = "";
           _membersCountTextController.text = "";
-          
+
           HomePageCubit.get(context).getActiveCycle();
         }
         if (index == 4) {
@@ -878,12 +903,14 @@ class _HomeViewState extends State<HomeView>
             name: userName,
             zone: zone,
           );
-          HomePageCubit.get(context).getMemberReport(memberReportRequest);
-          GetHeadReportRequest getHeadReportRequest = GetHeadReportRequest(
-            zone: zone,
-            cycleName: activeCycleData!.cycleName,
-          );
-          HomePageCubit.get(context).getHeadReport(getHeadReportRequest);
+          if (userActiveCycleData != null) {
+            HomePageCubit.get(context).getMemberReport(memberReportRequest);
+            GetHeadReportRequest getHeadReportRequest = GetHeadReportRequest(
+              zone: zone,
+              cycleName: userActiveCycleData!.cycleName,
+            );
+            HomePageCubit.get(context).getHeadReport(getHeadReportRequest);
+          }
         }
         setState(() {
           _currentIndex = index;
@@ -996,12 +1023,7 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    final currentUserName = userData?['name'];
-    final userMember = membersList.firstWhereOrNull(
-      (m) => m.name == currentUserName,
-    );
-
-    if (userMember == null) {
+    if (userActiveCycleData == null) {
       return Center(
         child: Text(
           AppStrings.notRegistered.tr(),
@@ -1166,12 +1188,7 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    final currentUserName = userData?['name'];
-    final userMember = membersList.firstWhereOrNull(
-      (m) => m.name == currentUserName,
-    );
-
-    if (userMember == null) {
+    if (userActiveCycleData == null) {
       return Center(
         child: Text(
           AppStrings.notRegistered.tr(),
@@ -1261,7 +1278,7 @@ class _HomeViewState extends State<HomeView>
                         GetReceiptsRequest getReceiptsRequest =
                             GetReceiptsRequest(
                               zone: zone,
-                              cycleName: activeCycleData!.cycleName,
+                              cycleName: userActiveCycleData!.cycleName,
                             );
                         HomePageCubit.get(
                           context,
@@ -1410,7 +1427,7 @@ class _HomeViewState extends State<HomeView>
                                 GetReceiptsRequest getReceiptsRequest =
                                     GetReceiptsRequest(
                                       zone: zone,
-                                      cycleName: activeCycleData!.cycleName,
+                                      cycleName: userActiveCycleData!.cycleName,
                                     );
                                 HomePageCubit.get(
                                   context,
@@ -1631,7 +1648,7 @@ class _HomeViewState extends State<HomeView>
                     String id = uuid.v4();
                     String memberId = uuid.v4();
                     AddReceiptRequest receipt = AddReceiptRequest(
-                      cycleName: activeCycleData!.cycleName,
+                      cycleName: userActiveCycleData!.cycleName,
                       zone: zone,
                       receipt: ReceiptModel(
                         id: id,
@@ -1727,7 +1744,7 @@ class _HomeViewState extends State<HomeView>
                                         userData: userData,
                                         receiptMembersList: receiptMembersList,
                                         selectedId: selectedId!,
-                                        cycleName: activeCycleData!.cycleName,
+                                        cycleName: userActiveCycleData!.cycleName,
                                         totalValue:
                                             _receiptValueTextController.text,
                                         zone: zone,
@@ -1797,7 +1814,7 @@ class _HomeViewState extends State<HomeView>
                           DeleteReceiptRequest deleteReceiptRequest =
                               DeleteReceiptRequest(
                                 receiptId: selectedId!,
-                                cycleName: activeCycleData!.cycleName,
+                                cycleName: userActiveCycleData!.cycleName,
                                 zone: zone,
                               );
                           HomePageCubit.get(
@@ -2034,7 +2051,7 @@ class _HomeViewState extends State<HomeView>
 
           SizedBox(height: 20.h),
 
-          activeCycles != null
+          activeCycles != null && activeCycles!.isNotEmpty && userActiveCycleData != null
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(20.r),
                   child: BackdropFilter(
@@ -2072,7 +2089,7 @@ class _HomeViewState extends State<HomeView>
                               SizedBox(height: 10.h),
 
                               Text(
-                                activeCycleData!.cycleName,
+                                userActiveCycleData!.cycleName,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2096,7 +2113,7 @@ class _HomeViewState extends State<HomeView>
                                   SizedBox(width: 10.w),
 
                                   Text(
-                                    "${activeCycleData!.memberBudget} ${AppStrings.currency.tr()}",
+                                    "${userActiveCycleData!.memberBudget} ${AppStrings.currency.tr()}",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2119,7 +2136,7 @@ class _HomeViewState extends State<HomeView>
                                   SizedBox(width: 10.w),
 
                                   Text(
-                                    activeCycleData!.membersCount.toString(),
+                                    userActiveCycleData!.membersCount.toString(),
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2135,7 +2152,7 @@ class _HomeViewState extends State<HomeView>
                               DeleteCycleRequest deleteCycleRequest =
                                   DeleteCycleRequest(
                                     zone: zone,
-                                    cycleName: activeCycleData!.cycleName,
+                                    cycleName: userActiveCycleData!.cycleName,
                                   );
                               HomePageCubit.get(
                                 context,
@@ -2230,7 +2247,7 @@ class _HomeViewState extends State<HomeView>
 
         isMobile()
             ? SizedBox.shrink()
-            : Text(
+            : usersList.isNotEmpty ? Text(
                 AppStrings.horizontalScroll.tr(),
                 style: TextStyle(
                   color: Colors.redAccent,
@@ -2238,8 +2255,9 @@ class _HomeViewState extends State<HomeView>
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
                 ),
-              ),
+              ) : SizedBox.shrink(),
 
+        SizedBox(height: 10.h,),
         usersList.isNotEmpty
             ? SizedBox(
                 height: 70.h,
@@ -2290,6 +2308,10 @@ class _HomeViewState extends State<HomeView>
                             ),
                             child: Bounceable(
                               onTap: () {
+                                if (_cycleTextController.text == "") {
+                                  showAppSnackBar(context, AppStrings.noActiveCycleNow.tr(), type: SnackBarType.warning);
+                                      return;
+                                }
                                 AddMemberRequest addMemberRequest =
                                     AddMemberRequest(
                                       cycleName: _cycleTextController.text,
@@ -2464,12 +2486,7 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    final currentUserName = userData?['name'];
-    final userMember = membersList.firstWhereOrNull(
-      (m) => m.name == currentUserName,
-    );
-
-    if (userMember == null) {
+    if (userActiveCycleData == null) {
       return Center(
         child: Text(
           AppStrings.notRegistered.tr(),
@@ -2515,17 +2532,14 @@ class _HomeViewState extends State<HomeView>
                           GetHeadReportRequest getHeadReportRequest =
                               GetHeadReportRequest(
                                 zone: zone,
-                                cycleName: activeCycleData!.cycleName,
+                                cycleName: userActiveCycleData!.cycleName,
                               );
                           HomePageCubit.get(
                             context,
                           ).getHeadReport(getHeadReportRequest);
                         } else {
                           MemberReportRequest memberReportRequest =
-                              MemberReportRequest(
-                                name: userName,
-                                zone: zone,
-                              );
+                              MemberReportRequest(name: userName, zone: zone);
                           HomePageCubit.get(
                             context,
                           ).getMemberReport(memberReportRequest);
@@ -2622,7 +2636,7 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                   SizedBox(width: 5.h),
                                   Text(
-                                    "${activeCycleData!.memberBudget - double.parse(item.leftOf)} ${AppStrings.currency.tr()}",
+                                    "${userActiveCycleData!.memberBudget - double.parse(item.leftOf)} ${AppStrings.currency.tr()}",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2793,7 +2807,7 @@ class _HomeViewState extends State<HomeView>
                       Text(
                         !showTotal
                             ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)).toStringAsFixed(2)} ${AppStrings.currency.tr()}"
-                            : "${(headReportList.length * activeCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} ${AppStrings.currency.tr()}",
+                            : "${(headReportList.length * userActiveCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} ${AppStrings.currency.tr()}",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2819,7 +2833,7 @@ class _HomeViewState extends State<HomeView>
                             SizedBox(width: 10.w),
 
                             Text(
-                              "${(activeCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))} ${AppStrings.currency.tr()}",
+                              "${(userActiveCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))} ${AppStrings.currency.tr()}",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: isMobile() ? 15.sp : 5.sp,
@@ -3088,10 +3102,14 @@ class _HomeViewState extends State<HomeView>
           children: [
             Bounceable(
               onTap: () {
-                if (selectedEmail == "" || selectedPermission == "") {
+                if (selectedEmail == "" || selectedPermission == "" || selectedZone == "") {
                   return;
                 }
-                UpdateRuleRequest updateRuleRequest = UpdateRuleRequest(email: selectedEmail,rule: selectedPermission!);
+                UpdateRuleRequest updateRuleRequest = UpdateRuleRequest(
+                  email: selectedEmail,
+                  rule: selectedPermission!,
+                  zone: selectedZone!
+                );
                 HomePageCubit.get(context).updateRule(updateRuleRequest);
               },
               child: ClipRRect(
@@ -3100,7 +3118,10 @@ class _HomeViewState extends State<HomeView>
                   filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 10.w),
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 10.h,
+                    ),
                     width: 120.w,
                     height: 45.h,
                     decoration: BoxDecoration(
@@ -3126,7 +3147,12 @@ class _HomeViewState extends State<HomeView>
             ),
             Bounceable(
               onTap: () {
-                ResetRuleRequest resetRuleRequest = ResetRuleRequest(email: selectedEmail);
+                if (selectedEmail == "") {
+                  return;
+                }
+                ResetRuleRequest resetRuleRequest = ResetRuleRequest(
+                  email: selectedEmail,
+                );
                 HomePageCubit.get(context).resetRule(resetRuleRequest);
               },
               child: ClipRRect(
@@ -3135,7 +3161,10 @@ class _HomeViewState extends State<HomeView>
                   filter: ImageFilter.blur(sigmaX: 10.h, sigmaY: 10.w),
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 10.w),
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 10.h,
+                    ),
                     width: 120.w,
                     height: 45.h,
                     decoration: BoxDecoration(
@@ -3158,9 +3187,9 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               ),
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }

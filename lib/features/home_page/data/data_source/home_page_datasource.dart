@@ -135,6 +135,7 @@ class HomePageDataSource extends BaseDataSource {
 
       final activeCycles = await collectionRef
           .where('active', isEqualTo: true)
+          .where('zone', isEqualTo: cycle.zone)
           .get();
 
       final batch = firestore.batch();
@@ -226,7 +227,6 @@ class HomePageDataSource extends BaseDataSource {
 
       await _updateMemberRule(
         memberEmail: addMemberRequest.member.email,
-        cycle: addMemberRequest.cycleName,
         zone: addMemberRequest.zone,
       );
     } on FirebaseException catch (e) {
@@ -236,10 +236,9 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
-  // for delete and add member------------------------
+  // for adding cycle and deleting or adding member------------------------
   Future<void> _updateMemberRule({
     required String memberEmail,
-    required String cycle,
     required String zone,
   }) async {
     try {
@@ -256,7 +255,6 @@ class HomePageDataSource extends BaseDataSource {
       final docRef = query.docs.first.reference;
 
       await docRef.update({
-        'cycle': cycle,
         'zone': zone,
       });
     } on FirebaseException catch (e) {
@@ -334,7 +332,6 @@ class HomePageDataSource extends BaseDataSource {
 
       await _updateMemberRule(
         memberEmail: deleteMemberRequest.member.email,
-        cycle: "",
         zone: "",
       );
     } on FirebaseException catch (e) {
@@ -793,7 +790,7 @@ class HomePageDataSource extends BaseDataSource {
         await firestore
             .collection('rules')
             .doc(docId)
-            .update({'rule': updateRuleRequest.rule});
+            .update({'rule': updateRuleRequest.rule,'zone': updateRuleRequest.zone});
       } else {
         throw Exception(AppStrings.noUserWithThisEmail.tr());
       }
@@ -819,7 +816,7 @@ class HomePageDataSource extends BaseDataSource {
         await firestore
             .collection('rules')
             .doc(docId)
-            .update({'rule': 'user', 'zone': "", 'cycle': ""});
+            .update({'rule': 'user', 'zone': ""});
       } else {
         throw Exception(AppStrings.noUserWithThisEmail.tr());
       }

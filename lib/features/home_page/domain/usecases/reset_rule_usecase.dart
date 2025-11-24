@@ -5,10 +5,10 @@ import '../../../../core/base_usecase/firebase_base_usecase.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../data/model/cycle_model.dart';
 
-class ResetRuleShareUseCase extends FirebaseBaseUseCase {
+class ResetRuleUseCase extends FirebaseBaseUseCase {
   final HomePageRepository homePageRepository;
 
-  ResetRuleShareUseCase(this.homePageRepository);
+  ResetRuleUseCase(this.homePageRepository);
 
   @override
   Future<Either<FirebaseFailure, void>> call(parameters) async {

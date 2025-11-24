@@ -39,7 +39,7 @@ import '../../domain/usecases/get_rule_usecase.dart';
 import 'home_page_state.dart';
 
 class HomePageCubit extends Cubit<HomePageState> {
-  HomePageCubit(this.logoutUseCase, this.updateRuleShareUseCase, this.resetRuleShareUseCase, this.getZonesUseCase, this.getAllUsersUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
+  HomePageCubit(this.logoutUseCase, this.updateRuleUseCase, this.resetRuleUseCase, this.getZonesUseCase, this.getAllUsersUseCase, this.deleteItemInMemberReportUseCase,this.getHeadReportUseCase,this.getMemberReportUseCase,this.deleteReceiptUseCase,this.getReceiptsUseCase,this.addReceiptUseCase,this.getRuleUseCase, this.addCycleUseCase, this.getActiveCycleUseCase, this.deleteCycleUseCase, this.deleteMemberUseCase, this.addMemberUseCase, this.getMembersUseCase, this.getUsersUseCase, this.editShareUseCase, this.deleteShareUseCase) : super(HomePageInitial());
   
   final LogoutUseCase logoutUseCase;
   final GetRuleUseCase getRuleUseCase;
@@ -60,8 +60,8 @@ class HomePageCubit extends Cubit<HomePageState> {
   final DeleteItemInMemberReportUseCase deleteItemInMemberReportUseCase;
   final GetAllUsersUseCase getAllUsersUseCase;
   final GetZonesUseCase getZonesUseCase;
-  final UpdateRuleShareUseCase updateRuleShareUseCase;
-  final ResetRuleShareUseCase resetRuleShareUseCase;
+  final UpdateRuleUseCase updateRuleUseCase;
+  final ResetRuleUseCase resetRuleUseCase;
 
   static HomePageCubit get(context) => BlocProvider.of(context);
 
@@ -240,16 +240,16 @@ class HomePageCubit extends Cubit<HomePageState> {
 
   Future<void> updateRule(UpdateRuleRequest updateRuleRequest) async {
     emit(UpdateRuleLoadingState());
-    final result = await updateRuleShareUseCase.call(updateRuleRequest);
+    final result = await updateRuleUseCase.call(updateRuleRequest);
     result.fold(
           (failure) => emit(UpdateRuleErrorState(failure.message)),
-          (updates) => emit(UpdateRuleSuccessState()),
+          (updated) => emit(UpdateRuleSuccessState()),
     );
   }
 
   Future<void> resetRule(ResetRuleRequest resetRuleRequest) async {
     emit(ResetRuleLoadingState());
-    final result = await resetRuleShareUseCase.call(resetRuleRequest);
+    final result = await resetRuleUseCase.call(resetRuleRequest);
     result.fold(
           (failure) => emit(ResetRuleErrorState(failure.message)),
           (reset) => emit(ResetRuleSuccessState()),

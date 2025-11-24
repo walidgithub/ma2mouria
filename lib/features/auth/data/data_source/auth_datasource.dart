@@ -36,7 +36,6 @@ class AuthDataSource extends BaseDataSource {
           'photoUrl': user.photoURL,
           'rule': 'user',
           'zone': '',
-          'cycle': '',
         });
       }
 
