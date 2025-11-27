@@ -4,18 +4,20 @@ import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
 import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 
+import '../../../../core/dio_error/dio_failure.dart';
 import '../../../../core/firebase/error/firebase_failure.dart';
-import '../../data/model/cycle_model.dart';
+import '../../data/model/round_model.dart';
 import '../../data/model/rules_model.dart';
 import '../../data/model/receipt_model.dart';
+import '../../data/model/upload_image_model.dart';
 import '../../data/model/zones_model.dart';
 import '../../data/requests/add_receipt_request.dart';
 import '../../data/requests/add_member_request.dart';
-import '../../data/requests/delete_cycle_request.dart';
+import '../../data/requests/delete_round_request.dart';
 import '../../data/requests/delete_receipt_request.dart';
 import '../../data/requests/delete_member_request.dart';
 import '../../data/requests/edit_share_request.dart';
-import '../../data/requests/get_active_cycle_request.dart';
+import '../../data/requests/get_active_round_request.dart';
 import '../../data/requests/get_head_report_request.dart';
 import '../../data/requests/get_members_request.dart';
 import '../../data/requests/get_receipts_request.dart';
@@ -27,9 +29,9 @@ import '../../data/responses/head_report_response.dart';
 abstract class HomePageRepository {
   Future<Either<FirebaseFailure, void>> logout();
   Future<Either<FirebaseFailure, RulesModel>> getRuleByEmail(String email);
-  Future<Either<FirebaseFailure, void>> addCycle(CycleModel cycle);
-  Future<Either<FirebaseFailure, void>> deleteCycle(DeleteCycleRequest deleteCycleRequest);
-  Future<Either<FirebaseFailure, List<CycleModel>>> getActiveCycle();
+  Future<Either<FirebaseFailure, void>> addRound(RoundModel round);
+  Future<Either<FirebaseFailure, void>> deleteRound(DeleteRoundRequest deleteRoundRequest);
+  Future<Either<FirebaseFailure, List<RoundModel>>> getActiveRound();
   Future<Either<FirebaseFailure, void>> addMember(AddMemberRequest addMemberRequest);
   Future<Either<FirebaseFailure, void>> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<Either<FirebaseFailure, List<MemberModel>>> getMembers(GetMembersRequest getMembersRequest);
@@ -46,4 +48,5 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, List<MemberReportResponse>>> getMemberReport(MemberReportRequest memberReportRequest);
   Future<Either<FirebaseFailure, List<HeadReportResponse>>> getHeadReport(GetHeadReportRequest getHeadReportRequest);
   Future<Either<FirebaseFailure, void>> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest);
+  Future<Either<DioFailure, UploadedImageModel>> uploadImage(String filePath);
 }

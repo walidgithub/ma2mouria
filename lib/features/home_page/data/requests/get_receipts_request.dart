@@ -1,5 +1,5 @@
 class GetReceiptsRequest{
   String zone;
-  String cycleName;
-  GetReceiptsRequest({required this.zone, required this.cycleName});
+  String roundName;
+  GetReceiptsRequest({required this.zone, required this.roundName});
 }

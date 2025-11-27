@@ -42,6 +42,8 @@
   "Select the receipt" : "اختر الفاتورة",
   "Zone Name" : "اسم المنطقة",
   "Permission" : "الصلاحية",
+  "Receipt Link" : "رابط صورة الفاتورة",
+  "Receipt Image" : "صورة الفاتورة",
   "No user found with this email" : "هذا المستخدم غير موجود",
   "You are not registered in active cycle" : "أنت غير مسجل في أى دورة مفعَّلة",
   "Cycle added successfully" : "تمت إضافة الدورة بنجاح",

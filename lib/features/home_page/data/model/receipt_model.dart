@@ -8,6 +8,7 @@ class ReceiptModel {
   final String receiptDate;
   final bool shared;
   final String receiptCreator;
+  final String receiptLink;
   final List<ReceiptMembersModel> receiptMembers;
 
   ReceiptModel({
@@ -18,6 +19,7 @@ class ReceiptModel {
     required this.receiptDate,
     required this.shared,
     required this.receiptCreator,
+    required this.receiptLink,
     required this.receiptMembers,
   });
 
@@ -30,6 +32,7 @@ class ReceiptModel {
       receiptDate: json['receipt_date'] ?? '',
       shared: json['shared'] ?? false,
       receiptCreator: json['receipt_creator'] ?? '',
+      receiptLink: json['receipt_link'] ?? '',
       receiptMembers: (json['receipt_members'] as List<dynamic>? ?? [])
           .map((e) => ReceiptMembersModel.fromJson(e))
           .toList(),
@@ -45,6 +48,7 @@ class ReceiptModel {
       'receipt_date': receiptDate,
       'shared': shared,
       'receipt_creator': receiptCreator,
+      'receipt_link': receiptLink,
       'receipt_members': receiptMembers.map((e) => e.toJson()).toList(),
     };
   }

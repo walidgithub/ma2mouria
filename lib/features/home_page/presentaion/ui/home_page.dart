@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
+import 'package:ma2mouria/features/home_page/presentaion/ui/widgets/recipet_image_dialog.dart';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,7 +25,6 @@ import 'package:ma2mouria/features/home_page/data/responses/member_report_respon
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_cubit.dart';
 import 'package:ma2mouria/features/home_page/presentaion/bloc/home_page_state.dart';
 import 'package:ma2mouria/features/home_page/presentaion/ui/widgets/receipt_members.dart';
-import 'package:collection/collection.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:uuid/uuid.dart';
@@ -34,14 +34,14 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/constant/months.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../core/utils/ui_components/snackbar.dart';
-import '../../data/model/cycle_model.dart';
+import '../../data/model/round_model.dart';
 import '../../data/model/receipt_model.dart';
 import '../../data/requests/add_member_request.dart';
-import '../../data/requests/delete_cycle_request.dart';
+import '../../data/requests/delete_round_request.dart';
 import '../../data/requests/delete_share_request.dart';
 import 'dart:html' as html;
 
-import '../../data/requests/get_active_cycle_request.dart';
+import '../../data/requests/get_active_round_request.dart';
 import '../../data/requests/get_head_report_request.dart';
 import '../../data/requests/get_members_request.dart';
 import '../../data/requests/get_receipts_request.dart';
@@ -84,18 +84,20 @@ class _HomeViewState extends State<HomeView>
       TextEditingController();
   final TextEditingController _membersCountTextController =
       TextEditingController();
-  final TextEditingController _cycleTextController = TextEditingController();
+  final TextEditingController _roundTextController = TextEditingController();
   final TextEditingController _receiptDetailTextController =
       TextEditingController();
   final TextEditingController _receiptValueTextController =
       TextEditingController();
   final TextEditingController _receiptShareTextController =
       TextEditingController();
+  final TextEditingController _receiptLinkTextController =
+  TextEditingController();
 
   double result = 0;
 
-  List<CycleModel>? activeCycles;
-  CycleModel? userActiveCycleData;
+  List<RoundModel>? activeRounds;
+  RoundModel? userActiveRoundData;
   String? selectedId;
   String? selectedZone;
   String? selectedReceiptUserName;
@@ -192,7 +194,7 @@ class _HomeViewState extends State<HomeView>
   double total = 0.0;
   double spending = 0.0;
   double leftOf = 0.0;
-  String cycleDate = "";
+  String roundDate = "";
   Map<String, String?>? userData;
   String savedReceiptId = "";
 
@@ -277,7 +279,7 @@ class _HomeViewState extends State<HomeView>
           if (state.rulesModel.rule == "admin") {
             isAdmin = true;
           }
-          HomePageCubit.get(context).getActiveCycle();
+          HomePageCubit.get(context).getActiveRound();
           // ------------------------------------------------------
         } else if (state is LogoutLoadingState) {
           showLoading();
@@ -357,34 +359,34 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           zonesList = state.zones;
           // ------------------------------------------------------
-        } else if (state is AddCycleLoadingState) {
+        } else if (state is AddRoundLoadingState) {
           showLoading();
-        } else if (state is AddCycleErrorState) {
+        } else if (state is AddRoundErrorState) {
           hideLoading();
           showAppSnackBar(
             context,
             state.errorMessage,
             type: SnackBarType.error,
           );
-        } else if (state is AddCycleSuccessState) {
+        } else if (state is AddRoundSuccessState) {
           hideLoading();
           showAppSnackBar(
             context,
-            AppStrings.cycleAdded.tr(),
+            AppStrings.roundAdded.tr(),
             type: SnackBarType.success,
           );
           _membersCountTextController.text = "";
           _memberBudgetTextController.text = "";
 
-          HomePageCubit.get(context).getActiveCycle();
+          HomePageCubit.get(context).getActiveRound();
           // ------------------------------------------------------
-        } else if (state is GetActiveCycleLoadingState) {
+        } else if (state is GetActiveRoundLoadingState) {
           showLoading();
-        } else if (state is GetActiveCycleErrorState) {
+        } else if (state is GetActiveRoundErrorState) {
           hideLoading();
-          activeCycles = null;
-          userActiveCycleData = null;
-          _cycleTextController.text = "";
+          activeRounds = null;
+          userActiveRoundData = null;
+          _roundTextController.text = "";
           membersList = [];
           receiptsList = [];
           receiptsIds = [];
@@ -393,39 +395,39 @@ class _HomeViewState extends State<HomeView>
           _receiptValueTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptShareTextController.text = "";
-        } else if (state is GetActiveCycleSuccessState) {
+          _receiptLinkTextController.text = "";
+        } else if (state is GetActiveRoundSuccessState) {
           hideLoading();
-          activeCycles = state.activeCycles;
-          // get cycle with zone match with user email and email------------------------
-          CycleModel? getCycleByMemberEmail(
-            List<CycleModel> cycles,
+          activeRounds = state.activeRounds;
+          RoundModel? getRoundByMemberEmail(
+            List<RoundModel> rounds,
             String email,
           ) {
             try {
-              return cycles.firstWhere(
-                (cycle) => cycle.members.any((m) => m.email == email),
+              return rounds.firstWhere(
+                (round) => round.members.any((m) => m.email == email),
               );
             } catch (e) {
               return null;
             }
           }
 
-          userActiveCycleData = getCycleByMemberEmail(
-            activeCycles!,
+          userActiveRoundData = getRoundByMemberEmail(
+            activeRounds!,
             userData!['email']!,
           );
-          if (userActiveCycleData != null) {
-            _cycleTextController.text = userActiveCycleData!.cycleName;
-            membersList = userActiveCycleData!.members;
+          if (userActiveRoundData != null) {
+            _roundTextController.text = userActiveRoundData!.roundName;
+            membersList = userActiveRoundData!.members;
             // home page ------------
-            cycleDate = userActiveCycleData!.cycleDate;
-            total = userActiveCycleData!.memberBudget;
+            roundDate = userActiveRoundData!.roundDate;
+            total = userActiveRoundData!.memberBudget;
             spending = receiptMembersList.fold(
               0.0,
               (sum, m) => sum + m.shareValue,
             );
             // ---------------------------------------
-            receiptsList = userActiveCycleData!.receipts;
+            receiptsList = userActiveRoundData!.receipts;
             receiptsIds = receiptsList
                 .where((receipt) => receipt.shared)
                 .map((receipt) => receipt.receiptId)
@@ -436,7 +438,7 @@ class _HomeViewState extends State<HomeView>
             );
             HomePageCubit.get(context).getMemberReport(memberReportRequest);
           } else {
-            userActiveCycleData = null;
+            userActiveRoundData = null;
           }
           // ------------------------------------------------------
         } else if (state is GetMembersLoadingState) {
@@ -453,18 +455,18 @@ class _HomeViewState extends State<HomeView>
           membersList = state.members;
           HomePageCubit.get(context).getUsers();
           // ------------------------------------------------------
-        } else if (state is DeleteCycleLoadingState) {
+        } else if (state is DeleteRoundLoadingState) {
           showLoading();
-        } else if (state is DeleteCycleErrorState) {
+        } else if (state is DeleteRoundErrorState) {
           hideLoading();
           showAppSnackBar(
             context,
             state.errorMessage,
             type: SnackBarType.error,
           );
-        } else if (state is DeleteCycleSuccessState) {
+        } else if (state is DeleteRoundSuccessState) {
           hideLoading();
-          activeCycles = null;
+          activeRounds = null;
           // ------------------------------------------------------
         } else if (state is AddMemberLoadingState) {
           showLoading();
@@ -479,7 +481,7 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           GetMembersRequest getMembersRequest = GetMembersRequest(
             zone: zone,
-            cycleName: _cycleTextController.text,
+            roundName: _roundTextController.text,
           );
           HomePageCubit.get(context).getMembers(getMembersRequest);
           // ------------------------------------------------------
@@ -496,7 +498,7 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           GetMembersRequest getMembersRequest = GetMembersRequest(
             zone: zone,
-            cycleName: _cycleTextController.text,
+            roundName: _roundTextController.text,
           );
           HomePageCubit.get(context).getMembers(getMembersRequest);
           // ------------------------------------------------------
@@ -532,12 +534,14 @@ class _HomeViewState extends State<HomeView>
             type: SnackBarType.error,
           );
           _receiptShareTextController.text = "";
+          _receiptLinkTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptValueTextController.text = "";
           receiptMembersList = [];
         } else if (state is AddReceiptSuccessState) {
           hideLoading();
           _receiptShareTextController.text = "";
+          _receiptLinkTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptValueTextController.text = "";
           receiptMembersList = [];
@@ -546,7 +550,7 @@ class _HomeViewState extends State<HomeView>
               : savedReceiptId = "";
           GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(
             zone: zone,
-            cycleName: userActiveCycleData!.cycleName,
+            roundName: userActiveRoundData!.roundName,
           );
           HomePageCubit.get(context).getReceipts(getReceiptsRequest);
           // ------------------------------------------------------
@@ -563,7 +567,7 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(
             zone: zone,
-            cycleName: userActiveCycleData!.cycleName,
+            roundName: userActiveRoundData!.roundName,
           );
           HomePageCubit.get(context).getReceipts(getReceiptsRequest);
           // ------------------------------------------------------
@@ -676,11 +680,11 @@ class _HomeViewState extends State<HomeView>
                                           ? _buildReceiptContent()
                                           : _currentIndex == 2
                                           ? isHead
-                                                ? _buildCycleContent()
+                                                ? _buildRoundContent()
                                                 : Container()
                                           : _currentIndex == 3
                                           ? isHead
-                                                ? _buildCycleMembersContent()
+                                                ? _buildRoundMembersContent()
                                                 : Container()
                                           : _buildReportsContent(),
                                     )
@@ -688,7 +692,7 @@ class _HomeViewState extends State<HomeView>
                                 AppStrings.userDataNotReady.tr(),
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: isMobile() ? 20.sp : 8.sp,
+                                  fontSize: isMobile() ? 20.sp : 6.sp,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 0.5,
                                 ),
@@ -773,7 +777,7 @@ class _HomeViewState extends State<HomeView>
                   AppStrings.hi.tr(),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isMobile() ? 20.sp : 8.sp,
+                    fontSize: isMobile() ? 20.sp : 6.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -877,7 +881,7 @@ class _HomeViewState extends State<HomeView>
         initDateDropdowns();
         if (index == 0) {
           _calcTextController.text = "";
-          if (userActiveCycleData != null) {
+          if (userActiveRoundData != null) {
             MemberReportRequest memberReportRequest = MemberReportRequest(
               name: userData!['name']!,
               zone: zone,
@@ -889,6 +893,7 @@ class _HomeViewState extends State<HomeView>
           _receiptValueTextController.text = "";
           _receiptDetailTextController.text = "";
           _receiptShareTextController.text = "";
+          _receiptLinkTextController.text = "";
           isShared = false;
           isReceiptCreator = false;
         }
@@ -896,18 +901,18 @@ class _HomeViewState extends State<HomeView>
           _memberBudgetTextController.text = "";
           _membersCountTextController.text = "";
 
-          HomePageCubit.get(context).getActiveCycle();
+          HomePageCubit.get(context).getActiveRound();
         }
         if (index == 4) {
           MemberReportRequest memberReportRequest = MemberReportRequest(
             name: userName,
             zone: zone,
           );
-          if (userActiveCycleData != null) {
+          if (userActiveRoundData != null) {
             HomePageCubit.get(context).getMemberReport(memberReportRequest);
             GetHeadReportRequest getHeadReportRequest = GetHeadReportRequest(
               zone: zone,
-              cycleName: userActiveCycleData!.cycleName,
+              roundName: userActiveRoundData!.roundName,
             );
             HomePageCubit.get(context).getHeadReport(getHeadReportRequest);
           }
@@ -955,9 +960,9 @@ class _HomeViewState extends State<HomeView>
         Row(
           children: [
             Text(
-              amount,
+              "$amount ${AppStrings.currency.tr()}",
               style: TextStyle(
-                color: Colors.white,
+                color: double.parse(amount) < 0 ? Colors.redAccent : Colors.white,
                 fontSize: isMobile() ? 15.sp : 5.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -1009,13 +1014,13 @@ class _HomeViewState extends State<HomeView>
   }
 
   Widget _buildCreditContent() {
-    if (activeCycles == null || activeCycles!.isEmpty) {
+    if (activeRounds == null || activeRounds!.isEmpty) {
       return Center(
         child: Text(
-          AppStrings.noActiveCycleNow.tr(),
+          AppStrings.noActiveRoundNow.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1023,13 +1028,13 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    if (userActiveCycleData == null) {
+    if (userActiveRoundData == null) {
       return Center(
         child: Text(
           AppStrings.notRegistered.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1043,7 +1048,7 @@ class _HomeViewState extends State<HomeView>
           AppStrings.myCredit.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1067,7 +1072,7 @@ class _HomeViewState extends State<HomeView>
               child: Column(
                 children: [
                   Text(
-                    cycleDate,
+                    roundDate,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -1080,7 +1085,7 @@ class _HomeViewState extends State<HomeView>
                   AnimatedBuilder(
                     animation: _animation,
                     builder: (context, child) {
-                      final percent = _animation.value;
+                      final percent = _animation.value.clamp(0.0, 1.0);
 
                       return CircularPercentIndicator(
                         radius: 50.r,
@@ -1118,21 +1123,21 @@ class _HomeViewState extends State<HomeView>
                         label: AppStrings.leftOf.tr(),
                         color: const Color(0xFFFF8C61),
                         amount:
-                            "${result.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
+                            result.toStringAsFixed(2),
                       ),
                       const SizedBox(height: 16),
                       _buildSpendingRow(
                         label: AppStrings.spending.tr(),
                         color: const Color(0xFFAF133D),
                         amount:
-                            "${spending.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
+                            spending.toStringAsFixed(2),
                       ),
                       const SizedBox(height: 16),
                       _buildSpendingRow(
                         label: AppStrings.total.tr(),
                         color: const Color(0xFF6B4EFF),
                         amount:
-                            "${total.toStringAsFixed(2)} ${AppStrings.currency.tr()}",
+                            total.toStringAsFixed(2),
                       ),
                     ],
                   ),
@@ -1165,7 +1170,7 @@ class _HomeViewState extends State<HomeView>
             prefixIcon: Icon(
               Icons.calculate,
               color: Colors.white,
-              size: isMobile() ? 20.sp : 8.sp,
+              size: isMobile() ? 20.sp : 6.sp,
             ),
           ),
         ),
@@ -1174,13 +1179,13 @@ class _HomeViewState extends State<HomeView>
   }
 
   Widget _buildReceiptContent() {
-    if (activeCycles == null || activeCycles!.isEmpty) {
+    if (activeRounds == null || activeRounds!.isEmpty) {
       return Center(
         child: Text(
-          AppStrings.noActiveCycleNow.tr(),
+          AppStrings.noActiveRoundNow.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1188,13 +1193,13 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    if (userActiveCycleData == null) {
+    if (userActiveRoundData == null) {
       return Center(
         child: Text(
           AppStrings.notRegistered.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -1211,7 +1216,7 @@ class _HomeViewState extends State<HomeView>
               AppStrings.addReceipt.tr(),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: isMobile() ? 20.sp : 8.sp,
+                fontSize: isMobile() ? 20.sp : 6.sp,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
@@ -1269,6 +1274,7 @@ class _HomeViewState extends State<HomeView>
                         _receiptValueTextController.text = "";
                         _receiptDetailTextController.text = "";
                         _receiptShareTextController.text = "";
+                        _receiptLinkTextController.text = "";
                         receiptMembersList = [];
                         savedReceiptId = "";
                         selectedId = null;
@@ -1278,7 +1284,7 @@ class _HomeViewState extends State<HomeView>
                         GetReceiptsRequest getReceiptsRequest =
                             GetReceiptsRequest(
                               zone: zone,
-                              cycleName: userActiveCycleData!.cycleName,
+                              roundName: userActiveRoundData!.roundName,
                             );
                         HomePageCubit.get(
                           context,
@@ -1293,8 +1299,6 @@ class _HomeViewState extends State<HomeView>
                 ],
               ),
 
-              SizedBox(width: 20.w),
-
               isShared
                   ? Row(
                       children: [
@@ -1305,6 +1309,7 @@ class _HomeViewState extends State<HomeView>
                             _receiptValueTextController.text = "";
                             _receiptDetailTextController.text = "";
                             _receiptShareTextController.text = "";
+                            _receiptLinkTextController.text = "";
                             receiptMembersList = [];
                             savedReceiptId = "";
                             selectedId = null;
@@ -1408,6 +1413,7 @@ class _HomeViewState extends State<HomeView>
                                         .receiptMembers;
 
                                     _receiptShareTextController.text = "";
+                                    _receiptLinkTextController.text = "";
                                   });
                                 },
                               ),
@@ -1423,11 +1429,12 @@ class _HomeViewState extends State<HomeView>
                                 _receiptValueTextController.text = "";
                                 _receiptDetailTextController.text = "";
                                 _receiptShareTextController.text = "";
+                                _receiptLinkTextController.text = "";
                                 receiptMembersList = [];
                                 GetReceiptsRequest getReceiptsRequest =
                                     GetReceiptsRequest(
                                       zone: zone,
-                                      cycleName: userActiveCycleData!.cycleName,
+                                      roundName: userActiveRoundData!.roundName,
                                     );
                                 HomePageCubit.get(
                                   context,
@@ -1435,7 +1442,7 @@ class _HomeViewState extends State<HomeView>
                               },
                               borderRadius: BorderRadius.circular(10.r),
                               child: Container(
-                                padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
+                                padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10.r),
@@ -1446,7 +1453,7 @@ class _HomeViewState extends State<HomeView>
                                 child: Icon(
                                   Icons.refresh,
                                   color: Colors.white,
-                                  size: isMobile() ? 20.sp : 8.sp,
+                                  size: isMobile() ? 20.sp : 6.sp,
                                 ),
                               ),
                             ),
@@ -1510,6 +1517,52 @@ class _HomeViewState extends State<HomeView>
               ),
             ),
           ),
+
+          SizedBox(height: 10.h),
+
+          isShared && isReceiptCreator ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: TextField(
+                controller: _receiptLinkTextController,
+                enabled: true,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isMobile() ? 15.sp : 5.sp,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  hintText: AppStrings.receiptLink.tr(),
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                ),
+              )),
+              isMobile() ? SizedBox(width: 10.w,) : SizedBox.shrink(),
+              isMobile() ?
+              InkWell(
+                onTap: () {
+
+                },
+                borderRadius: BorderRadius.circular(10.r),
+                child: Container(
+                  padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: Icon(
+                    Icons.camera_alt_outlined,
+                    color: Colors.white,
+                    size: isMobile() ? 20.sp : 6.sp,
+                  ),
+                ),
+              ) : SizedBox.shrink()
+            ],
+          ) : SizedBox.shrink(),
 
           isShared
               ? Column(
@@ -1648,7 +1701,7 @@ class _HomeViewState extends State<HomeView>
                     String id = uuid.v4();
                     String memberId = uuid.v4();
                     AddReceiptRequest receipt = AddReceiptRequest(
-                      cycleName: userActiveCycleData!.cycleName,
+                      roundName: userActiveRoundData!.roundName,
                       zone: zone,
                       receipt: ReceiptModel(
                         id: id,
@@ -1672,10 +1725,11 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ),
                         ],
+                        receiptLink: "",
                         receiptValue: double.parse(
                           _receiptValueTextController.text,
                         ),
-                        shared: isShared,
+                        shared: isShared
                       ),
                     );
                     HomePageCubit.get(context).addReceipt(receipt);
@@ -1719,6 +1773,30 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               ),
+
+              isShared && !isReceiptCreator ? InkWell(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => ReceiptImageDialog(imageUrl: "https://ibb.co/FkBxVj13",),
+                  );
+                },
+                borderRadius: BorderRadius.circular(10.r),
+                child: Container(
+                  padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child: Icon(
+                    Icons.image,
+                    color: Colors.white,
+                    size: isMobile() ? 20.sp : 6.sp,
+                  ),
+                ),
+              ) : SizedBox.shrink(),
+
               isShared && !isReceiptCreator
                   ? SizedBox(
                       child: Bounceable(
@@ -1744,7 +1822,7 @@ class _HomeViewState extends State<HomeView>
                                         userData: userData,
                                         receiptMembersList: receiptMembersList,
                                         selectedId: selectedId!,
-                                        cycleName: userActiveCycleData!.cycleName,
+                                        roundName: userActiveRoundData!.roundName,
                                         totalValue:
                                             _receiptValueTextController.text,
                                         zone: zone,
@@ -1795,7 +1873,7 @@ class _HomeViewState extends State<HomeView>
                                     child: Icon(
                                       Icons.group,
                                       color: Colors.white,
-                                      size: isMobile() ? 20.sp : 8.sp,
+                                      size: isMobile() ? 20.sp : 6.sp,
                                     ),
                                   ),
                                 ),
@@ -1814,7 +1892,7 @@ class _HomeViewState extends State<HomeView>
                           DeleteReceiptRequest deleteReceiptRequest =
                               DeleteReceiptRequest(
                                 receiptId: selectedId!,
-                                cycleName: userActiveCycleData!.cycleName,
+                                roundName: userActiveRoundData!.roundName,
                                 zone: zone,
                               );
                           HomePageCubit.get(
@@ -1832,9 +1910,6 @@ class _HomeViewState extends State<HomeView>
                                   sigmaY: 10.w,
                                 ),
                                 child: Container(
-                                  margin: EdgeInsets.symmetric(
-                                    horizontal: 10.w,
-                                  ),
                                   padding: EdgeInsets.symmetric(
                                     horizontal: 10.w,
                                     vertical: 10.h,
@@ -1853,7 +1928,7 @@ class _HomeViewState extends State<HomeView>
                                     child: Icon(
                                       Icons.delete,
                                       color: Colors.redAccent,
-                                      size: isMobile() ? 20.w : 8.sp,
+                                      size: isMobile() ? 20.w : 6.sp,
                                     ),
                                   ),
                                 ),
@@ -1871,17 +1946,17 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  Widget _buildCycleContent() {
+  Widget _buildRoundContent() {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Text(
-              AppStrings.addCycle.tr(),
+              AppStrings.addRound.tr(),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: isMobile() ? 20.sp : 8.sp,
+                fontSize: isMobile() ? 20.sp : 6.sp,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
@@ -1989,12 +2064,12 @@ class _HomeViewState extends State<HomeView>
               var uuid = Uuid();
               String id = uuid.v4();
               String userId = uuid.v4();
-              CycleModel cycle = CycleModel(
+              RoundModel round = RoundModel(
                 id: id,
                 membersCount: int.parse(_membersCountTextController.text),
                 active: true,
-                cycleDate: "$selectedMonth  $selectedYear",
-                cycleName: "$selectedMonth  $selectedYear",
+                roundDate: "$selectedMonth  $selectedYear",
+                roundName: "$selectedMonth  $selectedYear",
                 memberBudget: double.parse(_memberBudgetTextController.text),
                 members: [
                   MemberModel(
@@ -2006,7 +2081,7 @@ class _HomeViewState extends State<HomeView>
                 receipts: [],
                 zone: zone,
               );
-              HomePageCubit.get(context).addCycle(cycle);
+              HomePageCubit.get(context).addRound(round);
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -2051,7 +2126,7 @@ class _HomeViewState extends State<HomeView>
 
           SizedBox(height: 20.h),
 
-          activeCycles != null && activeCycles!.isNotEmpty && userActiveCycleData != null
+          activeRounds != null && activeRounds!.isNotEmpty && userActiveRoundData != null
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(20.r),
                   child: BackdropFilter(
@@ -2078,7 +2153,7 @@ class _HomeViewState extends State<HomeView>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                AppStrings.activeCycle.tr(),
+                                AppStrings.activeRound.tr(),
                                 style: TextStyle(
                                   color: Colors.deepOrangeAccent,
                                   fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2089,7 +2164,7 @@ class _HomeViewState extends State<HomeView>
                               SizedBox(height: 10.h),
 
                               Text(
-                                userActiveCycleData!.cycleName,
+                                userActiveRoundData!.roundName,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2113,7 +2188,7 @@ class _HomeViewState extends State<HomeView>
                                   SizedBox(width: 10.w),
 
                                   Text(
-                                    "${userActiveCycleData!.memberBudget} ${AppStrings.currency.tr()}",
+                                    "${userActiveRoundData!.memberBudget} ${AppStrings.currency.tr()}",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2136,7 +2211,7 @@ class _HomeViewState extends State<HomeView>
                                   SizedBox(width: 10.w),
 
                                   Text(
-                                    userActiveCycleData!.membersCount.toString(),
+                                    userActiveRoundData!.membersCount.toString(),
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2149,14 +2224,14 @@ class _HomeViewState extends State<HomeView>
                           ),
                           Bounceable(
                             onTap: () {
-                              DeleteCycleRequest deleteCycleRequest =
-                                  DeleteCycleRequest(
+                              DeleteRoundRequest deleteRoundRequest =
+                                  DeleteRoundRequest(
                                     zone: zone,
-                                    cycleName: userActiveCycleData!.cycleName,
+                                    roundName: userActiveRoundData!.roundName,
                                   );
                               HomePageCubit.get(
                                 context,
-                              ).deleteCycle(deleteCycleRequest);
+                              ).deleteRound(deleteRoundRequest);
                             },
                             child: Icon(
                               Icons.delete,
@@ -2171,10 +2246,10 @@ class _HomeViewState extends State<HomeView>
                 )
               : Center(
                   child: Text(
-                    AppStrings.noActiveCycleNow.tr(),
+                    AppStrings.noActiveRoundNow.tr(),
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: isMobile() ? 20.sp : 8.sp,
+                      fontSize: isMobile() ? 20.sp : 6.sp,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
                     ),
@@ -2185,16 +2260,16 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  Widget _buildCycleMembersContent() {
+  Widget _buildRoundMembersContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Center(
           child: Text(
-            AppStrings.cycleMembers.tr(),
+            AppStrings.roundMembers.tr(),
             style: TextStyle(
               color: Colors.white,
-              fontSize: isMobile() ? 20.sp : 8.sp,
+              fontSize: isMobile() ? 20.sp : 6.sp,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -2203,7 +2278,7 @@ class _HomeViewState extends State<HomeView>
         SizedBox(height: 10.h),
 
         TextField(
-          controller: _cycleTextController,
+          controller: _roundTextController,
           keyboardType: TextInputType.text,
           enabled: false,
           style: TextStyle(
@@ -2212,7 +2287,7 @@ class _HomeViewState extends State<HomeView>
           ),
           decoration: InputDecoration(
             filled: true,
-            hintText: AppStrings.cycleName.tr(),
+            hintText: AppStrings.roundName.tr(),
             hintStyle: TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
@@ -2230,7 +2305,7 @@ class _HomeViewState extends State<HomeView>
             },
             borderRadius: BorderRadius.circular(10.r),
             child: Container(
-              padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
+              padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10.r),
@@ -2239,7 +2314,7 @@ class _HomeViewState extends State<HomeView>
               child: Icon(
                 Icons.refresh,
                 color: Colors.white,
-                size: isMobile() ? 20.sp : 8.sp,
+                size: isMobile() ? 20.sp : 6.sp,
               ),
             ),
           ),
@@ -2308,13 +2383,13 @@ class _HomeViewState extends State<HomeView>
                             ),
                             child: Bounceable(
                               onTap: () {
-                                if (_cycleTextController.text == "") {
-                                  showAppSnackBar(context, AppStrings.noActiveCycleNow.tr(), type: SnackBarType.warning);
+                                if (_roundTextController.text == "") {
+                                  showAppSnackBar(context, AppStrings.noActiveRoundNow.tr(), type: SnackBarType.warning);
                                       return;
                                 }
                                 AddMemberRequest addMemberRequest =
                                     AddMemberRequest(
-                                      cycleName: _cycleTextController.text,
+                                      roundName: _roundTextController.text,
                                       member: MemberModel(
                                         id: item.id,
                                         name: item.name,
@@ -2334,7 +2409,7 @@ class _HomeViewState extends State<HomeView>
                                     item.name,
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: isMobile() ? 12.sp : 5.sp,
+                                      fontSize: isMobile() ? 12.sp : 4.sp,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -2359,7 +2434,7 @@ class _HomeViewState extends State<HomeView>
                   AppStrings.noLoggedUsers.tr(),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isMobile() ? 20.sp : 8.sp,
+                    fontSize: isMobile() ? 20.sp : 6.sp,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -2429,8 +2504,8 @@ class _HomeViewState extends State<HomeView>
                                         deleteMemberRequest =
                                             DeleteMemberRequest(
                                               zone: zone,
-                                              cycleName:
-                                                  _cycleTextController.text,
+                                              roundName:
+                                                  _roundTextController.text,
                                               member: MemberModel(
                                                 id: item.id,
                                                 name: item.name,
@@ -2458,10 +2533,10 @@ class _HomeViewState extends State<HomeView>
               )
             : Center(
                 child: Text(
-                  AppStrings.noActiveCycleNow.tr(),
+                  AppStrings.noActiveRoundNow.tr(),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isMobile() ? 20.sp : 8.sp,
+                    fontSize: isMobile() ? 20.sp : 6.sp,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -2472,13 +2547,13 @@ class _HomeViewState extends State<HomeView>
   }
 
   Widget _buildReportsContent() {
-    if (activeCycles == null || activeCycles!.isEmpty) {
+    if (activeRounds == null || activeRounds!.isEmpty) {
       return Center(
         child: Text(
-          AppStrings.noActiveCycleNow.tr(),
+          AppStrings.noActiveRoundNow.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -2486,13 +2561,13 @@ class _HomeViewState extends State<HomeView>
       );
     }
 
-    if (userActiveCycleData == null) {
+    if (userActiveRoundData == null) {
       return Center(
         child: Text(
           AppStrings.notRegistered.tr(),
           style: TextStyle(
             color: Colors.white,
-            fontSize: isMobile() ? 20.sp : 8.sp,
+            fontSize: isMobile() ? 20.sp : 6.sp,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
@@ -2508,7 +2583,7 @@ class _HomeViewState extends State<HomeView>
             AppStrings.reports.tr(),
             style: TextStyle(
               color: Colors.white,
-              fontSize: isMobile() ? 20.sp : 8.sp,
+              fontSize: isMobile() ? 20.sp : 6.sp,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -2532,7 +2607,7 @@ class _HomeViewState extends State<HomeView>
                           GetHeadReportRequest getHeadReportRequest =
                               GetHeadReportRequest(
                                 zone: zone,
-                                cycleName: userActiveCycleData!.cycleName,
+                                roundName: userActiveRoundData!.roundName,
                               );
                           HomePageCubit.get(
                             context,
@@ -2636,7 +2711,7 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                   SizedBox(width: 5.h),
                                   Text(
-                                    "${userActiveCycleData!.memberBudget - double.parse(item.leftOf)} ${AppStrings.currency.tr()}",
+                                    "${userActiveRoundData!.memberBudget - double.parse(item.leftOf)} ${AppStrings.currency.tr()}",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2732,7 +2807,7 @@ class _HomeViewState extends State<HomeView>
                                     child: Icon(
                                       Icons.delete,
                                       color: Colors.redAccent,
-                                      size: isMobile() ? 20.w : 8.sp,
+                                      size: isMobile() ? 20.w : 6.sp,
                                     ),
                                   ),
                                 ],
@@ -2807,7 +2882,7 @@ class _HomeViewState extends State<HomeView>
                       Text(
                         !showTotal
                             ? "${memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)).toStringAsFixed(2)} ${AppStrings.currency.tr()}"
-                            : "${(headReportList.length * userActiveCycleData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} ${AppStrings.currency.tr()}",
+                            : "${(headReportList.length * userActiveRoundData!.memberBudget) - headReportList.fold(0.0, (sum, m) => sum + double.parse(m.leftOf))} ${AppStrings.currency.tr()}",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2833,7 +2908,7 @@ class _HomeViewState extends State<HomeView>
                             SizedBox(width: 10.w),
 
                             Text(
-                              "${(userActiveCycleData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))} ${AppStrings.currency.tr()}",
+                              "${(userActiveRoundData!.memberBudget - memberReportList.fold(0.0, (sum, m) => sum + double.parse(m.shareValue)))} ${AppStrings.currency.tr()}",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: isMobile() ? 15.sp : 5.sp,
@@ -2860,7 +2935,7 @@ class _HomeViewState extends State<HomeView>
             AppStrings.settings.tr(),
             style: TextStyle(
               color: Colors.white,
-              fontSize: isMobile() ? 20.sp : 8.sp,
+              fontSize: isMobile() ? 20.sp : 6.sp,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
             ),
@@ -2875,7 +2950,7 @@ class _HomeViewState extends State<HomeView>
             },
             borderRadius: BorderRadius.circular(10.r),
             child: Container(
-              padding: EdgeInsets.all(isMobile() ? 8.w : 4.w),
+              padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10.r),
@@ -2884,7 +2959,7 @@ class _HomeViewState extends State<HomeView>
               child: Icon(
                 Icons.refresh,
                 color: Colors.white,
-                size: isMobile() ? 20.sp : 8.sp,
+                size: isMobile() ? 20.sp : 6.sp,
               ),
             ),
           ),
@@ -2892,15 +2967,15 @@ class _HomeViewState extends State<HomeView>
 
         isMobile()
             ? SizedBox.shrink()
-            : Text(
-                AppStrings.horizontalScroll.tr(),
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 5.sp,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
+            : allUsersList.isNotEmpty ? Text(
+          AppStrings.horizontalScroll.tr(),
+          style: TextStyle(
+            color: Colors.redAccent,
+            fontSize: 5.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ) : SizedBox.shrink(),
 
         allUsersList.isNotEmpty
             ? SizedBox(
@@ -2961,7 +3036,7 @@ class _HomeViewState extends State<HomeView>
                                   item.name,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: isMobile() ? 12.sp : 5.sp,
+                                    fontSize: isMobile() ? 12.sp : 4.sp,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -2979,7 +3054,7 @@ class _HomeViewState extends State<HomeView>
                   AppStrings.noLoggedUsers.tr(),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: isMobile() ? 20.sp : 8.sp,
+                    fontSize: isMobile() ? 20.sp : 6.sp,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),

@@ -1,24 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/reset_rule_request.dart';
 
 import '../../../../core/di/di.dart';
+import '../../../../core/dio_error/dio_failure.dart';
+import '../../../../core/utils/constant/app_constants.dart';
 import '../../../../core/utils/constant/app_strings.dart';
-import '../model/cycle_model.dart';
+import '../model/round_model.dart';
 import '../model/member_model.dart';
 import '../model/receipt_members_model.dart';
 import '../model/rules_model.dart';
+import '../model/upload_image_model.dart';
 import '../model/zones_model.dart';
 import '../requests/add_receipt_request.dart';
 import '../requests/add_member_request.dart';
-import '../requests/delete_cycle_request.dart';
+import '../requests/delete_round_request.dart';
 import '../requests/delete_receipt_request.dart';
 import '../requests/delete_member_request.dart';
 import '../requests/delete_share_request.dart';
 import '../requests/edit_share_request.dart';
-import '../requests/get_active_cycle_request.dart';
+import '../requests/get_active_round_request.dart';
 import '../requests/get_head_report_request.dart';
 import '../requests/get_members_request.dart';
 import '../requests/get_receipts_request.dart';
@@ -30,9 +34,9 @@ import '../responses/member_report_response.dart';
 abstract class BaseDataSource {
   Future<void> logout();
   Future<RulesModel?> getRuleByEmail(String email);
-  Future<void> addCycle(CycleModel cycle);
-  Future<void> deleteCycle(DeleteCycleRequest deleteCycleRequest);
-  Future<List<CycleModel>> getActiveCycle();
+  Future<void> addRound(RoundModel round);
+  Future<void> deleteRound(DeleteRoundRequest deleteRoundRequest);
+  Future<List<RoundModel>> getActiveRound();
   Future<void> addMember(AddMemberRequest addMemberRequest);
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest);
   Future<List<MemberModel>> getMembers(GetMembersRequest getMembersRequest);
@@ -49,10 +53,12 @@ abstract class BaseDataSource {
   Future<List<MemberReportResponse>> getMemberReport(MemberReportRequest memberReportRequest);
   Future<List<HeadReportResponse>> getHeadReport(GetHeadReportRequest getHeadReportRequest);
   Future<void> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest);
+  Future<UploadedImageModel> uploadImage(String filePath);
 }
 
 class HomePageDataSource extends BaseDataSource {
   final FirebaseAuth auth = sl<FirebaseAuth>();
+  final dio = sl<Dio>();
   final FirebaseFirestore firestore = sl<FirebaseFirestore>();
 
   // done------------------------
@@ -79,10 +85,10 @@ class HomePageDataSource extends BaseDataSource {
 
   // done------------------------
   @override
-  Future<List<CycleModel>> getActiveCycle() async {
+  Future<List<RoundModel>> getActiveRound() async {
     try {
       final query = await firestore
-          .collection('cycles')
+          .collection('rounds')
           .where('active', isEqualTo: true)
           .get();
 
@@ -91,7 +97,7 @@ class HomePageDataSource extends BaseDataSource {
       }
 
       return query.docs
-          .map((doc) => CycleModel.fromJson(doc.data()))
+          .map((doc) => RoundModel.fromJson(doc.data()))
           .toList();
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
@@ -120,31 +126,31 @@ class HomePageDataSource extends BaseDataSource {
 
   // done------------------------
   @override
-  Future<void> addCycle(CycleModel cycle) async {
+  Future<void> addRound(RoundModel round) async {
     try {
-      final collectionRef = firestore.collection('cycles');
+      final collectionRef = firestore.collection('rounds');
 
       final existing = await collectionRef
-          .where('cycle_name', isEqualTo: cycle.cycleName)
-          .where('zone', isEqualTo: cycle.zone)
+          .where('round_name', isEqualTo: round.roundName)
+          .where('zone', isEqualTo: round.zone)
           .get();
 
       if (existing.docs.isNotEmpty) {
-        throw Exception('${AppStrings.cycleName.tr()} "${cycle.cycleName}" ${AppStrings.exist.tr()}');
+        throw Exception('${AppStrings.roundName.tr()} "${round.roundName}" ${AppStrings.exist.tr()}');
       }
 
-      final activeCycles = await collectionRef
+      final activeRounds = await collectionRef
           .where('active', isEqualTo: true)
-          .where('zone', isEqualTo: cycle.zone)
+          .where('zone', isEqualTo: round.zone)
           .get();
 
       final batch = firestore.batch();
-      for (final doc in activeCycles.docs) {
+      for (final doc in activeRounds.docs) {
         batch.update(doc.reference, {'active': false});
       }
 
-      final newCycleRef = collectionRef.doc();
-      batch.set(newCycleRef, cycle.toJson());
+      final newRoundRef = collectionRef.doc();
+      batch.set(newRoundRef, round.toJson());
 
       await batch.commit();
     } on FirebaseException catch (e) {
@@ -156,18 +162,18 @@ class HomePageDataSource extends BaseDataSource {
 
   // done------------------------
   @override
-  Future<void> deleteCycle(DeleteCycleRequest deleteCycleRequest) async {
+  Future<void> deleteRound(DeleteRoundRequest deleteRoundRequest) async {
     try {
-      final collectionRef = firestore.collection('cycles');
+      final collectionRef = firestore.collection('rounds');
 
       final querySnapshot = await collectionRef
-          .where('cycle_name', isEqualTo: deleteCycleRequest.cycleName)
+          .where('round_name', isEqualTo: deleteRoundRequest.roundName)
           .where('active', isEqualTo: true)
-          .where('zone', isEqualTo: deleteCycleRequest.zone)
+          .where('zone', isEqualTo: deleteRoundRequest.zone)
           .get();
 
       if (querySnapshot.docs.isEmpty) {
-        throw Exception('${AppStrings.cycleName.tr()} "${deleteCycleRequest.cycleName}" ${AppStrings.notFoundOrActiveCycle.tr()}');
+        throw Exception('${AppStrings.roundName.tr()} "${deleteRoundRequest.roundName}" ${AppStrings.notFoundOrActiveRound.tr()}');
       }
 
       for (var doc in querySnapshot.docs) {
@@ -185,15 +191,15 @@ class HomePageDataSource extends BaseDataSource {
   Future<void> addMember(AddMemberRequest addMemberRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
-          .where('cycle_name', isEqualTo: addMemberRequest.cycleName)
+          .collection('rounds')
+          .where('round_name', isEqualTo: addMemberRequest.roundName)
           .where('zone', isEqualTo: addMemberRequest.zone)
           .where('active', isEqualTo: true)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception('${AppStrings.cycleName.tr()} "${addMemberRequest.cycleName}" ${AppStrings.notFoundOrActiveCycle.tr()}');
+        throw Exception('${AppStrings.roundName.tr()} "${addMemberRequest.roundName}" ${AppStrings.notFoundOrActiveRound.tr()}');
       }
 
       final docRef = query.docs.first.reference;
@@ -236,7 +242,7 @@ class HomePageDataSource extends BaseDataSource {
     }
   }
 
-  // for adding cycle and deleting or adding member------------------------
+  // for adding round and deleting or adding member------------------------
   Future<void> _updateMemberRule({
     required String memberEmail,
     required String zone,
@@ -271,21 +277,21 @@ class HomePageDataSource extends BaseDataSource {
       QuerySnapshot<Map<String, dynamic>> query;
 
       query = await firestore
-          .collection('cycles')
-          .where('cycle_name', isEqualTo: getMembersRequest.cycleName)
+          .collection('rounds')
+          .where('round_name', isEqualTo: getMembersRequest.roundName)
           .where('zone', isEqualTo: getMembersRequest.zone)
           .where('active', isEqualTo: true)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleData = query.docs.first.data();
-      final cycle = CycleModel.fromJson(cycleData);
+      final roundData = query.docs.first.data();
+      final round = RoundModel.fromJson(roundData);
 
-      return cycle.members;
+      return round.members;
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {
@@ -298,31 +304,31 @@ class HomePageDataSource extends BaseDataSource {
   Future<void> deleteMember(DeleteMemberRequest deleteMemberRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
-          .where('cycle_name', isEqualTo: deleteMemberRequest.cycleName)
+          .collection('rounds')
+          .where('round_name', isEqualTo: deleteMemberRequest.roundName)
           .where('zone', isEqualTo: deleteMemberRequest.zone)
           .where('active', isEqualTo: true)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
       final docRef = query.docs.first.reference;
       final data = query.docs.first.data();
 
-      final cycle = CycleModel.fromJson(data);
+      final round = RoundModel.fromJson(data);
 
-      final isMemberExist = cycle.members.any(
+      final isMemberExist = round.members.any(
         (m) => m.id == deleteMemberRequest.member.id,
       );
 
       if (!isMemberExist) {
-        throw Exception(AppStrings.memberNotFoundInCycle.tr());
+        throw Exception(AppStrings.memberNotFoundInRound.tr());
       }
 
-      final updatedMembers = cycle.members
+      final updatedMembers = round.members
           .where((m) => m.id != deleteMemberRequest.member.id)
           .toList();
 
@@ -367,15 +373,15 @@ class HomePageDataSource extends BaseDataSource {
   Future<String> addReceipt(AddReceiptRequest addReceiptRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
-          .where('cycle_name', isEqualTo: addReceiptRequest.cycleName)
+          .collection('rounds')
+          .where('round_name', isEqualTo: addReceiptRequest.roundName)
           .where('zone', isEqualTo: addReceiptRequest.zone)
           .where('active', isEqualTo: true)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception('${AppStrings.cycleName.tr()} "${addReceiptRequest.cycleName}" ${AppStrings.notFoundOrActiveCycle.tr()}');
+        throw Exception('${AppStrings.roundName.tr()} "${addReceiptRequest.roundName}" ${AppStrings.notFoundOrActiveRound.tr()}');
       }
 
       final docRef = query.docs.first.reference;
@@ -440,21 +446,21 @@ class HomePageDataSource extends BaseDataSource {
       QuerySnapshot<Map<String, dynamic>> query;
 
       query = await firestore
-          .collection('cycles')
-          .where('cycle_name', isEqualTo: getReceiptsRequest.cycleName)
+          .collection('rounds')
+          .where('round_name', isEqualTo: getReceiptsRequest.roundName)
           .where('zone', isEqualTo: getReceiptsRequest.zone)
           .where('active', isEqualTo: true)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleData = query.docs.first.data();
-      final cycle = CycleModel.fromJson(cycleData);
+      final roundData = query.docs.first.data();
+      final round = RoundModel.fromJson(roundData);
 
-      return cycle.receipts;
+      return round.receipts;
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {
@@ -467,31 +473,31 @@ class HomePageDataSource extends BaseDataSource {
   Future<void> deleteReceipt(DeleteReceiptRequest deleteReceiptRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
-          .where('cycle_name', isEqualTo: deleteReceiptRequest.cycleName)
+          .collection('rounds')
+          .where('round_name', isEqualTo: deleteReceiptRequest.roundName)
           .where('zone', isEqualTo: deleteReceiptRequest.zone)
           .where('active', isEqualTo: true)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
       final docRef = query.docs.first.reference;
       final data = query.docs.first.data();
 
-      final cycle = CycleModel.fromJson(data);
+      final round = RoundModel.fromJson(data);
 
-      final isReceiptExist = cycle.receipts.any(
+      final isReceiptExist = round.receipts.any(
         (m) => m.receiptId == deleteReceiptRequest.receiptId,
       );
 
       if (!isReceiptExist) {
-        throw Exception('${AppStrings.receiptNotFound.tr()} ${AppStrings.inCycle.tr()}');
+        throw Exception('${AppStrings.receiptNotFound.tr()} ${AppStrings.inRound.tr()}');
       }
 
-      final updatedReceipts = cycle.receipts
+      final updatedReceipts = round.receipts
           .where((m) => m.receiptId != deleteReceiptRequest.receiptId)
           .toList();
 
@@ -510,19 +516,19 @@ class HomePageDataSource extends BaseDataSource {
   Future<void> deleteShare(DeleteShareRequest deleteShareRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
+          .collection('rounds')
           .where('active', isEqualTo: true)
           .where('zone', isEqualTo: deleteShareRequest.zone)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleDoc = query.docs.first;
+      final roundDoc = query.docs.first;
       final receipts = List<Map<String, dynamic>>.from(
-        cycleDoc['receipts'] ?? [],
+        roundDoc['receipts'] ?? [],
       );
 
       final receiptIndex = receipts.indexWhere(
@@ -541,7 +547,7 @@ class HomePageDataSource extends BaseDataSource {
 
       receipts[receiptIndex]['receipt_members'] = members;
 
-      await cycleDoc.reference.update({'receipts': receipts});
+      await roundDoc.reference.update({'receipts': receipts});
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {
@@ -554,19 +560,19 @@ class HomePageDataSource extends BaseDataSource {
   Future<void> editShare(EditShareRequest editShareRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
+          .collection('rounds')
           .where('active', isEqualTo: true)
           .where('zone', isEqualTo: editShareRequest.zone)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleDoc = query.docs.first;
+      final roundDoc = query.docs.first;
       final receipts = List<Map<String, dynamic>>.from(
-        cycleDoc['receipts'] ?? [],
+        roundDoc['receipts'] ?? [],
       );
 
       final receiptIndex = receipts.indexWhere(
@@ -588,7 +594,7 @@ class HomePageDataSource extends BaseDataSource {
       members[memberIndex] = editShareRequest.receiptMembersModel.toJson();
       receipts[receiptIndex]['receipt_members'] = members;
 
-      await cycleDoc.reference.update({'receipts': receipts});
+      await roundDoc.reference.update({'receipts': receipts});
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {
@@ -601,18 +607,18 @@ class HomePageDataSource extends BaseDataSource {
   Future<List<HeadReportResponse>> getHeadReport(GetHeadReportRequest getHeadReportRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
+          .collection('rounds')
           .where('active', isEqualTo: true)
           .where('zone', isEqualTo: getHeadReportRequest.zone)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleDoc = query.docs.first;
-      final receipts = List<Map<String, dynamic>>.from(cycleDoc['receipts'] ?? []);
+      final roundDoc = query.docs.first;
+      final receipts = List<Map<String, dynamic>>.from(roundDoc['receipts'] ?? []);
 
       final Map<String, double> memberTotals = {};
 
@@ -650,25 +656,25 @@ class HomePageDataSource extends BaseDataSource {
   @override
   Future<List<MemberReportResponse>> getMemberReport(MemberReportRequest memberReportRequest) async {
     try {
-      final cycleQuery = await firestore
-          .collection('cycles')
+      final roundQuery = await firestore
+          .collection('rounds')
           .where('active', isEqualTo: true)
           .where('zone', isEqualTo: memberReportRequest.zone)
           .limit(1)
           .get();
 
-      if (cycleQuery.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+      if (roundQuery.docs.isEmpty) {
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleDoc = cycleQuery.docs.first;
-      final data = cycleDoc.data();
+      final roundDoc = roundQuery.docs.first;
+      final data = roundDoc.data();
 
-      final cycle = CycleModel.fromJson({...data, 'id': cycleDoc.id});
+      final round = RoundModel.fromJson({...data, 'id': roundDoc.id});
 
       final List<MemberReportResponse> reports = [];
 
-      for (final receipt in cycle.receipts) {
+      for (final receipt in round.receipts) {
         for (final member in receipt.receiptMembers) {
           if (member.name == memberReportRequest.name) {
             reports.add(
@@ -697,19 +703,19 @@ class HomePageDataSource extends BaseDataSource {
   Future<void> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest) async {
     try {
       final query = await firestore
-          .collection('cycles')
+          .collection('rounds')
           .where('active', isEqualTo: true)
           .where('zone', isEqualTo: deleteShareRequest.zone)
           .limit(1)
           .get();
 
       if (query.docs.isEmpty) {
-        throw Exception(AppStrings.noActiveCycleNow.tr());
+        throw Exception(AppStrings.noActiveRoundNow.tr());
       }
 
-      final cycleDoc = query.docs.first;
+      final roundDoc = query.docs.first;
       final receipts = List<Map<String, dynamic>>.from(
-        cycleDoc['receipts'] ?? [],
+        roundDoc['receipts'] ?? [],
       );
 
       final receiptIndex = receipts.indexWhere(
@@ -732,7 +738,7 @@ class HomePageDataSource extends BaseDataSource {
         receipts[receiptIndex]['receipt_members'] = members;
       }
 
-      await cycleDoc.reference.update({'receipts': receipts});
+      await roundDoc.reference.update({'receipts': receipts});
     } on FirebaseException catch (e) {
       throw Exception('${AppStrings.firebaseError.tr()} ${e.message}');
     } catch (e) {
@@ -826,4 +832,25 @@ class HomePageDataSource extends BaseDataSource {
       rethrow;
     }
   }
+
+  @override
+  Future<UploadedImageModel> uploadImage(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        "source": await MultipartFile.fromFile(filePath),
+        "format": "json",
+      });
+
+      final response = await dio.post(
+        "upload?key=${AppConstants.apiKey}",
+        data: formData,
+      );
+
+      return UploadedImageModel.fromJson(response.data["data"]);
+    } on DioException catch (e) {
+      throw DioFailure.fromDioException(e);
+    }
+  }
+
+
 }

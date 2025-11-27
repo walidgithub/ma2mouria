@@ -1,43 +1,43 @@
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
 
-class CycleModel {
+class RoundModel {
   final String id;
   final List<MemberModel> members;
   final double memberBudget;
   final int membersCount;
-  final String cycleDate;
+  final String roundDate;
   final List<ReceiptModel> receipts;
   final bool active;
-  final String cycleName;
+  final String roundName;
   final String zone;
 
-  CycleModel({
+  RoundModel({
     required this.id,
     required this.members,
     required this.memberBudget,
     required this.membersCount,
-    required this.cycleDate,
+    required this.roundDate,
     required this.receipts,
     required this.active,
-    required this.cycleName,
+    required this.roundName,
     required this.zone,
   });
 
-  factory CycleModel.fromJson(Map<String, dynamic> json) {
-    return CycleModel(
+  factory RoundModel.fromJson(Map<String, dynamic> json) {
+    return RoundModel(
       id: json['id'] ?? '',
       members: (json['members'] as List<dynamic>? ?? [])
           .map((e) => MemberModel.fromJson(e))
           .toList(),
       memberBudget: (json['member_budget'] ?? 0).toDouble(),
       membersCount: json['members_count'] ?? 0,
-      cycleDate: json['cycle_date'] ?? '',
+      roundDate: json['round_date'] ?? '',
       receipts: (json['receipts'] as List<dynamic>? ?? [])
           .map((e) => ReceiptModel.fromJson(e))
           .toList(),
       active: json['active'] ?? false,
-      cycleName: json['cycle_name'] ?? '',
+      roundName: json['round_name'] ?? '',
       zone: json['zone'] ?? '',
     );
   }
@@ -48,10 +48,10 @@ class CycleModel {
       'members': members.map((e) => e.toJson()).toList(),
       'member_budget': memberBudget,
       'members_count': membersCount,
-      'cycle_date': cycleDate,
+      'round_date': roundDate,
       'receipts': receipts.map((e) => e.toJson()).toList(),
       'active': active,
-      'cycle_name': cycleName,
+      'round_name': roundName,
       'zone': zone,
     };
   }

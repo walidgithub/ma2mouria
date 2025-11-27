@@ -1,4 +1,4 @@
-import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/round_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
@@ -23,13 +23,13 @@ class GetRuleByEmailErrorState extends HomePageState{
 }
 class GetRuleByEmailLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class AddCycleSuccessState extends HomePageState{}
-class AddCycleErrorState extends HomePageState{
+class AddRoundSuccessState extends HomePageState{}
+class AddRoundErrorState extends HomePageState{
   final String errorMessage;
 
-  AddCycleErrorState(this.errorMessage);
+  AddRoundErrorState(this.errorMessage);
 }
-class AddCycleLoadingState extends HomePageState{}
+class AddRoundLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class AddMemberSuccessState extends HomePageState{}
 class AddMemberErrorState extends HomePageState{
@@ -39,17 +39,17 @@ class AddMemberErrorState extends HomePageState{
 }
 class AddMemberLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class GetActiveCycleSuccessState extends HomePageState{
-  final List<CycleModel> activeCycles;
+class GetActiveRoundSuccessState extends HomePageState{
+  final List<RoundModel> activeRounds;
 
-  GetActiveCycleSuccessState(this.activeCycles);
+  GetActiveRoundSuccessState(this.activeRounds);
 }
-class GetActiveCycleErrorState extends HomePageState{
+class GetActiveRoundErrorState extends HomePageState{
   final String errorMessage;
 
-  GetActiveCycleErrorState(this.errorMessage);
+  GetActiveRoundErrorState(this.errorMessage);
 }
-class GetActiveCycleLoadingState extends HomePageState{}
+class GetActiveRoundLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class GetMembersSuccessState extends HomePageState{
   final List<MemberModel> members;
@@ -107,13 +107,13 @@ class LogoutErrorState extends HomePageState{
 }
 class LogoutLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class DeleteCycleSuccessState extends HomePageState{}
-class DeleteCycleErrorState extends HomePageState{
+class DeleteRoundSuccessState extends HomePageState{}
+class DeleteRoundErrorState extends HomePageState{
   final String errorMessage;
 
-  DeleteCycleErrorState(this.errorMessage);
+  DeleteRoundErrorState(this.errorMessage);
 }
-class DeleteCycleLoadingState extends HomePageState{}
+class DeleteRoundLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class DeleteMemberSuccessState extends HomePageState{}
 class DeleteMemberErrorState extends HomePageState{
@@ -218,5 +218,13 @@ class ResetRuleErrorState extends HomePageState{
   ResetRuleErrorState(this.errorMessage);
 }
 class ResetRuleLoadingState extends HomePageState{}
+// --------------------------------------------------------
+class UploadImageSuccessState extends HomePageState{}
+class UploadImageErrorState extends HomePageState{
+  final String errorMessage;
+
+  UploadImageErrorState(this.errorMessage);
+}
+class UploadImageLoadingState extends HomePageState{}
 // --------------------------------------------------------
 class AuthNoInternetState extends HomePageState{}

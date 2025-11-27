@@ -22,7 +22,7 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
   List<ReceiptMembersModel> receiptMembersList;
   Map<String, String?>? userData;
   String selectedId;
-  String cycleName;
+  String roundName;
   String zone;
   String totalValue;
   Function clearMembersList;
@@ -31,7 +31,7 @@ class ReceiptMembersBottomSheet extends StatefulWidget {
     required this.receiptMembersList,
     required this.userData,
     required this.selectedId,
-    required this.cycleName,
+    required this.roundName,
     required this.zone,
     required this.totalValue,
     required this.clearMembersList,
@@ -51,7 +51,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<HomePageCubit>()..getReceipts(GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName)),
+      create: (context) => sl<HomePageCubit>()..getReceipts(GetReceiptsRequest(zone: widget.zone,roundName: widget.roundName)),
       child: BlocConsumer<HomePageCubit, HomePageState>(
         listener: (context, state) async {
           if (state is GetReceiptsLoadingState) {
@@ -75,7 +75,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is EditShareSuccessState) {
             hideLoading();
-            GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName);
+            GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,roundName: widget.roundName);
             HomePageCubit.get(context).getReceipts(getReceiptsRequest);
             // ------------------------------------------------------
           } else if (state is DeleteShareLoadingState) {
@@ -85,7 +85,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
             showAppSnackBar(context, state.errorMessage, type: SnackBarType.error);
           } else if (state is DeleteShareSuccessState) {
             hideLoading();
-            GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName);
+            GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,roundName: widget.roundName);
             HomePageCubit.get(context).getReceipts(getReceiptsRequest);
           }
         },
@@ -350,7 +350,7 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                     ),
                     InkWell(
                       onTap: () {
-                        GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,cycleName: widget.cycleName);
+                        GetReceiptsRequest getReceiptsRequest = GetReceiptsRequest(zone: widget.zone,roundName: widget.roundName);
                         HomePageCubit.get(context).getReceipts(getReceiptsRequest);
                       },
                       borderRadius: BorderRadius.circular(10.r),

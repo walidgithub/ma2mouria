@@ -1,10 +1,13 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ma2mouria/core/dio_error/dio_failure.dart';
 import 'package:ma2mouria/features/auth/data/model/user_model.dart';
-import 'package:ma2mouria/features/home_page/data/model/cycle_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/round_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/rules_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
+import 'package:ma2mouria/features/home_page/data/model/upload_image_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_receipt_request.dart';
@@ -20,9 +23,9 @@ import '../../../../core/firebase/error/firebase_failure.dart';
 import '../../domain/repository/home_page_repository.dart';
 import '../data_source/home_page_datasource.dart';
 import '../requests/add_member_request.dart';
-import '../requests/delete_cycle_request.dart';
+import '../requests/delete_round_request.dart';
 import '../requests/delete_member_request.dart';
-import '../requests/get_active_cycle_request.dart';
+import '../requests/get_active_round_request.dart';
 import '../requests/get_head_report_request.dart';
 import '../requests/get_members_request.dart';
 import '../requests/get_receipts_request.dart';
@@ -61,9 +64,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, void>> addCycle(CycleModel cycle) async {
+  Future<Either<FirebaseFailure, void>> addRound(RoundModel round) async {
     try {
-      final result = await _homePageDataSource.addCycle(cycle);
+      final result = await _homePageDataSource.addRound(round);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -75,9 +78,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, List<CycleModel>>> getActiveCycle() async {
+  Future<Either<FirebaseFailure, List<RoundModel>>> getActiveRound() async {
     try {
-      final result = await _homePageDataSource.getActiveCycle();
+      final result = await _homePageDataSource.getActiveRound();
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -89,9 +92,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<FirebaseFailure, void>> deleteCycle(DeleteCycleRequest deleteCycleRequest) async {
+  Future<Either<FirebaseFailure, void>> deleteRound(DeleteRoundRequest deleteRoundRequest) async {
     try {
-      final result = await _homePageDataSource.deleteCycle(deleteCycleRequest);
+      final result = await _homePageDataSource.deleteRound(deleteRoundRequest);
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleAuthError(e)));
@@ -323,6 +326,18 @@ class HomePageRepositoryImpl extends HomePageRepository {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleFirebaseError(e)));
     } catch (e) {
       return Left(FirebaseFailure(FirebaseErrorHandler.handleGenericError(e)));
+    }
+  }
+
+  @override
+  Future<Either<DioFailure, UploadedImageModel>> uploadImage(String filePath) async {
+    try {
+      final result = await _homePageDataSource.uploadImage(filePath);
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(DioFailure.fromDioException(e));
+    } catch (e) {
+      return Left(DioFailure(message: e.toString()));
     }
   }
 }

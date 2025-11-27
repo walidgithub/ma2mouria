@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ma2mouria/features/auth/data/repository_impl/auth_repository_impl.dart';
@@ -6,14 +7,14 @@ import 'package:ma2mouria/features/home_page/data/data_source/home_page_datasour
 import 'package:ma2mouria/features/home_page/data/requests/add_receipt_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
 import 'package:ma2mouria/features/home_page/domain/repository/home_page_repository.dart';
-import 'package:ma2mouria/features/home_page/domain/usecases/add_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/add_round_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/add_receipt_usecase.dart';
-import 'package:ma2mouria/features/home_page/domain/usecases/delete_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/delete_round_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_item_in_member_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_receipt_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/delete_share_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/edit_share_usecase.dart';
-import 'package:ma2mouria/features/home_page/domain/usecases/get_active_cycle_usecase.dart';
+import 'package:ma2mouria/features/home_page/domain/usecases/get_active_round_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_all_users_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_head_report_usecase.dart';
 import 'package:ma2mouria/features/home_page/domain/usecases/get_member_report_usecase.dart';
@@ -34,7 +35,9 @@ import '../../features/home_page/domain/usecases/delete_member_usecase.dart';
 import '../../features/home_page/domain/usecases/logout_usecase.dart';
 import '../../features/auth/presentaion/bloc/auth_cubit.dart';
 import '../../features/home_page/domain/usecases/update_rule_usecase.dart';
+import '../../features/home_page/domain/usecases/upload_image_usecase.dart';
 import '../../features/home_page/presentaion/bloc/home_page_cubit.dart';
+import '../network/dio_manager.dart';
 
 
 final sl = GetIt.instance;
@@ -45,6 +48,13 @@ class ServiceLocator {
     final sharedPrefs = await SharedPreferences.getInstance();
     sl.registerLazySingleton<SharedPreferences>(() => sharedPrefs);
     sl.registerLazySingleton<AppPreferences>(() => AppPreferences(sl()));
+
+    // Dio
+    sl.registerLazySingleton<DioManager>(() => DioManager());
+
+    sl.registerLazySingleton<Dio>(
+          () => sl<DioManager>().createDio(),
+    );
 
     // Firebase Auth
     final auth = FirebaseAuth.instance;
@@ -68,10 +78,10 @@ class ServiceLocator {
     //home useCases
     sl.registerLazySingleton<LogoutUseCase>(() => LogoutUseCase(sl()));
     sl.registerLazySingleton<GetRuleUseCase>(() => GetRuleUseCase(sl()));
-    sl.registerLazySingleton<AddCycleUseCase>(() => AddCycleUseCase(sl()));
+    sl.registerLazySingleton<AddRoundUseCase>(() => AddRoundUseCase(sl()));
     sl.registerLazySingleton<AddMemberUseCase>(() => AddMemberUseCase(sl()));
-    sl.registerLazySingleton<GetActiveCycleUseCase>(() => GetActiveCycleUseCase(sl()));
-    sl.registerLazySingleton<DeleteCycleUseCase>(() => DeleteCycleUseCase(sl()));
+    sl.registerLazySingleton<GetActiveRoundUseCase>(() => GetActiveRoundUseCase(sl()));
+    sl.registerLazySingleton<DeleteRoundUseCase>(() => DeleteRoundUseCase(sl()));
     sl.registerLazySingleton<DeleteMemberUseCase>(() => DeleteMemberUseCase(sl()));
     sl.registerLazySingleton<GetMembersUseCase>(() => GetMembersUseCase(sl()));
     sl.registerLazySingleton<GetUsersUseCase>(() => GetUsersUseCase(sl()));
@@ -87,10 +97,11 @@ class ServiceLocator {
     sl.registerLazySingleton<GetZonesUseCase>(() => GetZonesUseCase(sl()));
     sl.registerLazySingleton<UpdateRuleUseCase>(() => UpdateRuleUseCase(sl()));
     sl.registerLazySingleton<ResetRuleUseCase>(() => ResetRuleUseCase(sl()));
+    sl.registerLazySingleton<UploadImageUseCase>(() => UploadImageUseCase(sl()));
 
 
     // Bloc
     sl.registerFactory(() => AuthCubit(sl()));
-    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
+    sl.registerFactory(() => HomePageCubit(sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl(), sl()));
   }
 }
