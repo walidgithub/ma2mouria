@@ -47,6 +47,7 @@ import '../../data/requests/get_members_request.dart';
 import '../../data/requests/get_receipts_request.dart';
 import '../../data/requests/reset_rule_request.dart';
 import '../../data/requests/update_rule_request.dart';
+import 'package:image_picker/image_picker.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -345,6 +346,19 @@ class _HomeViewState extends State<HomeView>
         } else if (state is GetAllUsersSuccessState) {
           hideLoading();
           allUsersList = state.members;
+          // ------------------------------------------------------
+        } else if (state is UploadImageLoadingState) {
+          showLoading();
+        } else if (state is UploadImageErrorState) {
+          hideLoading();
+          showAppSnackBar(
+            context,
+            state.errorMessage,
+            type: SnackBarType.error,
+          );
+        } else if (state is UploadImageSuccessState) {
+          hideLoading();
+          _receiptLinkTextController.text = state.uploadedImageModel.url;
           // ------------------------------------------------------
         } else if (state is GetZonesLoadingState) {
           showLoading();
@@ -737,7 +751,7 @@ class _HomeViewState extends State<HomeView>
                               ),
                               if (isHead)
                                 _buildNavItem(
-                                  icon: Icons.add_to_drive_rounded,
+                                  icon: Icons.repeat_one,
                                   index: 2,
                                   isActive: _currentIndex == 2,
                                 ),
@@ -1543,8 +1557,13 @@ class _HomeViewState extends State<HomeView>
               isMobile() ? SizedBox(width: 10.w,) : SizedBox.shrink(),
               isMobile() ?
               InkWell(
-                onTap: () {
-
+                onTap: () async {
+                  final ImagePicker picker = ImagePicker();
+                  final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+                  if (file != null) {
+                    print(file?.path);
+                    HomePageCubit.get(context).uploadImage(file.path);
+                  }
                 },
                 borderRadius: BorderRadius.circular(10.r),
                 child: Container(
@@ -1555,7 +1574,7 @@ class _HomeViewState extends State<HomeView>
                     border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
                   child: Icon(
-                    Icons.camera_alt_outlined,
+                    Icons.upload,
                     color: Colors.white,
                     size: isMobile() ? 20.sp : 6.sp,
                   ),
@@ -1778,7 +1797,7 @@ class _HomeViewState extends State<HomeView>
                 onTap: () {
                   showDialog(
                     context: context,
-                    builder: (_) => ReceiptImageDialog(imageUrl: "https://ibb.co/FkBxVj13",),
+                    builder: (_) => ReceiptImageDialog(imageUrl: "https://i.ibb.co/wZK0sxqg/UI-UX-PROJECT-WORK-Community-4.jpg",),
                   );
                 },
                 borderRadius: BorderRadius.circular(10.r),

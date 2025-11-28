@@ -263,7 +263,7 @@ class HomePageCubit extends Cubit<HomePageState> {
     final result = await uploadImageUseCase.call(filePath);
     result.fold(
           (failure) => emit(UploadImageErrorState(failure.message)),
-          (uploaded) => emit(UploadImageSuccessState()),
+          (uploaded) => emit(UploadImageSuccessState(uploaded)),
     );
   }
 }

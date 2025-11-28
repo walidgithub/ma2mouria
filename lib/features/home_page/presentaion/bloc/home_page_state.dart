@@ -5,6 +5,7 @@ import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/responses/member_report_response.dart';
 
 import '../../data/model/receipt_model.dart';
+import '../../data/model/upload_image_model.dart';
 import '../../data/responses/head_report_response.dart';
 
 abstract class HomePageState{}
@@ -219,7 +220,10 @@ class ResetRuleErrorState extends HomePageState{
 }
 class ResetRuleLoadingState extends HomePageState{}
 // --------------------------------------------------------
-class UploadImageSuccessState extends HomePageState{}
+class UploadImageSuccessState extends HomePageState{
+  final UploadedImageModel uploadedImageModel;
+  UploadImageSuccessState(this.uploadedImageModel);
+}
 class UploadImageErrorState extends HomePageState{
   final String errorMessage;
 

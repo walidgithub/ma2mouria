@@ -27,47 +27,78 @@ class ReceiptImageDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxHeight: 500,
-          minWidth: 300,
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                AppStrings.receiptImage.tr(),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
+    return Stack(
+      children: [
+        Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxHeight: 500,
+              minWidth: 300,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppStrings.receiptImage.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
 
-              CachedNetworkImage(
-                imageUrl: imageUrl,
-                placeholder: (context, _) => const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(),
-                ),
-                errorWidget: (context, _, __) => const Icon(Icons.error, size: 40),
-              ),
+                  CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    placeholder: (context, _) => const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (context, _, __) =>
+                    const Icon(Icons.error, size: 40),
+                  ),
 
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Icon(
-                  Icons.close,
-                  color: AppColors.cPrimary,
-                  size: isMobile() ? 20.sp : 6.sp,
-                ),
-              )
-            ],
+                  const SizedBox(height: 20),
+
+                  // You can remove this button if you want only the top floating button
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Icon(
+                      Icons.close,
+                      color: AppColors.cPrimary,
+                      size: isMobile() ? 20.sp : 6.sp,
+                    ),
+                  )
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+
+        /// -------- Floating Close Button ----------
+        Positioned(
+          right: 20,
+          top: 20,
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
+    ;
   }
 }
