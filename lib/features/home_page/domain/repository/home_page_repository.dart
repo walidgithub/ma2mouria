@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ma2mouria/features/home_page/data/model/member_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/zones_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_share_request.dart';
@@ -48,5 +49,5 @@ abstract class HomePageRepository {
   Future<Either<FirebaseFailure, List<MemberReportResponse>>> getMemberReport(MemberReportRequest memberReportRequest);
   Future<Either<FirebaseFailure, List<HeadReportResponse>>> getHeadReport(GetHeadReportRequest getHeadReportRequest);
   Future<Either<FirebaseFailure, void>> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest);
-  Future<Either<DioFailure, UploadedImageModel>> uploadImage(String filePath);
+  Future<Either<DioFailure, UploadedImageModel>> uploadImage(XFile file);
 }

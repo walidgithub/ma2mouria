@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ma2mouria/features/home_page/data/model/receipt_model.dart';
 import 'package:ma2mouria/features/home_page/data/requests/reset_rule_request.dart';
-
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/di/di.dart';
 import '../../../../core/dio_error/dio_failure.dart';
 import '../../../../core/utils/constant/app_constants.dart';
@@ -53,7 +53,7 @@ abstract class BaseDataSource {
   Future<List<MemberReportResponse>> getMemberReport(MemberReportRequest memberReportRequest);
   Future<List<HeadReportResponse>> getHeadReport(GetHeadReportRequest getHeadReportRequest);
   Future<void> deleteItemInMemberReport(DeleteShareRequest deleteShareRequest);
-  Future<UploadedImageModel> uploadImage(String filePath);
+  Future<UploadedImageModel> uploadImage(XFile file);
 }
 
 class HomePageDataSource extends BaseDataSource {
@@ -834,10 +834,16 @@ class HomePageDataSource extends BaseDataSource {
   }
 
   @override
-  Future<UploadedImageModel> uploadImage(String filePath) async {
+  @override
+  Future<UploadedImageModel> uploadImage(XFile file) async {
     try {
+      final bytes = await file.readAsBytes();
+
       final formData = FormData.fromMap({
-        "source": await MultipartFile.fromFile(filePath),
+        "source": MultipartFile.fromBytes(
+          bytes,
+          filename: file.name,
+        ),
         "format": "json",
       });
 
@@ -851,6 +857,5 @@ class HomePageDataSource extends BaseDataSource {
       throw DioFailure.fromDioException(e);
     }
   }
-
 
 }

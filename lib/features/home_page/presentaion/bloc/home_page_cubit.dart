@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ma2mouria/features/home_page/data/requests/add_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/delete_member_request.dart';
 import 'package:ma2mouria/features/home_page/data/requests/get_head_report_request.dart';
@@ -258,9 +259,9 @@ class HomePageCubit extends Cubit<HomePageState> {
     );
   }
 
-  Future<void> uploadImage(String filePath) async {
+  Future<void> uploadImage(XFile file) async {
     emit(UploadImageLoadingState());
-    final result = await uploadImageUseCase.call(filePath);
+    final result = await uploadImageUseCase.call(file);
     result.fold(
           (failure) => emit(UploadImageErrorState(failure.message)),
           (uploaded) => emit(UploadImageSuccessState(uploaded)),

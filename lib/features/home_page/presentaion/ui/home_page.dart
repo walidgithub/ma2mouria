@@ -40,8 +40,6 @@ import '../../data/requests/add_member_request.dart';
 import '../../data/requests/delete_round_request.dart';
 import '../../data/requests/delete_share_request.dart';
 import 'dart:html' as html;
-
-import '../../data/requests/get_active_round_request.dart';
 import '../../data/requests/get_head_report_request.dart';
 import '../../data/requests/get_members_request.dart';
 import '../../data/requests/get_receipts_request.dart';
@@ -100,6 +98,7 @@ class _HomeViewState extends State<HomeView>
   List<RoundModel>? activeRounds;
   RoundModel? userActiveRoundData;
   String? selectedId;
+  String? receiptImage;
   String? selectedZone;
   String? selectedReceiptUserName;
   String selectedEmail = "";
@@ -529,6 +528,7 @@ class _HomeViewState extends State<HomeView>
           hideLoading();
           receiptMembersList = [];
           selectedId = null;
+          receiptImage = "";
           receiptsList = state.receipts;
           receiptsIds = receiptsList
               .where((receipt) => receipt.shared)
@@ -729,10 +729,10 @@ class _HomeViewState extends State<HomeView>
                             vertical: 10.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               width: 1.5,
                             ),
                           ),
@@ -812,9 +812,9 @@ class _HomeViewState extends State<HomeView>
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: Icon(
                       Icons.logout,
@@ -833,9 +833,9 @@ class _HomeViewState extends State<HomeView>
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: Icon(
                       Icons.language,
@@ -998,7 +998,7 @@ class _HomeViewState extends State<HomeView>
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         border: Border.all(color: Colors.white24),
       ),
       child: DropdownButtonHideUnderline(
@@ -1076,10 +1076,10 @@ class _HomeViewState extends State<HomeView>
               margin: EdgeInsets.symmetric(horizontal: 10.w),
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   width: isMobile() ? 1.5.w : 0.5.w,
                 ),
               ),
@@ -1106,7 +1106,7 @@ class _HomeViewState extends State<HomeView>
                         lineWidth: isMobile() ? 7.w : 3.w,
                         percent: percent,
                         circularStrokeCap: CircularStrokeCap.round,
-                        backgroundColor: Colors.white.withOpacity(0.1),
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
 
                         linearGradient: const LinearGradient(
                           colors: [
@@ -1179,7 +1179,7 @@ class _HomeViewState extends State<HomeView>
             hintStyle: const TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
             ),
             prefixIcon: Icon(
               Icons.calculate,
@@ -1292,6 +1292,7 @@ class _HomeViewState extends State<HomeView>
                         receiptMembersList = [];
                         savedReceiptId = "";
                         selectedId = null;
+                        receiptImage = "";
                         if (!isShared) {
                           isReceiptCreator = false;
                         }
@@ -1327,6 +1328,7 @@ class _HomeViewState extends State<HomeView>
                             receiptMembersList = [];
                             savedReceiptId = "";
                             selectedId = null;
+                            receiptImage = "";
                             setState(() {
                               isReceiptCreator = value!;
                             });
@@ -1354,13 +1356,13 @@ class _HomeViewState extends State<HomeView>
                             Expanded(
                               child: DropdownButtonFormField<String>(
                                 dropdownColor: const Color(0xFF2E2159),
-                                value: selectedId,
+                                initialValue: selectedId,
                                 decoration: InputDecoration(
                                   filled: true,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10.r),
                                     borderSide: BorderSide(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                     ),
                                   ),
                                 ),
@@ -1388,6 +1390,14 @@ class _HomeViewState extends State<HomeView>
                                 onChanged: (value) {
                                   setStateDropdown(() {
                                     selectedId = value;
+
+                                    receiptImage = receiptsList
+                                        .firstWhere((receipt) {
+                                      return receipt.shared == true &&
+                                          receipt.receiptId == value;
+                                    })
+                                        .receiptLink;
+
                                     selectedReceiptUserName = receiptsList
                                         .firstWhere((receipt) {
                                           return receipt.shared == true &&
@@ -1440,6 +1450,7 @@ class _HomeViewState extends State<HomeView>
                                 setStateDropdown(() {
                                   selectedId = null;
                                 });
+                                receiptImage = "";
                                 _receiptValueTextController.text = "";
                                 _receiptDetailTextController.text = "";
                                 _receiptShareTextController.text = "";
@@ -1458,10 +1469,10 @@ class _HomeViewState extends State<HomeView>
                               child: Container(
                                 padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10.r),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: Icon(
@@ -1499,7 +1510,7 @@ class _HomeViewState extends State<HomeView>
               hintStyle: TextStyle(color: Colors.white70),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.r),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               ),
             ),
           ),
@@ -1527,7 +1538,7 @@ class _HomeViewState extends State<HomeView>
               hintStyle: TextStyle(color: Colors.white70),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.r),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               ),
             ),
           ),
@@ -1539,7 +1550,7 @@ class _HomeViewState extends State<HomeView>
             children: [
               Expanded(child: TextField(
                 controller: _receiptLinkTextController,
-                enabled: true,
+                enabled: false,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: isMobile() ? 15.sp : 5.sp,
@@ -1550,7 +1561,7 @@ class _HomeViewState extends State<HomeView>
                   hintStyle: TextStyle(color: Colors.white70),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.r),
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                 ),
               )),
@@ -1561,17 +1572,16 @@ class _HomeViewState extends State<HomeView>
                   final ImagePicker picker = ImagePicker();
                   final XFile? file = await picker.pickImage(source: ImageSource.gallery);
                   if (file != null) {
-                    print(file?.path);
-                    HomePageCubit.get(context).uploadImage(file.path);
+                    HomePageCubit.get(context).uploadImage(file);
                   }
                 },
                 borderRadius: BorderRadius.circular(10.r),
                 child: Container(
                   padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Icon(
                     Icons.upload,
@@ -1609,7 +1619,7 @@ class _HomeViewState extends State<HomeView>
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.r),
                           borderSide: BorderSide(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                           ),
                         ),
                       ),
@@ -1676,11 +1686,9 @@ class _HomeViewState extends State<HomeView>
 
                     final receiptValue = double.tryParse(receiptValueText);
                     final receiptShare = double.tryParse(receiptShareText);
-                    final receiptDetail = receiptDetailText;
 
                     if (receiptValue == null ||
-                        receiptShare == null ||
-                        receiptDetail == null) {
+                        receiptShare == null) {
                       showAppSnackBar(
                         context,
                         AppStrings.validReceiptValNShare.tr(),
@@ -1744,7 +1752,7 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ),
                         ],
-                        receiptLink: "",
+                        receiptLink: _receiptLinkTextController.text,
                         receiptValue: double.parse(
                           _receiptValueTextController.text,
                         ),
@@ -1769,10 +1777,10 @@ class _HomeViewState extends State<HomeView>
                             width: 120.w,
                             height: 45.h,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20.r),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 width: isMobile() ? 1.5.w : 0.5.w,
                               ),
                             ),
@@ -1797,16 +1805,16 @@ class _HomeViewState extends State<HomeView>
                 onTap: () {
                   showDialog(
                     context: context,
-                    builder: (_) => ReceiptImageDialog(imageUrl: "https://i.ibb.co/wZK0sxqg/UI-UX-PROJECT-WORK-Community-4.jpg",),
+                    builder: (_) => ReceiptImageDialog(imageUrl: receiptImage!,),
                   );
                 },
                 borderRadius: BorderRadius.circular(10.r),
                 child: Container(
                   padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Icon(
                     Icons.image,
@@ -1881,10 +1889,10 @@ class _HomeViewState extends State<HomeView>
                                   width: 60.w,
                                   height: 45.h,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: Colors.white.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20.r),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       width: isMobile() ? 1.5.w : 0.5.w,
                                     ),
                                   ),
@@ -1936,10 +1944,10 @@ class _HomeViewState extends State<HomeView>
                                   width: 60.w,
                                   height: 45.h,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: Colors.white.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20.r),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       width: isMobile() ? 1.5.w : 0.5.w,
                                     ),
                                   ),
@@ -2024,7 +2032,7 @@ class _HomeViewState extends State<HomeView>
               hintStyle: TextStyle(color: Colors.white70),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.r),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               ),
             ),
           ),
@@ -2047,7 +2055,7 @@ class _HomeViewState extends State<HomeView>
               hintStyle: TextStyle(color: Colors.white70),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.r),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               ),
             ),
           ),
@@ -2119,10 +2127,10 @@ class _HomeViewState extends State<HomeView>
                         width: 120.w,
                         height: 45.h,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20.r),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: isMobile() ? 1.5.w : 0.5.w,
                           ),
                         ),
@@ -2157,10 +2165,10 @@ class _HomeViewState extends State<HomeView>
                         vertical: 10.h,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20.r),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           width: isMobile() ? 1.5.w : 0.5.w,
                         ),
                       ),
@@ -2310,7 +2318,7 @@ class _HomeViewState extends State<HomeView>
             hintStyle: TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
             ),
           ),
         ),
@@ -2326,9 +2334,9 @@ class _HomeViewState extends State<HomeView>
             child: Container(
               padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Icon(
                 Icons.refresh,
@@ -2363,7 +2371,7 @@ class _HomeViewState extends State<HomeView>
                         Colors.transparent,
                       ),
                       radius: const Radius.circular(10),
-                      thickness: MaterialStateProperty.all(6),
+                      thickness: WidgetStateProperty.all(6),
                     ),
                   ),
                   child: Scrollbar(
@@ -2393,10 +2401,10 @@ class _HomeViewState extends State<HomeView>
                               vertical: 10.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(15.r),
                               border: Border.all(
-                                color: Colors.orange.withOpacity(0.2),
+                                color: Colors.orange.withValues(alpha: 0.2),
                                 width: isMobile() ? 2.w : 1.w,
                               ),
                             ),
@@ -2470,7 +2478,7 @@ class _HomeViewState extends State<HomeView>
                         Colors.transparent,
                       ),
                       radius: const Radius.circular(10),
-                      thickness: MaterialStateProperty.all(6),
+                      thickness: WidgetStateProperty.all(6),
                     ),
                   ),
                   child: Scrollbar(
@@ -2493,10 +2501,10 @@ class _HomeViewState extends State<HomeView>
                             vertical: 10.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(15.r),
                             border: Border.all(
-                              color: Colors.orange.withOpacity(0.2),
+                              color: Colors.orange.withValues(alpha: 0.2),
                               width: isMobile() ? 2.w : 1.w,
                             ),
                           ),
@@ -2659,7 +2667,7 @@ class _HomeViewState extends State<HomeView>
                         Colors.transparent,
                       ),
                       radius: const Radius.circular(10),
-                      thickness: MaterialStateProperty.all(6),
+                      thickness: WidgetStateProperty.all(6),
                     ),
                   ),
                   child: Scrollbar(
@@ -2682,10 +2690,10 @@ class _HomeViewState extends State<HomeView>
                             vertical: 10.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(15.r),
                             border: Border.all(
-                              color: Colors.orange.withOpacity(0.2),
+                              color: Colors.orange.withValues(alpha: 0.2),
                               width: isMobile() ? 2.w : 1.w,
                             ),
                           ),
@@ -2756,7 +2764,7 @@ class _HomeViewState extends State<HomeView>
                         Colors.transparent,
                       ),
                       radius: const Radius.circular(10),
-                      thickness: MaterialStateProperty.all(6),
+                      thickness: WidgetStateProperty.all(6),
                     ),
                   ),
                   child: Scrollbar(
@@ -2779,10 +2787,10 @@ class _HomeViewState extends State<HomeView>
                             vertical: 10.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(15.r),
                             border: Border.all(
-                              color: Colors.orange.withOpacity(0.2),
+                              color: Colors.orange.withValues(alpha: 0.2),
                               width: isMobile() ? 2.w : 1.w,
                             ),
                           ),
@@ -2875,10 +2883,10 @@ class _HomeViewState extends State<HomeView>
               margin: EdgeInsets.symmetric(horizontal: 0.w),
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   width: isMobile() ? 1.5.w : 0.5.w,
                 ),
               ),
@@ -2971,9 +2979,9 @@ class _HomeViewState extends State<HomeView>
             child: Container(
               padding: EdgeInsets.all(isMobile() ? 8.w : 3.w),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Icon(
                 Icons.refresh,
@@ -3007,7 +3015,7 @@ class _HomeViewState extends State<HomeView>
                         Colors.transparent,
                       ),
                       radius: const Radius.circular(10),
-                      thickness: MaterialStateProperty.all(6),
+                      thickness: WidgetStateProperty.all(6),
                     ),
                   ),
                   child: Scrollbar(
@@ -3041,10 +3049,10 @@ class _HomeViewState extends State<HomeView>
                               vertical: 10.h,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(15.r),
                               border: Border.all(
-                                color: Colors.orange.withOpacity(0.2),
+                                color: Colors.orange.withValues(alpha: 0.2),
                                 width: isMobile() ? 2.w : 1.w,
                               ),
                             ),
@@ -3098,13 +3106,13 @@ class _HomeViewState extends State<HomeView>
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     dropdownColor: const Color(0xFF2E2159),
-                    value: selectedZone,
+                    initialValue: selectedZone,
                     decoration: InputDecoration(
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.r),
                         borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                       ),
                     ),
@@ -3148,13 +3156,13 @@ class _HomeViewState extends State<HomeView>
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     dropdownColor: const Color(0xFF2E2159),
-                    value: selectedPermission,
+                    initialValue: selectedPermission,
                     decoration: InputDecoration(
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.r),
                         borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                       ),
                     ),
@@ -3219,10 +3227,10 @@ class _HomeViewState extends State<HomeView>
                     width: 120.w,
                     height: 45.h,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: isMobile() ? 1.5.w : 0.5.w,
                       ),
                     ),
@@ -3262,10 +3270,10 @@ class _HomeViewState extends State<HomeView>
                     width: 120.w,
                     height: 45.h,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: isMobile() ? 1.5.w : 0.5.w,
                       ),
                     ),

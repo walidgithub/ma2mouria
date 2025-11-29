@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ma2mouria/core/dio_error/dio_failure.dart';
 import 'package:ma2mouria/features/auth/data/model/user_model.dart';
 import 'package:ma2mouria/features/home_page/data/model/round_model.dart';
@@ -330,9 +331,9 @@ class HomePageRepositoryImpl extends HomePageRepository {
   }
 
   @override
-  Future<Either<DioFailure, UploadedImageModel>> uploadImage(String filePath) async {
+  Future<Either<DioFailure, UploadedImageModel>> uploadImage(XFile file) async {
     try {
-      final result = await _homePageDataSource.uploadImage(filePath);
+      final result = await _homePageDataSource.uploadImage(file);
       return Right(result);
     } on DioException catch (e) {
       return Left(DioFailure.fromDioException(e));
