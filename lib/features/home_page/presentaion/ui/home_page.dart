@@ -357,7 +357,7 @@ class _HomeViewState extends State<HomeView>
           );
         } else if (state is UploadImageSuccessState) {
           hideLoading();
-          _receiptLinkTextController.text = state.uploadedImageModel.url;
+          _receiptLinkTextController.text = state.uploadedImageModel.secureUrl;
           // ------------------------------------------------------
         } else if (state is GetZonesLoadingState) {
           showLoading();

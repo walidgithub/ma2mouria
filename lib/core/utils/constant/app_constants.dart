@@ -6,7 +6,10 @@ class AppConstants {
   static double radius = 50.r;
   static int durationOfSnackBar = 2500;
   static int animation = 700;
-  static String baseUrl = "https://freeimage.host/api/1/upload";
-  static String apiKey = "6d207e02198a847aa98d0a2a901485a5";
+  static String baseUrl = "https://api.cloudinary.com/v1_1/demo/image/upload";
+  static String apiKey = "235817356112313";
+  static String cloudUploadPreset = "ma2mouria";
+  static String cloudName = "duxjmikzh";
+  static String apiSecret = "1RSFWzJ--7Ntvxp3Vr4B1onjAYY";
   List<String> users = [];
 }

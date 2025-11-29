@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -834,25 +836,27 @@ class HomePageDataSource extends BaseDataSource {
   }
 
   @override
-  @override
   Future<UploadedImageModel> uploadImage(XFile file) async {
     try {
-      final bytes = await file.readAsBytes();
-
       final formData = FormData.fromMap({
-        "source": MultipartFile.fromBytes(
-          bytes,
+        "file": await MultipartFile.fromBytes(
+          await file.readAsBytes(),
           filename: file.name,
         ),
-        "format": "json",
+        "upload_preset": AppConstants.cloudUploadPreset,
       });
 
       final response = await dio.post(
-        "upload?key=${AppConstants.apiKey}",
+        "https://api.cloudinary.com/v1_1/${AppConstants.cloudName}/image/upload",
         data: formData,
+        options: Options(
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        ),
       );
 
-      return UploadedImageModel.fromJson(response.data["data"]);
+      return UploadedImageModel.fromJson(response.data);
     } on DioException catch (e) {
       throw DioFailure.fromDioException(e);
     }
