@@ -1,6 +1,10 @@
 class AppStrings {
   static const String Ma2mouria = "Ma2mouria";
   static const String loading = "Loading";
+  static const String yes = "Yes";
+  static const String no = "No";
+  static const String areYouSure = "Are You Sure?";
+  static const String waning = "Warning ⚠️";
   static const String letsStart = "Let's start";
   static const String signIn = "Sign in";
   static const String leftOf = "Left of";
@@ -8,7 +12,7 @@ class AppStrings {
   static const String total = "Total";
   static const String totalPayed = "Total Payed";
   static const String hi = "Welcome!";
-  static const String typeNumbers = "Type numbers (e.g. 10+20+30)";
+  static const String calculationTest = "Calculation Test (e.g. 10+20+30)";
   static const String shared = "Shared";
   static const String receiptCreator = "Receipt Creator";
   static const String receiptValue = "Receipt Value";

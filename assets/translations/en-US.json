@@ -1,5 +1,9 @@
 {
   "Ma2mouria" : "Ma2mouria",
+  "Yes" : "Yes",
+  "No" : "No",
+  "Are You Sure?" : "Are You Sure?",
+  "Warning ⚠️" : "Warning ⚠️",
   "Loading" : "Loading",
   "Let's start" : "Let's start",
   "Sign in" : "Sign in",
@@ -8,7 +12,7 @@
   "Total" : "Total",
   "Total Payed" : "Total Payed",
   "Welcome!" : "Welcome!",
-  "Type numbers (e.g. 10+20+30)" : "Type numbers (e.g. 10+20+30)",
+  "Calculation Test (e.g. 10+20+30)" : "Calculation Test (e.g. 10+20+30)",
   "Shared" : "Shared",
   "Receipt Creator" : "Receipt Creator",
   "Receipt Value" : "Receipt Value",

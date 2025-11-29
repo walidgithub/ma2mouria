@@ -5,5 +5,7 @@ class MemberReportResponse{
   String receiptMemberId;
   String name;
   String shareValue;
-  MemberReportResponse({required this.receiptId, required this.receiptMemberId, required this.name, required this.shareValue, required this.receiptDate, required this.receiptDetail});
+  bool shared;
+  String receiptLink;
+  MemberReportResponse({required this.receiptId, required this.receiptMemberId, required this.name, required this.shareValue, required this.receiptDate, required this.receiptDetail, required this.receiptLink, required this.shared});
 }

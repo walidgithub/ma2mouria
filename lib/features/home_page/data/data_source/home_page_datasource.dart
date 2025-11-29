@@ -686,6 +686,8 @@ class HomePageDataSource extends BaseDataSource {
               receiptDate: receipt.receiptDate,
               receiptMemberId: member.id,
               name: member.name,
+              receiptLink: receipt.receiptLink,
+              shared: receipt.shared,
               shareValue: member.shareValue.toStringAsFixed(2),
             ));
           }

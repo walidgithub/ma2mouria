@@ -32,6 +32,7 @@ import '../../../../core/di/di.dart';
 import '../../../../core/preferences/app_pref.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/constant/months.dart';
+import '../../../../core/utils/ui_components/confirm_dialog.dart';
 import '../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../core/utils/ui_components/snackbar.dart';
 import '../../data/model/round_model.dart';
@@ -128,7 +129,7 @@ class _HomeViewState extends State<HomeView>
     _animation = Tween<double>(begin: startValue, end: endValue).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Curves.easeInOutCubic,
+        curve: Curves.linear,
       ),
     );
 
@@ -807,7 +808,9 @@ class _HomeViewState extends State<HomeView>
               children: [
                 Bounceable(
                   onTap: () {
-                    HomePageCubit.get(context).logout();
+                    confirmDelete(context,(){
+                      HomePageCubit.get(context).logout();
+                    });
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
@@ -1175,7 +1178,7 @@ class _HomeViewState extends State<HomeView>
           ),
           decoration: InputDecoration(
             filled: true,
-            hintText: AppStrings.typeNumbers.tr(),
+            hintText: AppStrings.calculationTest.tr(),
             hintStyle: const TextStyle(color: Colors.white70),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
@@ -1565,8 +1568,7 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
               )),
-              isMobile() ? SizedBox(width: 10.w,) : SizedBox.shrink(),
-              isMobile() ?
+              SizedBox(width: 10.w,),
               InkWell(
                 onTap: () async {
                   final ImagePicker picker = ImagePicker();
@@ -1589,7 +1591,7 @@ class _HomeViewState extends State<HomeView>
                     size: isMobile() ? 20.sp : 6.sp,
                   ),
                 ),
-              ) : SizedBox.shrink()
+              )
             ],
           ) : SizedBox.shrink(),
 
@@ -1916,15 +1918,17 @@ class _HomeViewState extends State<HomeView>
                   ? SizedBox(
                       child: Bounceable(
                         onTap: () {
-                          DeleteReceiptRequest deleteReceiptRequest =
-                              DeleteReceiptRequest(
-                                receiptId: selectedId!,
-                                roundName: userActiveRoundData!.roundName,
-                                zone: zone,
-                              );
-                          HomePageCubit.get(
-                            context,
-                          ).deleteReceipt(deleteReceiptRequest);
+                          confirmDelete(context,(){
+                            DeleteReceiptRequest deleteReceiptRequest =
+                            DeleteReceiptRequest(
+                              receiptId: selectedId!,
+                              roundName: userActiveRoundData!.roundName,
+                              zone: zone,
+                            );
+                            HomePageCubit.get(
+                              context,
+                            ).deleteReceipt(deleteReceiptRequest);
+                          });
                         },
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -2251,14 +2255,16 @@ class _HomeViewState extends State<HomeView>
                           ),
                           Bounceable(
                             onTap: () {
-                              DeleteRoundRequest deleteRoundRequest =
-                                  DeleteRoundRequest(
-                                    zone: zone,
-                                    roundName: userActiveRoundData!.roundName,
-                                  );
-                              HomePageCubit.get(
-                                context,
-                              ).deleteRound(deleteRoundRequest);
+                              confirmDelete(context,(){
+                                DeleteRoundRequest deleteRoundRequest =
+                                DeleteRoundRequest(
+                                  zone: zone,
+                                  roundName: userActiveRoundData!.roundName,
+                                );
+                                HomePageCubit.get(
+                                  context,
+                                ).deleteRound(deleteRoundRequest);
+                              });
                             },
                             child: Icon(
                               Icons.delete,
@@ -2527,21 +2533,24 @@ class _HomeViewState extends State<HomeView>
                               item.name != userData!['name']
                                   ? Bounceable(
                                       onTap: () {
-                                        DeleteMemberRequest
-                                        deleteMemberRequest =
-                                            DeleteMemberRequest(
-                                              zone: zone,
-                                              roundName:
-                                                  _roundTextController.text,
-                                              member: MemberModel(
-                                                id: item.id,
-                                                name: item.name,
-                                                email: item.email,
-                                              ),
-                                            );
-                                        HomePageCubit.get(
-                                          context,
-                                        ).deleteMember(deleteMemberRequest);
+                                        confirmDelete(context,(){
+                                          DeleteMemberRequest
+                                          deleteMemberRequest =
+                                          DeleteMemberRequest(
+                                            zone: zone,
+                                            roundName:
+                                            _roundTextController.text,
+                                            member: MemberModel(
+                                              id: item.id,
+                                              name: item.name,
+                                              email: item.email,
+                                            ),
+                                          );
+                                          HomePageCubit.get(
+                                            context,
+                                          ).deleteMember(deleteMemberRequest);
+                                        });
+
                                       },
                                       child: Icon(
                                         Icons.delete,
@@ -2810,33 +2819,56 @@ class _HomeViewState extends State<HomeView>
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  Bounceable(
-                                    onTap: () {
-                                      DeleteShareRequest deleteShareRequest =
-                                          DeleteShareRequest(
-                                            zone: zone,
-                                            receiptId: item.receiptId,
-                                            receiptMembersModel:
-                                                ReceiptMembersModel(
-                                                  shareValue: double.parse(
-                                                    item.shareValue,
-                                                  ),
-                                                  name: item.name,
-                                                  id: item.receiptMemberId,
-                                                ),
+                                  Row(
+                                    children: [
+                                      item.shared ?
+                                      Bounceable(
+                                        onTap: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) => ReceiptImageDialog(imageUrl: item.receiptLink,),
                                           );
-                                      HomePageCubit.get(
-                                        context,
-                                      ).deleteItemInMemberReport(
-                                        deleteShareRequest,
-                                      );
-                                    },
-                                    child: Icon(
-                                      Icons.delete,
-                                      color: Colors.redAccent,
-                                      size: isMobile() ? 20.w : 6.sp,
-                                    ),
-                                  ),
+                                        },
+                                        child: Icon(
+                                          Icons.image,
+                                          color: Colors.grey,
+                                          size: isMobile() ? 20.w : 6.sp,
+                                        ),
+                                      ) : SizedBox.shrink(),
+                                      item.shared ?
+                                      SizedBox(width: 20.w,) : SizedBox.shrink(),
+                                      Bounceable(
+                                        onTap: () {
+                                          confirmDelete(context,(){
+                                            DeleteShareRequest deleteShareRequest =
+                                            DeleteShareRequest(
+                                              zone: zone,
+                                              receiptId: item.receiptId,
+                                              receiptMembersModel:
+                                              ReceiptMembersModel(
+                                                shareValue: double.parse(
+                                                  item.shareValue,
+                                                ),
+                                                name: item.name,
+                                                id: item.receiptMemberId,
+                                              ),
+                                            );
+                                            HomePageCubit.get(
+                                              context,
+                                            ).deleteItemInMemberReport(
+                                              deleteShareRequest,
+                                            );
+                                          });
+
+                                        },
+                                        child: Icon(
+                                          Icons.delete,
+                                          color: Colors.redAccent,
+                                          size: isMobile() ? 20.w : 6.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  )
                                 ],
                               ),
 

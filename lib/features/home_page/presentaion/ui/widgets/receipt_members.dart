@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,9 +7,10 @@ import 'package:flutter_bounceable/flutter_bounceable.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:ma2mouria/core/utils/constant/app_strings.dart';
 import 'package:ma2mouria/features/home_page/data/requests/edit_share_request.dart';
-
+import 'package:web/web.dart' as web;
 import '../../../../../core/di/di.dart';
 import '../../../../../core/utils/style/app_colors.dart';
+import '../../../../../core/utils/ui_components/confirm_dialog.dart';
 import '../../../../../core/utils/ui_components/custom_divider.dart';
 import '../../../../../core/utils/ui_components/loading_dialog.dart';
 import '../../../../../core/utils/ui_components/snackbar.dart';
@@ -47,6 +49,19 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
       TextEditingController();
 
   String? editingMemberId;
+
+  bool isMobile() {
+    if (kIsWeb) {
+      final ua = web.window.navigator.userAgent.toLowerCase();
+      return ua.contains("iphone") ||
+          ua.contains("android") ||
+          ua.contains("ipad") ||
+          ua.contains("mobile");
+    } else {
+      return defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -261,17 +276,19 @@ class _ReceiptMembersBottomSheetState extends State<ReceiptMembersBottomSheet> {
                                         SizedBox(width: 15.w),
                                         Bounceable(
                                           onTap: () {
-                                            DeleteShareRequest
-                                            deleteShareRequest = DeleteShareRequest(
-                                              receiptId: widget.selectedId,
-                                              receiptMembersModel:
-                                              ReceiptMembersModel(
-                                                shareValue: item.shareValue,
-                                                name: item.name,
-                                                id: item.id,
-                                              ), zone: widget.zone
-                                            );
-                                            HomePageCubit.get(context).deleteShare(deleteShareRequest);
+                                            confirmDelete(context,(){
+                                              DeleteShareRequest
+                                              deleteShareRequest = DeleteShareRequest(
+                                                  receiptId: widget.selectedId,
+                                                  receiptMembersModel:
+                                                  ReceiptMembersModel(
+                                                    shareValue: item.shareValue,
+                                                    name: item.name,
+                                                    id: item.id,
+                                                  ), zone: widget.zone
+                                              );
+                                              HomePageCubit.get(context).deleteShare(deleteShareRequest);
+                                            });
                                           },
                                           child: Icon(
                                             Icons.delete,
